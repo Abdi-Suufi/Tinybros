@@ -203,6 +203,9 @@ export default function WatchPage({ params }: { params: { type: string; id: stri
             allowFullScreen
             allow="fullscreen"
             style={{ border: 'none' }}
+            sandbox="allow-scripts allow-same-origin allow-presentation allow-forms"
+            referrerPolicy="no-referrer"
+            loading="lazy"
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
