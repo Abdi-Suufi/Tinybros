@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { fetchMovies, getImageUrl, TMDBShow } from '@/lib/tmdb';
+import Link from 'next/link';
+import Loading from '@/components/Loading';
 
 export default function MoviesPage() {
   const [movies, setMovies] = useState<TMDBShow[]>([]);
@@ -26,11 +28,7 @@ export default function MoviesPage() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
-      </div>
-    );
+    return <Loading />;
   }
 
   return (

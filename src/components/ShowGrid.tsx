@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { TMDBShow, getImageUrl } from '@/lib/tmdb';
+import Loading from '@/components/Loading';
 
 interface ShowGridProps {
   getShows: () => Promise<TMDBShow[]>;
@@ -29,11 +30,7 @@ export default function ShowGrid({ getShows }: ShowGridProps) {
   }, [getShows]);
 
   if (loading) {
-    return (
-      <div className="min-h-[50vh] flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
-      </div>
-    );
+    return <Loading />;
   }
 
   return (

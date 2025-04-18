@@ -6,6 +6,7 @@ import { getImageUrl } from '@/lib/tmdb';
 import Image from 'next/image';
 import Link from 'next/link';
 import { DiscussionEmbed } from 'disqus-react';
+import Loading from '@/components/Loading';
 
 interface ShowDetails {
   id: number;
@@ -112,11 +113,7 @@ export default function WatchPage({ params }: { params: { type: string; id: stri
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
-      </div>
-    );
+    return <Loading />;
   }
 
   if (!show) {
@@ -196,7 +193,7 @@ export default function WatchPage({ params }: { params: { type: string; id: stri
       </header>
 
       {/* Video Player */}
-      <div className="relative w-full aspect-video bg-gray-900">
+      <div className="relative w-full max-w-5xl mx-auto aspect-video bg-gray-900 rounded-lg overflow-hidden shadow-2xl my-8">
         {showPlayer ? (
           <iframe
             src={getCurrentSourceUrl()}
