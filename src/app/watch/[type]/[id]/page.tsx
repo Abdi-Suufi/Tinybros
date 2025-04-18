@@ -110,6 +110,12 @@ export default function WatchPage({ params }: { params: { type: string; id: stri
     return source ? source.url : playbackSources[0].url;
   };
 
+  // Handle iframe error
+  const handleIframeError = () => {
+    setShowPlayer(false);
+    alert('This source is currently unavailable. Please try another source.');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -203,9 +209,6 @@ export default function WatchPage({ params }: { params: { type: string; id: stri
             allowFullScreen
             allow="fullscreen"
             style={{ border: 'none' }}
-            sandbox="allow-scripts allow-same-origin allow-presentation allow-forms"
-            referrerPolicy="no-referrer"
-            loading="lazy"
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
