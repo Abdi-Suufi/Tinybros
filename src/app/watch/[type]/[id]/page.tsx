@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { getImageUrl } from '@/lib/tmdb';
 import Image from 'next/image';
 import Link from 'next/link';
+import { DiscussionEmbed } from 'disqus-react';
 
 interface ShowDetails {
   id: number;
@@ -237,6 +238,20 @@ export default function WatchPage({ params }: { params: { type: string; id: stri
             </div>
           </div>
         )}
+      </div>
+
+      {/* Disqus Comments */}
+      <div className="container mx-auto px-4 py-8">
+        <h2 className="text-2xl font-bold mb-6">Comments</h2>
+        <DiscussionEmbed
+          shortname="your-disqus-shortname"
+          config={{
+            url: `https://tinybros.vercel.app/watch/${params.type}/${params.id}${params.type === 'tv' ? `?season=${searchParams.get('season') || '1'}&episode=${searchParams.get('episode') || '1'}` : ''}`,
+            identifier: `${params.type}-${params.id}${params.type === 'tv' ? `-s${searchParams.get('season') || '1'}-e${searchParams.get('episode') || '1'}` : ''}`,
+            title: show.title || show.name,
+            language: 'en'
+          }}
+        />
       </div>
 
       {/* Show Info */}
