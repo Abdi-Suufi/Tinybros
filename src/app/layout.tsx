@@ -20,7 +20,7 @@ export default function RootLayout({
     <html lang="en" className="bg-black text-white">
       <body className={`${inter.className} min-h-screen`} suppressHydrationWarning>
         <nav className="bg-black/80 backdrop-blur-sm border-b border-gray-800 sticky top-0 z-50">
-          <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+          <div className="w-full px-4 py-3 flex justify-between items-center">
             <Link href="/" className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-teal-500 hover:opacity-90 transition-opacity">
               TinyBros
             </Link>
@@ -40,7 +40,7 @@ export default function RootLayout({
             </div>
           </div>
         </nav>
-        <main className="container mx-auto px-4">
+        <main className="w-full">
           {children}
         </main>
         <Analytics />
