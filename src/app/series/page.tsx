@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { fetchTVShows, getImageUrl, TMDBShow } from '@/lib/tmdb';
-import Link from 'next/link';
 import Loading from '@/components/Loading';
 
 export default function SeriesPage() {
