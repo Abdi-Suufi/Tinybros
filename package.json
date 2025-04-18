@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@vercel/analytics": "^1.5.0",
+    "disqus-react": "^1.1.6",
     "g3watch": "file:",
     "next": "15.3.0",
     "react": "^19.0.0",

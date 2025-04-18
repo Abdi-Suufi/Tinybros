@@ -110,12 +110,6 @@ export default function WatchPage({ params }: { params: { type: string; id: stri
     return source ? source.url : playbackSources[0].url;
   };
 
-  // Handle iframe error
-  const handleIframeError = () => {
-    setShowPlayer(false);
-    alert('This source is currently unavailable. Please try another source.');
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -245,34 +239,6 @@ export default function WatchPage({ params }: { params: { type: string; id: stri
         )}
       </div>
 
-      {/* Source Selector (when player is active) */}
-      {showPlayer && (
-        <div className="bg-gray-900 p-4 flex justify-center">
-          <div className="flex flex-wrap gap-3">
-            {playbackSources.map((source) => (
-              <button
-                key={source.id}
-                onClick={() => handleSourceChange(source.id)}
-                className={`px-4 py-2 rounded-full text-white font-semibold transition-all ${
-                  selectedSource === source.id
-                    ? source.id === 'vidsrc'
-                      ? 'bg-gradient-to-r from-sky-600 to-teal-600 ring-2 ring-sky-400 ring-offset-2 ring-offset-black'
-                      : 'bg-gradient-to-r from-sky-600 to-teal-600'
-                    : source.id === 'vidsrc'
-                      ? 'bg-gray-800 hover:bg-gray-700 ring-1 ring-sky-400/50'
-                      : 'bg-gray-800 hover:bg-gray-700'
-                }`}
-              >
-                {source.name}
-                {source.id === 'vidsrc' && (
-                  <span className="ml-1 text-xs bg-sky-400 text-black px-1.5 py-0.5 rounded-full">★</span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Show Info */}
       <div className="container mx-auto px-4 py-8">
         <div className="flex gap-8">
@@ -354,6 +320,34 @@ export default function WatchPage({ params }: { params: { type: string; id: stri
           </div>
         )}
       </div>
+
+      {/* Source Selector (when player is active) */}
+      {showPlayer && (
+        <div className="bg-gray-900 p-4 flex justify-center">
+          <div className="flex flex-wrap gap-3">
+            {playbackSources.map((source) => (
+              <button
+                key={source.id}
+                onClick={() => handleSourceChange(source.id)}
+                className={`px-4 py-2 rounded-full text-white font-semibold transition-all ${
+                  selectedSource === source.id
+                    ? source.id === 'vidsrc'
+                      ? 'bg-gradient-to-r from-sky-600 to-teal-600 ring-2 ring-sky-400 ring-offset-2 ring-offset-black'
+                      : 'bg-gradient-to-r from-sky-600 to-teal-600'
+                    : source.id === 'vidsrc'
+                      ? 'bg-gray-800 hover:bg-gray-700 ring-1 ring-sky-400/50'
+                      : 'bg-gray-800 hover:bg-gray-700'
+                }`}
+              >
+                {source.name}
+                {source.id === 'vidsrc' && (
+                  <span className="ml-1 text-xs bg-sky-400 text-black px-1.5 py-0.5 rounded-full">★</span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
