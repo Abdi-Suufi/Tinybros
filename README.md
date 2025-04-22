@@ -1,4 +1,4 @@
-# G3WATCH
+# TINYBROS
 
 A modern streaming platform UI built with Next.js and Tailwind CSS.
 
