@@ -25,9 +25,6 @@ export default function RootLayout({
               TinyBros
             </Link>
             <div className="flex space-x-6">
-              <Link href="/" className="text-gray-300 hover:text-white transition-colors">
-                Home
-              </Link>
               <Link href="/movies" className="text-gray-300 hover:text-white transition-colors">
                 Movies
               </Link>

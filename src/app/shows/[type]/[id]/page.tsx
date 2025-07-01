@@ -36,21 +36,7 @@ export default function ShowPage({ params }: { params: Promise<{ type: string; i
     <div className="min-h-screen bg-black text-white">
       {/* Navigation Header */}
       <header className="absolute top-0 left-0 right-0 z-50 p-4 flex justify-between items-center bg-black/70 backdrop-blur-sm">
-        <Link href="/" className="inline-block flex items-center gap-2 group">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 text-sky-400 group-hover:text-sky-300 transition-colors"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-            />
-          </svg>
+        <Link href="/" className="inline-block group">
           <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-teal-500 group-hover:opacity-90 transition-opacity">
             TinyBros
           </h1>
