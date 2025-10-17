@@ -63,7 +63,7 @@ export default function AnimePage() {
             .map((show) => (
               <div
                 key={show.id}
-                onClick={() => router.push(`/shows/tv/${show.id}`)}
+                onClick={() => router.push(`/shows/series/${show.id}`)}
                 className="rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group"
               >
                 <div className="relative aspect-[2/3]">

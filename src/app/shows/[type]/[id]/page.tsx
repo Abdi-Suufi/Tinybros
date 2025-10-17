@@ -17,7 +17,7 @@ async function getShowDetails(type: string, id: string): Promise<TMDBShow> {
 
 async function getEpisodes(showId: string, season: number): Promise<TMDBSeason | null> {
   const response = await fetch(
-    `https://api.themoviedb.org/3/tv/${showId}/season/${season}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
+    `https://api.themoviedb.org/3/series/${showId}/season/${season}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
   );
   
   if (!response.ok) {
