@@ -28,7 +28,7 @@ export default function RootLayout({
               <Link href="/movies" className="text-gray-300 hover:text-white transition-colors">
                 Movies
               </Link>
-              <Link href="/tv" className="text-gray-300 hover:text-white transition-colors">
+              <Link href="/series" className="text-gray-300 hover:text-white transition-colors">
                 TV Shows
               </Link>
               <Link href="/anime" className="text-gray-300 hover:text-white transition-colors">
