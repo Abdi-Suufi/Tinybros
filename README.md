@@ -8,6 +8,7 @@ TinyBros is designed to be your gateway to the future of entertainment. It's a c
 
 ## ✨ Features
 <img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/2500887d-4960-430a-a526-40b64a6db060" />
+
 ### 🎯 Content Discovery
 - **Trending Content**: Curated trending movies and shows updated weekly
 - **Categorized Browsing**: Dedicated sections for Movies, TV Shows, and Anime
