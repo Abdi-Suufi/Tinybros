@@ -1,4 +1,4 @@
-# TinyBros 🎬
+# TinyBros🎬
 <img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/7d0c76cb-d4c0-4eb6-9ee0-2979f203ec79" />
 A modern, clean streaming platform that provides access to movies, TV shows, and anime with an intuitive user interface and seamless viewing experience.
 
