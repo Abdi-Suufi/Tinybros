@@ -12,9 +12,9 @@
     "@vercel/analytics": "^1.5.0",
     "disqus-react": "^1.1.6",
     "g3watch": "file:",
-    "next": "15.3.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "next": "^15.3.6",
+    "react": "^19.0.1",
+    "react-dom": "^19.0.1",
     "tailwind-scrollbar-hide": "^2.0.0"
   },
   "devDependencies": {
@@ -24,7 +24,7 @@
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "eslint": "^9",
-    "eslint-config-next": "15.3.0",
+    "eslint-config-next": "^15.3.6",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
