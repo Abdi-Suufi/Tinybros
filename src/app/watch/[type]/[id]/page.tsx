@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { getImageUrl } from '@/lib/tmdb';
 import Image from 'next/image';
@@ -34,7 +34,8 @@ interface PlaybackSource {
   url: string;
 }
 
-export default function WatchPage({ params }: { params: { type: string; id: string } }) {
+export default function WatchPage({ params }: { params: Promise<{ type: string; id: string }> }) {
+  const resolvedParams = use(params);
   const searchParams = useSearchParams();
   const [show, setShow] = useState<ShowDetails | null>(null);
   const [episodes, setEpisodes] = useState<Episode[]>([]);
@@ -48,17 +49,17 @@ export default function WatchPage({ params }: { params: { type: string; id: stri
     { 
       id: 'vidsrc', 
       name: 'VidSrc', 
-      url: `https://vidsrc.xyz/embed/${params.type}/${params.id}${params.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}` 
+      url: `https://vidsrc.xyz/embed/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}` 
     },
     { 
       id: 'vidsrc-to', 
       name: 'VidSrc.to', 
-      url: `https://vidsrc.to/embed/${params.type}/${params.id}${params.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}` 
+      url: `https://vidsrc.to/embed/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}` 
     },
     { 
       id: 'superembed', 
       name: 'SuperEmbed', 
-      url: `https://multiembed.mov/?video_id=${params.id}&tmdb=1${params.type === 'tv' ? `&s=${searchParams.get('season') || '1'}&e=${searchParams.get('episode') || '1'}` : ''}` 
+      url: `https://multiembed.mov/?video_id=${resolvedParams.id}&tmdb=1${resolvedParams.type === 'tv' ? `&s=${searchParams.get('season') || '1'}&e=${searchParams.get('episode') || '1'}` : ''}` 
     }
   ];
 
@@ -67,7 +68,7 @@ export default function WatchPage({ params }: { params: { type: string; id: stri
       try {
         // Fetch show details
         const showResponse = await fetch(
-          `https://api.themoviedb.org/3/${params.type}/${params.id}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
+          `https://api.themoviedb.org/3/${resolvedParams.type}/${resolvedParams.id}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
         );
         
         if (!showResponse.ok) {
@@ -78,10 +79,10 @@ export default function WatchPage({ params }: { params: { type: string; id: stri
         setShow(showData);
 
         // If it's a TV show, fetch episodes
-        if (params.type === 'tv') {
+        if (resolvedParams.type === 'tv') {
           const season = searchParams.get('season') || '1';
           const episodesResponse = await fetch(
-            `https://api.themoviedb.org/3/tv/${params.id}/season/${season}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
+            `https://api.themoviedb.org/3/tv/${resolvedParams.id}/season/${season}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
           );
           
           if (episodesResponse.ok) {
@@ -98,7 +99,7 @@ export default function WatchPage({ params }: { params: { type: string; id: stri
     };
 
     fetchData();
-  }, [params.id, params.type, searchParams]);
+  }, [resolvedParams.id, resolvedParams.type, searchParams]);
 
   // Handle source change
   const handleSourceChange = (sourceId: string) => {
@@ -156,7 +157,7 @@ export default function WatchPage({ params }: { params: { type: string; id: stri
         </Link>
         <div className="flex items-center gap-4">
           <Link
-            href={`/shows/${params.type}/${params.id}`}
+            href={`/shows/${resolvedParams.type}/${resolvedParams.id}`}
             className="text-white hover:text-gray-300 transition-colors flex items-center gap-1"
           >
             <svg
@@ -179,17 +180,19 @@ export default function WatchPage({ params }: { params: { type: string; id: stri
       </header>
 
       {/* Video Player */}
-      <div className="relative w-full max-w-5xl mx-auto aspect-video bg-gray-900 rounded-lg overflow-hidden shadow-2xl my-8">
+      <div className="w-full max-w-5xl mx-auto my-8">
         {showPlayer ? (
-          <iframe
-            src={getCurrentSourceUrl()}
-            className="w-full h-full"
-            allowFullScreen
-            allow="fullscreen"
-            style={{ border: 'none' }}
-          />
+          <div className="relative w-full aspect-video bg-gray-900 rounded-lg shadow-2xl">
+            <iframe
+              src={getCurrentSourceUrl()}
+              className="w-full h-full rounded-lg"
+              allowFullScreen={true}
+              allow="fullscreen; autoplay; encrypted-media; picture-in-picture; web-share; accelerometer; gyroscope"
+              style={{ border: 'none' }}
+            />
+          </div>
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="relative w-full aspect-video bg-gray-900 rounded-lg overflow-hidden shadow-2xl flex items-center justify-center">
             <div className="text-center">
               <h1 className="text-4xl font-bold mb-4">{show.title || show.name}</h1>
               {searchParams.get('episode') && (
@@ -221,20 +224,6 @@ export default function WatchPage({ params }: { params: { type: string; id: stri
             </div>
           </div>
         )}
-      </div>
-
-      {/* Disqus Comments */}
-      <div className="container mx-auto px-4 py-8">
-        <h2 className="text-2xl font-bold mb-6">Comments</h2>
-        <DiscussionEmbed
-          shortname="tinybros"
-          config={{
-            url: `https://tinybros.vercel.app/watch/${params.type}/${params.id}${params.type === 'tv' ? `?season=${searchParams.get('season') || '1'}&episode=${searchParams.get('episode') || '1'}` : ''}`,
-            identifier: `${params.type}-${params.id}${params.type === 'tv' ? `-s${searchParams.get('season') || '1'}-e${searchParams.get('episode') || '1'}` : ''}`,
-            title: show.title || show.name,
-            language: 'en'
-          }}
-        />
       </div>
 
       {/* Source Selector (when player is active) */}
@@ -289,7 +278,7 @@ export default function WatchPage({ params }: { params: { type: string; id: stri
         </div>
 
         {/* Episodes (for TV shows) */}
-        {params.type === 'tv' && episodes.length > 0 && (
+        {resolvedParams.type === 'tv' && episodes.length > 0 && (
           <div className="mt-16">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-teal-500">
@@ -334,7 +323,7 @@ export default function WatchPage({ params }: { params: { type: string; id: stri
                       {episode.overview}
                     </p>
                     <Link
-                      href={`/watch/${params.type}/${params.id}?season=${selectedSeason}&episode=${episode.episode_number}`}
+                      href={`/watch/${resolvedParams.type}/${resolvedParams.id}?season=${selectedSeason}&episode=${episode.episode_number}`}
                       className="inline-block w-full text-center px-4 py-2 bg-gradient-to-r from-sky-600 to-teal-600 rounded-full font-semibold hover:opacity-90 transition-opacity"
                     >
                       Watch Episode
@@ -345,6 +334,20 @@ export default function WatchPage({ params }: { params: { type: string; id: stri
             </div>
           </div>
         )}
+
+        {/* Disqus Comments */}
+        <div className="mt-16">
+          <h2 className="text-2xl font-bold mb-6">Comments</h2>
+          <DiscussionEmbed
+            shortname="tinybros"
+            config={{
+              url: `https://tinybros.vercel.app/watch/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `?season=${searchParams.get('season') || '1'}&episode=${searchParams.get('episode') || '1'}` : ''}`,
+              identifier: `${resolvedParams.type}-${resolvedParams.id}${resolvedParams.type === 'tv' ? `-s${searchParams.get('season') || '1'}-e${searchParams.get('episode') || '1'}` : ''}`,
+              title: show.title || show.name,
+              language: 'en'
+            }}
+          />
+        </div>
       </div>
     </div>
   );

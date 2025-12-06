@@ -29,10 +29,25 @@ export default function Home() {
           fetchTVShows(),
           fetchAnime()
         ]);
-        setTrending(trendingData);
-        setMovies(moviesData);
-        setSeries(seriesData);
-        setAnime(animeData);
+        
+        // Remove duplicates based on ID
+        const uniqueTrending = Array.from(
+          new Map(trendingData.map(item => [item.id, item])).values()
+        );
+        const uniqueMovies = Array.from(
+          new Map(moviesData.map(item => [item.id, item])).values()
+        );
+        const uniqueSeries = Array.from(
+          new Map(seriesData.map(item => [item.id, item])).values()
+        );
+        const uniqueAnime = Array.from(
+          new Map(animeData.map(item => [item.id, item])).values()
+        );
+        
+        setTrending(uniqueTrending);
+        setMovies(uniqueMovies);
+        setSeries(uniqueSeries);
+        setAnime(uniqueAnime);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -124,12 +139,26 @@ export default function Home() {
       <style jsx global>{`
         /* Custom scrollbar styling */
         .scrollbar-hide::-webkit-scrollbar {
-          display: none;
+          height: 8px;
+        }
+        
+        .scrollbar-hide::-webkit-scrollbar-track {
+          background: #000;
+          border-radius: 4px;
+        }
+        
+        .scrollbar-hide::-webkit-scrollbar-thumb {
+          background: linear-gradient(to right, #0ea5e9, #14b8a6);
+          border-radius: 4px;
+        }
+        
+        .scrollbar-hide::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(to right, #0284c7, #0d9488);
         }
         
         .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
+          scrollbar-width: thin;
+          scrollbar-color: #0ea5e9 #000;
         }
 
         /* Snap scrolling */
@@ -166,7 +195,7 @@ export default function Home() {
         >
           {trending.map((show, index) => (
             <div
-              key={show.id}
+              key={`trending-${show.id}-${index}`}
               className="relative flex-none w-full h-full snap-center"
             >
               <div className="relative w-full h-full">
@@ -235,7 +264,7 @@ export default function Home() {
             <div className="flex overflow-x-auto gap-6 pb-6 scrollbar-hide">
               {trending.map((show, index) => (
                 <div
-                  key={show.id}
+                  key={`trending-list-${show.id}-${index}`}
                   onClick={() => handleShowClick(show.id, show.media_type)}
                   className="flex-none w-[400px] rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group relative"
                 >
@@ -270,9 +299,9 @@ export default function Home() {
           <h2 className="text-2xl font-bold mb-6">Movies</h2>
           <div className="relative">
             <div className="flex overflow-x-auto gap-6 pb-6 scrollbar-hide">
-              {movies.map((movie) => (
+              {movies.map((movie, index) => (
                 <div
-                  key={movie.id}
+                  key={`movie-${movie.id}-${index}`}
                   onClick={() => handleShowClick(movie.id, 'movie')}
                   className="flex-none w-[300px] rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group"
                 >
@@ -300,9 +329,9 @@ export default function Home() {
           <h2 className="text-2xl font-bold mb-6">TV Shows</h2>
           <div className="relative">
             <div className="flex overflow-x-auto gap-6 pb-6 scrollbar-hide">
-              {series.map((show) => (
+              {series.map((show, index) => (
                 <div
-                  key={show.id}
+                  key={`series-${show.id}-${index}`}
                   onClick={() => handleShowClick(show.id, 'tv')}
                   className="flex-none w-[300px] rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group"
                 >
@@ -330,9 +359,9 @@ export default function Home() {
           <h2 className="text-2xl font-bold mb-6">Anime</h2>
           <div className="relative">
             <div className="flex overflow-x-auto gap-6 pb-6 scrollbar-hide">
-              {anime.map((show) => (
+              {anime.map((show, index) => (
                 <div
-                  key={show.id}
+                  key={`anime-${show.id}-${index}`}
                   onClick={() => handleShowClick(show.id, 'tv')}
                   className="flex-none w-[300px] rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group"
                 >
