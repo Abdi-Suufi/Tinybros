@@ -43,10 +43,6 @@ export default function Home() {
     fetchData();
   }, []);
 
-  const scrollToContent = () => {
-    moviesRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   const handleShowClick = (id: number, mediaType: string) => {
     router.push(`/shows/${mediaType}/${id}`);
   };
