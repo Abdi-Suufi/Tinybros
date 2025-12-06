@@ -9,14 +9,12 @@ const nextConfig: NextConfig = {
         pathname: '/t/p/**',
       },
     ],
-    domains: ['image.tmdb.org'],
     minimumCacheTTL: 60,
     formats: ['image/avif', 'image/webp'],
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
-  output: 'standalone',
   typescript: {
     ignoreBuildErrors: true,
   },
