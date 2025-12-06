@@ -1,20 +1,24 @@
 'use client';
 
 import Image from "next/image";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { fetchTrending, fetchMovies, fetchTVShows, fetchAnime, getImageUrl, TMDBShow } from "@/lib/tmdb";
 import Loading from '@/components/Loading';
 
 export default function Home() {
   const moviesRef = useRef<HTMLDivElement>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState("");
   const [trending, setTrending] = useState<TMDBShow[]>([]);
   const [movies, setMovies] = useState<TMDBShow[]>([]);
   const [series, setSeries] = useState<TMDBShow[]>([]);
   const [anime, setAnime] = useState<TMDBShow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,12 +51,73 @@ export default function Home() {
     router.push(`/shows/${mediaType}/${id}`);
   };
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!carouselRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - carouselRef.current.offsetLeft);
+    setScrollLeft(carouselRef.current.scrollLeft);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !carouselRef.current) return;
     e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
+    const x = e.pageX - carouselRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    carouselRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!carouselRef.current) return;
+    setIsDragging(true);
+    setStartX(e.touches[0].pageX - carouselRef.current.offsetLeft);
+    setScrollLeft(carouselRef.current.scrollLeft);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !carouselRef.current) return;
+    const x = e.touches[0].pageX - carouselRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    carouselRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
+  const goToSlide = (index: number) => {
+    setCurrentIndex(index);
+    if (carouselRef.current) {
+      carouselRef.current.scrollTo({
+        left: index * carouselRef.current.offsetWidth,
+        behavior: 'smooth'
+      });
     }
   };
+
+  const handleScroll = useCallback(() => {
+    if (!carouselRef.current) return;
+    const scrollPosition = carouselRef.current.scrollLeft;
+    const slideWidth = carouselRef.current.offsetWidth;
+    const newIndex = Math.round(scrollPosition / slideWidth);
+    setCurrentIndex(newIndex);
+  }, []);
+
+  useEffect(() => {
+    const carousel = carouselRef.current;
+    if (carousel) {
+      carousel.addEventListener('scroll', handleScroll);
+      return () => carousel.removeEventListener('scroll', handleScroll);
+    }
+  }, [handleScroll, trending]);
+
 
   if (loading) {
     return <Loading />;
@@ -63,98 +128,106 @@ export default function Home() {
       <style jsx global>{`
         /* Custom scrollbar styling */
         .scrollbar-hide::-webkit-scrollbar {
-          height: 8px;
+          display: none;
         }
         
-        .scrollbar-hide::-webkit-scrollbar-track {
-          background: #000;
-          border-radius: 4px;
-        }
-        
-        .scrollbar-hide::-webkit-scrollbar-thumb {
-          background: linear-gradient(to right, #0ea5e9, #14b8a6);
-          border-radius: 4px;
-        }
-        
-        .scrollbar-hide::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(to right, #0284c7, #0d9488);
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
         }
 
-        /* Arrow animation */
-        @keyframes bounce {
-          0%, 100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(10px);
-          }
+        /* Snap scrolling */
+        .snap-x {
+          scroll-snap-type: x mandatory;
+        }
+        
+        .snap-center {
+          scroll-snap-align: center;
+        }
+
+        /* Line clamp */
+        .line-clamp-3 {
+          display: -webkit-box;
+          -webkit-line-clamp: 3;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
         }
       `}</style>
 
-      {/* Hero Section */}
-      <section className="relative h-[60vh] flex items-center justify-center">
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-black/90 z-10" />
-        <div className="relative z-20 text-center w-full max-w-4xl mx-auto px-4">
-          <h1 className="text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-teal-500">
-            TinyBros
-          </h1>
-          <p className="text-xl text-gray-300 mb-8">
-            Your gateway to the future of entertainment
-          </p>
-          
-          {/* Search Bar */}
-          <form onSubmit={handleSearch} className="relative mb-8 max-w-2xl mx-auto">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search for movies, series, or anime..."
-              className="w-full bg-black/80 border border-gray-700 rounded-full py-3 px-6 text-white placeholder-gray-400 focus:outline-none focus:border-gray-500 transition-colors"
-            />
-            <button
-              type="submit"
-              className="absolute right-6 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+      {/* Trending Shows Hero Carousel */}
+      <section className="relative h-[70vh] bg-black overflow-hidden">
+        <div
+          ref={carouselRef}
+          className="flex h-full overflow-x-scroll snap-x snap-mandatory scrollbar-hide"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+        >
+          {trending.map((show, index) => (
+            <div
+              key={show.id}
+              className="relative flex-none w-full h-full snap-center"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              <div className="relative w-full h-full">
+                <Image
+                  src={getImageUrl(show.backdrop_path, 'original')}
+                  alt={show.title || show.name || ''}
+                  fill
+                  className="object-cover"
+                  quality={100}
+                  priority={index === 0}
+                  sizes="100vw"
                 />
-              </svg>
-            </button>
-          </form>
-
-          <div className="flex justify-center">
-            <button 
-              onClick={scrollToContent}
-              className="bg-gradient-to-r from-sky-600 to-teal-600 px-8 py-3 rounded-full text-lg font-semibold hover:opacity-90 transition-opacity flex items-center gap-2 group"
-            >
-              Start Watching
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="24" 
-                height="24" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-                className="w-5 h-5 group-hover:translate-y-1 transition-transform"
-              >
-                <path d="M12 5v14M19 12l-7 7-7-7"/>
-              </svg>
-            </button>
-          </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+                <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4">
+                  <h2 className="text-5xl md:text-7xl font-bold mb-4 text-center max-w-4xl">
+                    {show.title || show.name}
+                  </h2>
+                  <p className="text-lg md:text-xl text-gray-300 mb-8 text-center max-w-3xl line-clamp-3">
+                    {show.overview}
+                  </p>
+                  <button
+                    onClick={() => handleShowClick(show.id, show.media_type)}
+                    className="bg-gradient-to-r from-sky-600 to-teal-600 px-10 py-4 rounded-full text-xl font-semibold hover:opacity-90 transition-opacity flex items-center gap-3 shadow-lg"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-7 w-7"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                    Watch Now
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
+        
+        {/* Navigation Dots */}
+        {trending.length > 1 && (
+          <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-20 flex gap-2">
+            {trending.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => goToSlide(index)}
+                className={`w-3 h-3 rounded-full transition-all ${
+                  index === currentIndex
+                    ? 'bg-gradient-to-r from-sky-400 to-teal-500 w-8'
+                    : 'bg-gray-600 hover:bg-gray-500'
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Content Library */}
