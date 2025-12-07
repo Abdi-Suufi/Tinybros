@@ -151,7 +151,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
       {/* Header with Logo */}
       <header className="absolute top-0 left-0 right-0 z-50 p-4 flex justify-between items-center bg-black/70 backdrop-blur-sm">
         <Link href="/" className="inline-block group">
-          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-teal-500 group-hover:opacity-90 transition-opacity">
+          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-yellow-500 group-hover:opacity-90 transition-opacity">
             TinyBros
           </h1>
         </Link>
@@ -209,13 +209,13 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
                       onClick={() => handleSourceChange(source.id)}
                       className={`px-4 py-2 rounded-full text-white font-semibold hover:opacity-90 transition-opacity ${
                         source.id === 'vidsrc' 
-                          ? 'bg-gradient-to-r from-sky-600 to-teal-600 ring-2 ring-sky-400 ring-offset-2 ring-offset-black' 
-                          : 'bg-gradient-to-r from-sky-600 to-teal-600'
+                          ? 'bg-gradient-to-r from-orange-600 to-yellow-600 ring-2 ring-orange-400 ring-offset-2 ring-offset-black' 
+                          : 'bg-gradient-to-r from-orange-600 to-yellow-600'
                       }`}
                     >
                       {source.name}
                       {source.id === 'vidsrc' && (
-                        <span className="ml-1 text-xs bg-sky-400 text-black px-1.5 py-0.5 rounded-full">★</span>
+                        <span className="ml-1 text-xs bg-orange-400 text-black px-1.5 py-0.5 rounded-full">★</span>
                       )}
                     </button>
                   ))}
@@ -237,16 +237,16 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
                 className={`px-4 py-2 rounded-full text-white font-semibold transition-all ${
                   selectedSource === source.id
                     ? source.id === 'vidsrc'
-                      ? 'bg-gradient-to-r from-sky-600 to-teal-600 ring-2 ring-sky-400 ring-offset-2 ring-offset-black'
-                      : 'bg-gradient-to-r from-sky-600 to-teal-600'
+                      ? 'bg-gradient-to-r from-orange-600 to-yellow-600 ring-2 ring-orange-400 ring-offset-2 ring-offset-black'
+                      : 'bg-gradient-to-r from-orange-600 to-yellow-600'
                     : source.id === 'vidsrc'
-                      ? 'bg-gray-800 hover:bg-gray-700 ring-1 ring-sky-400/50'
+                      ? 'bg-gray-800 hover:bg-gray-700 ring-1 ring-orange-400/50'
                       : 'bg-gray-800 hover:bg-gray-700'
                 }`}
               >
                 {source.name}
                 {source.id === 'vidsrc' && (
-                  <span className="ml-1 text-xs bg-sky-400 text-black px-1.5 py-0.5 rounded-full">★</span>
+                  <span className="ml-1 text-xs bg-orange-400 text-black px-1.5 py-0.5 rounded-full">★</span>
                 )}
               </button>
             ))}
@@ -270,7 +270,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
 
           {/* Info */}
           <div className="flex-1">
-            <h1 className="text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-teal-500">
+            <h1 className="text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-yellow-500">
               {show.title || show.name}
             </h1>
             <p className="text-gray-300">{show.overview}</p>
@@ -281,7 +281,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
         {resolvedParams.type === 'tv' && episodes.length > 0 && (
           <div className="mt-16">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-teal-500">
+              <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-yellow-500">
                 Episodes
               </h2>
               <select
@@ -324,7 +324,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
                     </p>
                     <Link
                       href={`/watch/${resolvedParams.type}/${resolvedParams.id}?season=${selectedSeason}&episode=${episode.episode_number}`}
-                      className="inline-block w-full text-center px-4 py-2 bg-gradient-to-r from-sky-600 to-teal-600 rounded-full font-semibold hover:opacity-90 transition-opacity"
+                      className="inline-block w-full text-center px-4 py-2 bg-gradient-to-r from-orange-600 to-yellow-600 rounded-full font-semibold hover:opacity-90 transition-opacity"
                     >
                       Watch Episode
                     </Link>
