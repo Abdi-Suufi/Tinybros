@@ -1,13 +1,15 @@
 'use client';
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 
 export default function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
   const [searchQuery, setSearchQuery] = useState("");
   const [isScrolled, setIsScrolled] = useState(false);
+  const isHomePage = pathname === '/';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -30,13 +32,19 @@ export default function Navbar() {
   };
 
   return (
-    <nav className={`z-50 transition-all duration-300 ${
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,backdrop-filter,border-color] duration-300 ease-in-out ${
       isScrolled 
-        ? 'sticky top-0 bg-black/80 backdrop-blur-sm border-b border-gray-800' 
-        : 'absolute top-0 left-0 right-0 bg-transparent'
+        ? 'bg-black/80 backdrop-blur-sm border-b border-gray-800' 
+        : isHomePage
+          ? 'bg-transparent backdrop-blur-none border-b border-transparent'
+          : 'bg-black/40 backdrop-blur-sm border-b border-transparent'
     }`}>
       <div className="w-full px-4 py-3 flex justify-between items-center">
-        <Link href="/" className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-teal-500 hover:opacity-90 transition-opacity">
+        <Link href="/" className={`text-2xl font-bold hover:opacity-90 transition-opacity ${
+          !isScrolled && !isHomePage
+            ? 'text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]'
+            : 'bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-teal-500'
+        }`}>
           TinyBros
         </Link>
         <div className="flex items-center space-x-6">
@@ -47,11 +55,19 @@ export default function Navbar() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search..."
-              className="bg-black/80 border border-gray-700 rounded-full py-2 px-4 pr-10 text-white placeholder-gray-400 focus:outline-none focus:border-gray-500 transition-colors w-64"
+              className={`rounded-full py-2 px-4 pr-10 text-white placeholder-gray-400 focus:outline-none transition-colors w-64 ${
+                !isScrolled && !isHomePage
+                  ? 'bg-black/60 border border-gray-600 focus:border-gray-500'
+                  : 'bg-black/80 border border-gray-700 focus:border-gray-500'
+              }`}
             />
             <button
               type="submit"
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+              className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-colors ${
+                !isScrolled && !isHomePage
+                  ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-gray-200'
+                  : 'text-gray-400 hover:text-white'
+              }`}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -69,13 +85,34 @@ export default function Navbar() {
               </svg>
             </button>
           </form>
-          <Link href="/movies" className="text-gray-300 hover:text-white transition-colors">
+          <Link 
+            href="/movies" 
+            className={`transition-colors ${
+              !isScrolled && !isHomePage
+                ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-gray-200'
+                : 'text-gray-300 hover:text-white'
+            }`}
+          >
             Movies
           </Link>
-          <Link href="/series" className="text-gray-300 hover:text-white transition-colors">
+          <Link 
+            href="/series" 
+            className={`transition-colors ${
+              !isScrolled && !isHomePage
+                ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-gray-200'
+                : 'text-gray-300 hover:text-white'
+            }`}
+          >
             TV Shows
           </Link>
-          <Link href="/anime" className="text-gray-300 hover:text-white transition-colors">
+          <Link 
+            href="/anime" 
+            className={`transition-colors ${
+              !isScrolled && !isHomePage
+                ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-gray-200'
+                : 'text-gray-300 hover:text-white'
+            }`}
+          >
             Anime
           </Link>
         </div>
