@@ -34,14 +34,6 @@ export default function ShowPage({ params }: { params: Promise<{ type: string; i
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Navigation Header */}
-      <header className="absolute top-0 left-0 right-0 z-50 p-4 flex justify-between items-center bg-black/70 backdrop-blur-sm">
-        <Link href="/" className="inline-block group">
-          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-teal-500 group-hover:opacity-90 transition-opacity">
-            TinyBros
-          </h1>
-        </Link>
-      </header>
 
       {/* Backdrop Image */}
       <div className="relative h-[60vh]">
@@ -112,7 +104,7 @@ export default function ShowPage({ params }: { params: Promise<{ type: string; i
 
             <Link
               href={`/watch/${resolvedParams.type}/${resolvedParams.id}`}
-              className="inline-block px-8 py-3 bg-gradient-to-r from-sky-600 to-teal-600 rounded-full text-lg font-semibold hover:opacity-90 transition-opacity"
+              className="inline-block px-8 py-3 bg-gradient-to-r from-orange-600 to-yellow-600 rounded-full text-lg font-semibold hover:opacity-90 transition-opacity"
             >
               Watch Now
             </Link>

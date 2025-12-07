@@ -148,17 +148,17 @@ export default function Home() {
         }
         
         .scrollbar-hide::-webkit-scrollbar-thumb {
-          background: linear-gradient(to right, #0ea5e9, #14b8a6);
+          background: linear-gradient(to right, #fbbf24, #f59e0b);
           border-radius: 4px;
         }
         
         .scrollbar-hide::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(to right, #0284c7, #0d9488);
+          background: linear-gradient(to right, #f59e0b, #d97706);
         }
         
         .scrollbar-hide {
           scrollbar-width: thin;
-          scrollbar-color: #0ea5e9 #000;
+          scrollbar-color: #fbbf24 #000;
         }
 
         /* Snap scrolling */
@@ -218,7 +218,7 @@ export default function Home() {
                   </p>
                   <button
                     onClick={() => handleShowClick(show.id, show.media_type)}
-                    className="bg-gradient-to-r from-sky-600 to-teal-600 px-10 py-4 rounded-full text-xl font-semibold hover:opacity-90 transition-opacity flex items-center gap-3 shadow-lg"
+                    className="bg-gradient-to-r from-orange-500 to-yellow-600 px-10 py-4 rounded-full text-xl font-semibold hover:opacity-90 transition-opacity flex items-center gap-3 shadow-lg"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -245,7 +245,7 @@ export default function Home() {
                 onClick={() => goToSlide(index)}
                 className={`w-3 h-3 rounded-full transition-all ${
                   index === currentIndex
-                    ? 'bg-gradient-to-r from-sky-400 to-teal-500 w-8'
+                    ? 'bg-gradient-to-r from-yellow-400 to-yellow-500 w-8'
                     : 'bg-gray-600 hover:bg-gray-500'
                 }`}
                 aria-label={`Go to slide ${index + 1}`}
@@ -268,7 +268,7 @@ export default function Home() {
                   onClick={() => handleShowClick(show.id, show.media_type)}
                   className="flex-none w-[400px] rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group relative"
                 >
-                  <div className="absolute top-4 left-4 z-20 bg-gradient-to-r from-sky-600 to-teal-600 w-12 h-12 rounded-full flex items-center justify-center text-2xl font-bold">
+                  <div className="absolute top-4 left-4 z-20 bg-gradient-to-r from-yellow-500 to-yellow-600 w-12 h-12 rounded-full flex items-center justify-center text-2xl font-bold">
                     {index + 1}
                   </div>
                   <div className="relative aspect-[16/9]">
