@@ -2,11 +2,25 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Navbar() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      setIsScrolled(scrollPosition > 0);
+    };
+
+    // Check initial scroll position
+    handleScroll();
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,7 +30,11 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-black/80 backdrop-blur-sm border-b border-gray-800 sticky top-0 z-50">
+    <nav className={`z-50 transition-all duration-300 ${
+      isScrolled 
+        ? 'sticky top-0 bg-black/80 backdrop-blur-sm border-b border-gray-800' 
+        : 'absolute top-0 left-0 right-0 bg-transparent'
+    }`}>
       <div className="w-full px-4 py-3 flex justify-between items-center">
         <Link href="/" className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-teal-500 hover:opacity-90 transition-opacity">
           TinyBros
