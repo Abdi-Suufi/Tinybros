@@ -160,35 +160,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
       `}</style>
 
       {/* Header with Logo */}
-      <header className="absolute top-0 left-0 right-0 z-50 p-4 flex justify-between items-center bg-black/70 backdrop-blur-sm">
-        <Link href="/" className="inline-block group">
-          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-yellow-500 group-hover:opacity-90 transition-opacity">
-            TinyBros
-          </h1>
-        </Link>
-        <div className="flex items-center gap-4">
-          <Link
-            href={`/shows/${resolvedParams.type}/${resolvedParams.id}`}
-            className="text-white hover:text-gray-300 transition-colors flex items-center gap-1"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"
-              />
-            </svg>
-            <span>Back to Details</span>
-          </Link>
-        </div>
-      </header>
+      
 
       {/* Video Player */}
       <div className="w-full max-w-5xl mx-auto my-8">
