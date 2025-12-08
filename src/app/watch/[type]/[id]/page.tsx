@@ -1,3 +1,5 @@
+// src/app/watch/[type]/[id]/page.tsx
+
 'use client';
 
 import { useEffect, useState, use } from 'react';
@@ -32,6 +34,7 @@ interface PlaybackSource {
   id: string;
   name: string;
   url: string;
+  disabled?: boolean; // <-- ADDED: to control button state
 }
 
 export default function WatchPage({ params }: { params: Promise<{ type: string; id: string }> }) {
@@ -41,7 +44,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [selectedSeason, setSelectedSeason] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [selectedSource, setSelectedSource] = useState<string>('vidsrc');
+  const [selectedSource, setSelectedSource] = useState<string>('vidking'); // <-- UPDATED: Default to the new preferred source
   const [showPlayer, setShowPlayer] = useState(false);
 
   // Define available playback sources
@@ -49,17 +52,25 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
     { 
       id: 'vidsrc', 
       name: 'VidSrc', 
-      url: `https://vidsrc.xyz/embed/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}` 
+      url: `https://vidsrc.xyz/embed/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}`,
+      disabled: true // <-- ADDED: Disable old source
     },
     { 
       id: 'vidsrc-to', 
       name: 'VidSrc.to', 
-      url: `https://vidsrc.to/embed/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}` 
+      url: `https://vidsrc.to/embed/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}`,
+      disabled: true // <-- ADDED: Disable old source
+    },
+    { 
+      id: 'vidking', // <-- ADDED: New preferred source
+      name: 'VidKing.net', 
+      url: `https://www.vidking.net/embed/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}` 
     },
     { 
       id: 'superembed', 
       name: 'SuperEmbed', 
-      url: `https://multiembed.mov/?video_id=${resolvedParams.id}&tmdb=1${resolvedParams.type === 'tv' ? `&s=${searchParams.get('season') || '1'}&e=${searchParams.get('episode') || '1'}` : ''}` 
+      url: `https://multiembed.mov/?video_id=${resolvedParams.id}&tmdb=1${resolvedParams.type === 'tv' ? `&s=${searchParams.get('season') || '1'}&e=${searchParams.get('episode') || '1'}` : ''}`,
+      disabled: true // <-- ADDED: Disable old source
     }
   ];
 
@@ -207,14 +218,17 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
                     <button
                       key={source.id}
                       onClick={() => handleSourceChange(source.id)}
-                      className={`px-4 py-2 rounded-full text-white font-semibold hover:opacity-90 transition-opacity ${
-                        source.id === 'vidsrc' 
-                          ? 'bg-gradient-to-r from-orange-600 to-yellow-600 ring-2 ring-orange-400 ring-offset-2 ring-offset-black' 
-                          : 'bg-gradient-to-r from-orange-600 to-yellow-600'
+                      disabled={source.disabled} // <-- ADDED: Disable the button
+                      className={`px-4 py-2 rounded-full text-white font-semibold transition-opacity ${
+                        source.disabled
+                          ? 'bg-gray-700/50 cursor-not-allowed opacity-50' // <-- ADDED: Style for disabled button
+                          : source.id === 'vidking' // <-- UPDATED: Apply star style to vidking
+                            ? 'bg-gradient-to-r from-orange-600 to-yellow-600 ring-2 ring-orange-400 ring-offset-2 ring-offset-black hover:opacity-90' 
+                            : 'bg-gradient-to-r from-orange-600 to-yellow-600 hover:opacity-90'
                       }`}
                     >
                       {source.name}
-                      {source.id === 'vidsrc' && (
+                      {source.id === 'vidking' && ( // <-- UPDATED: Display star on VidKing.net
                         <span className="ml-1 text-xs bg-orange-400 text-black px-1.5 py-0.5 rounded-full">★</span>
                       )}
                     </button>
@@ -234,18 +248,21 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
               <button
                 key={source.id}
                 onClick={() => handleSourceChange(source.id)}
+                disabled={source.disabled} // <-- ADDED: Disable the button
                 className={`px-4 py-2 rounded-full text-white font-semibold transition-all ${
-                  selectedSource === source.id
-                    ? source.id === 'vidsrc'
-                      ? 'bg-gradient-to-r from-orange-600 to-yellow-600 ring-2 ring-orange-400 ring-offset-2 ring-offset-black'
-                      : 'bg-gradient-to-r from-orange-600 to-yellow-600'
-                    : source.id === 'vidsrc'
-                      ? 'bg-gray-800 hover:bg-gray-700 ring-1 ring-orange-400/50'
-                      : 'bg-gray-800 hover:bg-gray-700'
+                  source.disabled
+                    ? 'bg-gray-700/50 cursor-not-allowed opacity-50' // <-- ADDED: Style for disabled button
+                    : selectedSource === source.id
+                      ? source.id === 'vidking' // <-- UPDATED: Preferred (Selected) Style
+                        ? 'bg-gradient-to-r from-orange-600 to-yellow-600 ring-2 ring-orange-400 ring-offset-2 ring-offset-black'
+                        : 'bg-gradient-to-r from-orange-600 to-yellow-600'
+                      : source.id === 'vidking' // <-- UPDATED: Preferred (Unselected) Style
+                        ? 'bg-gray-800 hover:bg-gray-700 ring-1 ring-orange-400/50'
+                        : 'bg-gray-800 hover:bg-gray-700'
                 }`}
               >
                 {source.name}
-                {source.id === 'vidsrc' && (
+                {source.id === 'vidking' && ( // <-- UPDATED: Display star on VidKing.net
                   <span className="ml-1 text-xs bg-orange-400 text-black px-1.5 py-0.5 rounded-full">★</span>
                 )}
               </button>
@@ -351,4 +368,4 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
       </div>
     </div>
   );
-} 
+}
