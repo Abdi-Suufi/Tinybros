@@ -54,14 +54,15 @@ export default function Navbar() {
   };
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,backdrop-filter,border-color] duration-300 ease-in-out ${
-      isScrolled 
-        ? 'bg-black/90 backdrop-blur-sm border-b border-yellow-500/50' 
-        : isHomePage
-          ? 'bg-transparent backdrop-blur-none border-b border-transparent'
-          : 'bg-black/50 backdrop-blur-sm border-b border-transparent'
-    }`}>
-      <div className="w-full px-4 py-3 flex justify-between items-center">
+    <>
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,backdrop-filter,border-color] duration-300 ease-in-out ${
+        isScrolled 
+          ? 'bg-black/90 backdrop-blur-sm border-b border-yellow-500/50' 
+          : isHomePage
+            ? 'bg-transparent backdrop-blur-none border-b border-transparent'
+            : 'bg-black/50 backdrop-blur-sm border-b border-transparent'
+      }`}>
+        <div className="w-full px-4 py-3 flex justify-between items-center">
         <Link href="/" className={`text-2xl font-bold hover:opacity-90 transition-opacity ${
           !isScrolled && !isHomePage
             ? 'text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]'
@@ -169,8 +170,31 @@ export default function Navbar() {
           </Link>
         </div>
       </div>
-    </nav>
+      </nav>
+      
+      {/* Video Player Alert Banner */}
+      <div className="fixed top-[60px] left-0 right-0 z-50 bg-red-600 text-white py-1.5 overflow-hidden">
+        <style jsx>{`
+          @keyframes scroll {
+            0% {
+              transform: translateX(-100%);
+            }
+            100% {
+              transform: translateX(100vw);
+            }
+          }
+          .marquee {
+            display: inline-block;
+            white-space: nowrap;
+            animation: scroll 10s linear infinite;
+          }
+        `}</style>
+        <div className="text-sm font-medium whitespace-nowrap">
+          <span className="marquee inline-block">
+            Sorry, the video players aren't currently working •
+          </span>
+        </div>
+      </div>
+    </>
   );
 }
-
-
