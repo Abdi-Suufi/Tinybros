@@ -191,7 +191,7 @@ export default function Navbar() {
         `}</style>
         <div className="text-sm font-medium whitespace-nowrap">
           <span className="marquee inline-block">
-            Sorry, the video players aren't currently working •
+            Sorry, the video players aren&apos;t currently working •
           </span>
         </div>
       </div>
