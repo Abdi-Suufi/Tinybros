@@ -9,6 +9,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const [searchQuery, setSearchQuery] = useState("");
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const isHomePage = pathname === '/';
 
   useEffect(() => {
@@ -24,11 +25,32 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (isSearchExpanded && !target.closest('.search-container')) {
+        setIsSearchExpanded(false);
+        setSearchQuery("");
+      }
+    };
+
+    if (isSearchExpanded) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isSearchExpanded]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
+      setIsSearchExpanded(false);
+      setSearchQuery("");
     }
+  };
+
+  const handleSearchIconClick = () => {
+    setIsSearchExpanded(true);
   };
 
   return (
@@ -49,42 +71,72 @@ export default function Navbar() {
         </Link>
         <div className="flex items-center space-x-6">
           {/* Search Bar */}
-          <form onSubmit={handleSearch} className="relative">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search..."
-              className={`rounded-full py-2 px-4 pr-10 text-white placeholder-gray-400 focus:outline-none transition-colors w-64 ${
-                !isScrolled && !isHomePage
-                  ? 'bg-black/60 border border-gray-600 focus:border-yellow-500'
-                  : 'bg-black/80 border border-gray-700 focus:border-yellow-500'
-              }`}
-            />
-            <button
-              type="submit"
-              className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-colors ${
-                !isScrolled && !isHomePage
-                  ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-yellow-400'
-                  : 'text-gray-400 hover:text-yellow-400'
-              }`}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+          <div className="search-container relative">
+            {!isSearchExpanded ? (
+              <button
+                onClick={handleSearchIconClick}
+                className={`transition-colors p-2 rounded-full hover:bg-black/30 ${
+                  !isScrolled && !isHomePage
+                    ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-yellow-400'
+                    : 'text-gray-300 hover:text-yellow-400'
+                }`}
+                aria-label="Search"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </button>
+            ) : (
+              <form onSubmit={handleSearch} className="relative transition-all duration-300">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search..."
+                  autoFocus
+                  className={`rounded-full py-2 px-4 pr-10 text-white placeholder-gray-400 focus:outline-none transition-all duration-300 w-64 ${
+                    !isScrolled && !isHomePage
+                      ? 'bg-black/60 border border-gray-600 focus:border-yellow-500'
+                      : 'bg-black/80 border border-gray-700 focus:border-yellow-500'
+                  }`}
                 />
-              </svg>
-            </button>
-          </form>
+                <button
+                  type="submit"
+                  className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-colors ${
+                    !isScrolled && !isHomePage
+                      ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-yellow-400'
+                      : 'text-gray-400 hover:text-yellow-400'
+                  }`}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </button>
+              </form>
+            )}
+          </div>
           <Link 
             href="/movies" 
             className={`transition-colors ${
