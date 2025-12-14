@@ -139,26 +139,12 @@ export default function Home() {
       <style jsx global>{`
         /* Custom scrollbar styling */
         .scrollbar-hide::-webkit-scrollbar {
-          height: 8px;
-        }
-        
-        .scrollbar-hide::-webkit-scrollbar-track {
-          background: #000;
-          border-radius: 4px;
-        }
-        
-        .scrollbar-hide::-webkit-scrollbar-thumb {
-          background: linear-gradient(to right, #fbbf24, #f59e0b);
-          border-radius: 4px;
-        }
-        
-        .scrollbar-hide::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(to right, #f59e0b, #d97706);
+          display: none;
         }
         
         .scrollbar-hide {
-          scrollbar-width: thin;
-          scrollbar-color: #fbbf24 #000;
+          -ms-overflow-style: none;
+          scrollbar-width: none;
         }
 
         /* Snap scrolling */
@@ -204,6 +190,7 @@ export default function Home() {
                   alt={show.title || show.name || ''}
                   fill
                   className="object-cover"
+                  style={{ objectPosition: 'center 30%' }}
                   quality={100}
                   priority={index === 0}
                   sizes="100vw"
