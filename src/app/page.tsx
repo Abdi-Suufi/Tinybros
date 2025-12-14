@@ -260,6 +260,9 @@ export default function Home() {
             ))}
           </div>
         )}
+        
+        {/* Bottom gradient transition to black */}
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-b from-transparent via-black/30 to-black z-10 pointer-events-none" />
       </section>
 
       {/* Content Library */}
