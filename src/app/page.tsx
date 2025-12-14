@@ -129,6 +129,26 @@ export default function Home() {
     }
   }, [handleScroll, trending]);
 
+  // Auto-advance carousel
+  useEffect(() => {
+    if (trending.length <= 1 || isDragging) return;
+
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) => {
+        const nextIndex = (prevIndex + 1) % trending.length;
+        if (carouselRef.current) {
+          carouselRef.current.scrollTo({
+            left: nextIndex * carouselRef.current.offsetWidth,
+            behavior: 'smooth'
+          });
+        }
+        return nextIndex;
+      });
+    }, 5000); // Change slide every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [trending.length, isDragging]);
+
 
   if (loading) {
     return <Loading />;
