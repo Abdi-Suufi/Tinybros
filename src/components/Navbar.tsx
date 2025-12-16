@@ -172,8 +172,8 @@ export default function Navbar() {
       </div>
       </nav>
       
-      {/* Video Player Alert Banner */}
-      <div className="fixed top-[60px] left-0 right-0 z-50 bg-red-600 text-white py-1.5 overflow-hidden">
+      {/* Video Player Alert Banner - Commented out, ready to reuse if needed */}
+      {/* <div className="fixed top-[60px] left-0 right-0 z-50 bg-red-600 text-white py-1.5 overflow-hidden">
         <style jsx>{`
           @keyframes scroll {
             0% {
@@ -194,7 +194,7 @@ export default function Navbar() {
             Sorry, the video players aren&apos;t currently working •
           </span>
         </div>
-      </div>
+      </div> */}
     </>
   );
 }
