@@ -41,7 +41,7 @@ export default function ShowGrid({ getShows }: ShowGridProps) {
             key={show.id}
             className="bg-gray-800/50 rounded-xl overflow-hidden hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 group"
           >
-            <Link href={`/shows/${show.media_type}/${show.id}`}>
+            <Link href={show.media_type === 'movie' ? `/movies/movie/${show.id}` : `/series/series/${show.id}`}>
               <div className="relative aspect-[2/3]">
                 <Image
                   src={getImageUrl(show.poster_path)}

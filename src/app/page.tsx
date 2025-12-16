@@ -59,7 +59,11 @@ export default function Home() {
   }, []);
 
   const handleShowClick = (id: number, mediaType: string) => {
-    router.push(`/shows/${mediaType}/${id}`);
+    if (mediaType === 'movie') {
+      router.push(`/movies/movie/${id}`);
+    } else {
+      router.push(`/series/series/${id}`);
+    }
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {

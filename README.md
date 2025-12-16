@@ -69,7 +69,8 @@ TinyBros is designed to be your gateway to the future of entertainment. It's a c
 - **TV Shows** (`/series`) - Browse television series
 - **Anime** (`/anime`) - Browse anime collection
 - **Search** (`/search`) - Search across all content
-- **Show Details** (`/shows/[type]/[id]`) - Detailed show information
+- **Movie Details** (`/movies/movie/[id]`) - Detailed movie information
+- **Series Details** (`/series/series/[id]`) - Detailed series information
 - **Watch** (`/watch/[type]/[id]`) - Streaming player
 
 ## 🎨 Design Philosophy

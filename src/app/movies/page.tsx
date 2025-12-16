@@ -38,7 +38,7 @@ export default function MoviesPage() {
           {movies.map((movie) => (
             <div
               key={movie.id}
-              onClick={() => router.push(`/shows/movie/${movie.id}`)}
+              onClick={() => router.push(`/movies/movie/${movie.id}`)}
               className="rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group"
             >
               <div className="relative aspect-[2/3]">
