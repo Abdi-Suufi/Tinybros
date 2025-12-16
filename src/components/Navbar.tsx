@@ -58,13 +58,11 @@ export default function Navbar() {
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,backdrop-filter,border-color] duration-300 ease-in-out ${
         isScrolled 
           ? 'bg-black/90 backdrop-blur-sm border-b border-yellow-500/50' 
-          : isHomePage
-            ? 'bg-transparent backdrop-blur-none border-b border-transparent'
-            : 'bg-black/50 backdrop-blur-sm border-b border-transparent'
+          : 'bg-transparent backdrop-blur-none border-b border-transparent'
       }`}>
         <div className="w-full px-4 py-3 flex justify-between items-center">
         <Link href="/" className={`text-2xl font-bold hover:opacity-90 transition-opacity ${
-          !isScrolled && !isHomePage
+          !isScrolled
             ? 'text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]'
             : 'bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-yellow-600'
         }`}>
@@ -77,7 +75,7 @@ export default function Navbar() {
               <button
                 onClick={handleSearchIconClick}
                 className={`transition-colors p-2 rounded-full hover:bg-black/30 ${
-                  !isScrolled && !isHomePage
+                  !isScrolled
                     ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-yellow-400'
                     : 'text-gray-300 hover:text-yellow-400'
                 }`}
@@ -107,7 +105,7 @@ export default function Navbar() {
                   placeholder="Search..."
                   autoFocus
                   className={`rounded-full py-2 px-4 pr-10 text-white placeholder-gray-400 focus:outline-none transition-all duration-300 w-64 ${
-                    !isScrolled && !isHomePage
+                    !isScrolled
                       ? 'bg-black/60 border border-gray-600 focus:border-yellow-500'
                       : 'bg-black/80 border border-gray-700 focus:border-yellow-500'
                   }`}
@@ -115,7 +113,7 @@ export default function Navbar() {
                 <button
                   type="submit"
                   className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-colors ${
-                    !isScrolled && !isHomePage
+                    !isScrolled
                       ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-yellow-400'
                       : 'text-gray-400 hover:text-yellow-400'
                   }`}
@@ -141,7 +139,7 @@ export default function Navbar() {
           <Link 
             href="/movies" 
             className={`transition-colors ${
-              !isScrolled && !isHomePage
+              !isScrolled
                 ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-yellow-400'
                 : 'text-gray-300 hover:text-yellow-400'
             }`}
@@ -151,7 +149,7 @@ export default function Navbar() {
           <Link 
             href="/series" 
             className={`transition-colors ${
-              !isScrolled && !isHomePage
+              !isScrolled
                 ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-yellow-400'
                 : 'text-gray-300 hover:text-yellow-400'
             }`}
@@ -161,7 +159,7 @@ export default function Navbar() {
           <Link 
             href="/anime" 
             className={`transition-colors ${
-              !isScrolled && !isHomePage
+              !isScrolled
                 ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-yellow-400'
                 : 'text-gray-300 hover:text-yellow-400'
             }`}

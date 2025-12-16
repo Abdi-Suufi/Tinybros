@@ -163,7 +163,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
       
 
       {/* Video Player */}
-      <div className="w-full max-w-5xl mx-auto my-8">
+      <div className="w-full max-w-5xl mx-auto pt-28 pb-8 px-4">
         {showPlayer ? (
           <div className="relative w-full aspect-video bg-gray-900 rounded-lg shadow-2xl">
             <iframe
