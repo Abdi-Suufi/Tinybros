@@ -34,7 +34,7 @@ interface PlaybackSource {
   id: string;
   name: string;
   url: string;
-  disabled?: boolean; // <-- ADDED: to control button state
+  disabled?: boolean;
 }
 
 export default function WatchPage({ params }: { params: Promise<{ type: string; id: string }> }) {
@@ -44,7 +44,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [selectedSeason, setSelectedSeason] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [selectedSource, setSelectedSource] = useState<string>('vidking'); // <-- UPDATED: Default to the new preferred source
+  const [selectedSource, setSelectedSource] = useState<string>('vidlink');
   const [showPlayer, setShowPlayer] = useState(false);
 
   // Define available playback sources
@@ -53,16 +53,16 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
       id: 'vidsrc', 
       name: 'VidSrc', 
       url: `https://vidsrc.xyz/embed/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}`,
-      disabled: true // <-- ADDED: Disable old source
+      disabled: true
     },
     { 
       id: 'vidsrc-to', 
       name: 'VidSrc.to', 
       url: `https://vidsrc.to/embed/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}`,
-      disabled: true // <-- ADDED: Disable old source
+      disabled: true
     },
     { 
-      id: 'vidking', // <-- ADDED: New preferred source
+      id: 'vidking',
       name: 'VidKing.net', 
       url: `https://www.vidking.net/embed/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}` 
     },
@@ -72,10 +72,15 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
       url: `https://vidora.su/embed/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}` 
     },
     { 
+      id: 'vidlink', 
+      name: 'VidLink', 
+      url: `https://vidlink.pro/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}` 
+    },
+    { 
       id: 'superembed', 
       name: 'SuperEmbed', 
       url: `https://multiembed.mov/?video_id=${resolvedParams.id}&tmdb=1${resolvedParams.type === 'tv' ? `&s=${searchParams.get('season') || '1'}&e=${searchParams.get('episode') || '1'}` : ''}`,
-      disabled: true // <-- ADDED: Disable old source
+      disabled: true
     }
   ];
 
@@ -197,17 +202,17 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
                     <button
                       key={source.id}
                       onClick={() => handleSourceChange(source.id)}
-                      disabled={source.disabled} // <-- ADDED: Disable the button
+                      disabled={source.disabled}
                       className={`px-4 py-2 rounded-full text-white font-semibold transition-opacity ${
                         source.disabled
-                          ? 'bg-gray-700/50 cursor-not-allowed opacity-50' // <-- ADDED: Style for disabled button
-                          : source.id === 'vidking' // <-- UPDATED: Apply star style to vidking
+                          ? 'bg-gray-700/50 cursor-not-allowed opacity-50'
+                          : source.id === 'vidlink'
                             ? 'bg-gradient-to-r from-orange-600 to-yellow-600 ring-2 ring-orange-400 ring-offset-2 ring-offset-black hover:opacity-90' 
                             : 'bg-gradient-to-r from-orange-600 to-yellow-600 hover:opacity-90'
                       }`}
                     >
                       {source.name}
-                      {source.id === 'vidking' && ( // <-- UPDATED: Display star on VidKing.net
+                      {source.id === 'vidlink' && (
                         <span className="ml-1 text-xs bg-orange-400 text-black px-1.5 py-0.5 rounded-full">★</span>
                       )}
                     </button>
@@ -227,21 +232,21 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
               <button
                 key={source.id}
                 onClick={() => handleSourceChange(source.id)}
-                disabled={source.disabled} // <-- ADDED: Disable the button
+                disabled={source.disabled}
                 className={`px-4 py-2 rounded-full text-white font-semibold transition-all ${
                   source.disabled
-                    ? 'bg-gray-700/50 cursor-not-allowed opacity-50' // <-- ADDED: Style for disabled button
+                    ? 'bg-gray-700/50 cursor-not-allowed opacity-50'
                     : selectedSource === source.id
-                      ? source.id === 'vidking' // <-- UPDATED: Preferred (Selected) Style
+                      ? source.id === 'vidlink'
                         ? 'bg-gradient-to-r from-orange-600 to-yellow-600 ring-2 ring-orange-400 ring-offset-2 ring-offset-black'
                         : 'bg-gradient-to-r from-orange-600 to-yellow-600'
-                      : source.id === 'vidking' // <-- UPDATED: Preferred (Unselected) Style
+                      : source.id === 'vidlink'
                         ? 'bg-gray-800 hover:bg-gray-700 ring-1 ring-orange-400/50'
                         : 'bg-gray-800 hover:bg-gray-700'
                 }`}
               >
                 {source.name}
-                {source.id === 'vidking' && ( // <-- UPDATED: Display star on VidKing.net
+                {source.id === 'vidlink' && (
                   <span className="ml-1 text-xs bg-orange-400 text-black px-1.5 py-0.5 rounded-full">★</span>
                 )}
               </button>
