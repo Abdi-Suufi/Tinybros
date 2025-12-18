@@ -95,3 +95,6 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
     </div>
   );
 }
+
+
+

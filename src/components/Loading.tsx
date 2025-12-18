@@ -1,6 +1,8 @@
+'use client';
+
 export default function Loading() {
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center">
+    <div className="min-h-screen bg-black flex flex-col items-center justify-center" suppressHydrationWarning>
       <div className="relative w-24 h-24 mb-8">
         {/* Outer ring */}
         <div className="absolute inset-0 border-4 border-orange-500/30 rounded-full"></div>

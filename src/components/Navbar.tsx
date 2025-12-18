@@ -59,8 +59,8 @@ export default function Navbar() {
         isScrolled 
           ? 'bg-black/90 backdrop-blur-sm border-b border-yellow-500/50' 
           : 'bg-transparent backdrop-blur-none border-b border-transparent'
-      }`}>
-        <div className="w-full px-4 py-3 flex justify-between items-center">
+      }`} suppressHydrationWarning>
+        <div className="w-full px-4 py-3 flex justify-between items-center" suppressHydrationWarning>
         <Link href="/" className={`text-2xl font-bold hover:opacity-90 transition-opacity ${
           !isScrolled
             ? 'text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]'
@@ -68,9 +68,9 @@ export default function Navbar() {
         }`}>
           TinyBros
         </Link>
-        <div className="flex items-center space-x-6">
+        <div className="flex items-center space-x-6" suppressHydrationWarning>
           {/* Search Bar */}
-          <div className="search-container relative">
+          <div className="search-container relative" suppressHydrationWarning>
             {!isSearchExpanded ? (
               <button
                 onClick={handleSearchIconClick}

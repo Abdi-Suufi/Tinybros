@@ -151,3 +151,6 @@ export default function SeriesPage({ params }: { params: Promise<{ id: string }>
     </div>
   );
 }
+
+
+

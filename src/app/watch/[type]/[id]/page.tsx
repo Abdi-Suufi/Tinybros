@@ -67,6 +67,11 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
       url: `https://www.vidking.net/embed/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}` 
     },
     { 
+      id: 'vidora', 
+      name: 'Vidora', 
+      url: `https://vidora.su/embed/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}` 
+    },
+    { 
       id: 'superembed', 
       name: 'SuperEmbed', 
       url: `https://multiembed.mov/?video_id=${resolvedParams.id}&tmdb=1${resolvedParams.type === 'tv' ? `&s=${searchParams.get('season') || '1'}&e=${searchParams.get('episode') || '1'}` : ''}`,
@@ -167,11 +172,13 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
         {showPlayer ? (
           <div className="relative w-full aspect-video bg-gray-900 rounded-lg shadow-2xl">
             <iframe
+              key={selectedSource}
               src={getCurrentSourceUrl()}
               className="w-full h-full rounded-lg"
               allowFullScreen={true}
               allow="fullscreen; autoplay; encrypted-media; picture-in-picture; web-share; accelerometer; gyroscope"
               style={{ border: 'none' }}
+              referrerPolicy="no-referrer-when-downgrade"
             />
           </div>
         ) : (
