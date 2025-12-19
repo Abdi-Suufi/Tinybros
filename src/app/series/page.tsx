@@ -12,6 +12,10 @@ export default function SeriesPage() {
   const router = useRouter();
 
   useEffect(() => {
+    document.title = 'Series | TinyBros';
+  }, []);
+
+  useEffect(() => {
     const fetchData = async () => {
       try {
         const data = await fetchTVShows();

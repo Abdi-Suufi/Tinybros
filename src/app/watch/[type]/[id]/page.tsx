@@ -58,8 +58,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
     { 
       id: 'vidsrc-to', 
       name: 'VidSrc.to', 
-      url: `https://vidsrc.to/embed/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}`,
-      disabled: true
+      url: `https://vidsrc.to/embed/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}`
     },
     { 
       id: 'vidking',
@@ -121,6 +120,20 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
 
     fetchData();
   }, [resolvedParams.id, resolvedParams.type, searchParams]);
+
+  // Update page title when show or episode changes
+  useEffect(() => {
+    if (show) {
+      const title = show.title || show.name || 'Watch';
+      const episode = searchParams.get('episode');
+      const season = searchParams.get('season');
+      if (episode && season) {
+        document.title = `${title} - S${season}E${episode} | TinyBros`;
+      } else {
+        document.title = `${title} | TinyBros`;
+      }
+    }
+  }, [show, searchParams]);
 
   // Handle source change
   const handleSourceChange = (sourceId: string) => {

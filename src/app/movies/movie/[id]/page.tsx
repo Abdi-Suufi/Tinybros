@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { use } from 'react';
+import type { Metadata } from 'next';
 import { getImageUrl, TMDBShow, TMDBSeason, TMDBEpisode } from '@/lib/tmdb';
 
 async function getShowDetails(id: string): Promise<TMDBShow> {
@@ -13,6 +14,22 @@ async function getShowDetails(id: string): Promise<TMDBShow> {
   }
 
   return response.json();
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const resolvedParams = await params;
+  try {
+    const movie = await getShowDetails(resolvedParams.id);
+    return {
+      title: `${movie.title || movie.name || 'Movie'} | TinyBros`,
+      description: movie.overview || 'Watch on TinyBros',
+    };
+  } catch {
+    return {
+      title: 'Movie | TinyBros',
+      description: 'Watch on TinyBros',
+    };
+  }
 }
 
 export default function MoviePage({ params }: { params: Promise<{ id: string }> }) {

@@ -12,6 +12,10 @@ export default function AnimePage() {
   const router = useRouter();
 
   useEffect(() => {
+    document.title = 'Anime | TinyBros';
+  }, []);
+
+  useEffect(() => {
     const fetchData = async () => {
       try {
         const data = await fetchAnime();

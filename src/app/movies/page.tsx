@@ -12,6 +12,10 @@ export default function MoviesPage() {
   const router = useRouter();
 
   useEffect(() => {
+    document.title = 'Movies | TinyBros';
+  }, []);
+
+  useEffect(() => {
     const fetchData = async () => {
       try {
         const data = await fetchMovies();
