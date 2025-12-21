@@ -99,6 +99,7 @@ export default function Home() {
       [trendingRef, moviesSectionRef, seriesRef, animeRef].forEach(ref => {
         if (ref.current) {
           ref.current.style.cursor = 'grab';
+          ref.current.style.userSelect = '';
         }
       });
     };
@@ -106,11 +107,16 @@ export default function Home() {
     if (isDragging) {
       document.addEventListener('mousemove', handleGlobalMouseMove);
       document.addEventListener('mouseup', handleGlobalMouseUp);
+      // Prevent text selection globally while dragging
+      document.body.style.userSelect = 'none';
+    } else {
+      document.body.style.userSelect = '';
     }
 
     return () => {
       document.removeEventListener('mousemove', handleGlobalMouseMove);
       document.removeEventListener('mouseup', handleGlobalMouseUp);
+      document.body.style.userSelect = '';
     };
   }, [isDragging, draggingSection, startX, scrollLeft]);
 
@@ -123,6 +129,9 @@ export default function Home() {
       setStartX(e.pageX - sectionRef.current.offsetLeft);
       setScrollLeft(sectionRef.current.scrollLeft);
       sectionRef.current.style.cursor = 'grabbing';
+      sectionRef.current.style.userSelect = 'none';
+      // Prevent text selection
+      e.preventDefault();
     };
 
     const handleMouseLeave = () => {
@@ -132,6 +141,7 @@ export default function Home() {
     return {
       onMouseDown: handleMouseDown,
       onMouseLeave: handleMouseLeave,
+      onDragStart: (e: React.DragEvent) => e.preventDefault(), // Prevent image dragging
     };
   }, []);
 
@@ -260,6 +270,7 @@ export default function Home() {
           background: linear-gradient(to right, #ea580c, #ca8a04);
         }
 
+
         /* Snap scrolling */
         .snap-x {
           scroll-snap-type: x mandatory;
@@ -374,7 +385,8 @@ export default function Home() {
                 <div
                   key={`trending-list-${show.id}-${index}`}
                   onClick={() => handleShowClick(show.id, show.media_type)}
-                  className="flex-none w-[400px] rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group relative"
+                  onDragStart={(e) => e.preventDefault()}
+                  className="flex-none w-[400px] rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group relative select-none"
                 >
                   <div className="absolute top-4 left-4 z-20 bg-gradient-to-r from-yellow-500 to-yellow-600 w-12 h-12 rounded-full flex items-center justify-center text-2xl font-bold">
                     {index + 1}
@@ -416,7 +428,8 @@ export default function Home() {
                 <div
                   key={`movie-${movie.id}-${index}`}
                   onClick={() => handleShowClick(movie.id, 'movie')}
-                  className="flex-none w-[300px] rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group"
+                  onDragStart={(e) => e.preventDefault()}
+                  className="flex-none w-[300px] rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group select-none"
                 >
                   <div className="relative aspect-[2/3]">
                     <Image
@@ -451,7 +464,8 @@ export default function Home() {
                 <div
                   key={`series-${show.id}-${index}`}
                   onClick={() => handleShowClick(show.id, 'tv')}
-                  className="flex-none w-[300px] rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group"
+                  onDragStart={(e) => e.preventDefault()}
+                  className="flex-none w-[300px] rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group select-none"
                 >
                   <div className="relative aspect-[2/3]">
                     <Image
@@ -486,7 +500,8 @@ export default function Home() {
                 <div
                   key={`anime-${show.id}-${index}`}
                   onClick={() => handleShowClick(show.id, 'tv')}
-                  className="flex-none w-[300px] rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group"
+                  onDragStart={(e) => e.preventDefault()}
+                  className="flex-none w-[300px] rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group select-none"
                 >
                   <div className="relative aspect-[2/3]">
                     <Image
