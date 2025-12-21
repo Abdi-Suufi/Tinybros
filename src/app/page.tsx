@@ -9,6 +9,10 @@ import Loading from '@/components/Loading';
 export default function Home() {
   const moviesRef = useRef<HTMLDivElement>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
+  const trendingRef = useRef<HTMLDivElement>(null);
+  const moviesSectionRef = useRef<HTMLDivElement>(null);
+  const seriesRef = useRef<HTMLDivElement>(null);
+  const animeRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const [trending, setTrending] = useState<TMDBShow[]>([]);
   const [movies, setMovies] = useState<TMDBShow[]>([]);
@@ -19,6 +23,7 @@ export default function Home() {
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
+  const [draggingSection, setDraggingSection] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -59,6 +64,9 @@ export default function Home() {
   }, []);
 
   const handleShowClick = (id: number, mediaType: string) => {
+    // Don't navigate if user was dragging
+    if (isDragging) return;
+    
     if (mediaType === 'movie') {
       router.push(`/movies/movie/${id}`);
     } else {
@@ -66,6 +74,68 @@ export default function Home() {
     }
   };
 
+  // Global mouse move handler for dragging
+  useEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (!isDragging || !draggingSection) return;
+      
+      let currentRef: React.RefObject<HTMLDivElement> | null = null;
+      if (draggingSection === 'trending') currentRef = trendingRef;
+      else if (draggingSection === 'movies') currentRef = moviesSectionRef;
+      else if (draggingSection === 'series') currentRef = seriesRef;
+      else if (draggingSection === 'anime') currentRef = animeRef;
+      
+      if (!currentRef?.current) return;
+      
+      e.preventDefault();
+      const x = e.pageX - currentRef.current.offsetLeft;
+      const walk = (x - startX) * 2;
+      currentRef.current.scrollLeft = scrollLeft - walk;
+    };
+
+    const handleGlobalMouseUp = () => {
+      setIsDragging(false);
+      setDraggingSection(null);
+      [trendingRef, moviesSectionRef, seriesRef, animeRef].forEach(ref => {
+        if (ref.current) {
+          ref.current.style.cursor = 'grab';
+        }
+      });
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleGlobalMouseMove);
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleGlobalMouseMove);
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, [isDragging, draggingSection, startX, scrollLeft]);
+
+  // Create drag handlers for each section
+  const createDragHandlers = useCallback((sectionRef: React.RefObject<HTMLDivElement>, sectionId: string) => {
+    const handleMouseDown = (e: React.MouseEvent) => {
+      if (!sectionRef.current) return;
+      setIsDragging(true);
+      setDraggingSection(sectionId);
+      setStartX(e.pageX - sectionRef.current.offsetLeft);
+      setScrollLeft(sectionRef.current.scrollLeft);
+      sectionRef.current.style.cursor = 'grabbing';
+    };
+
+    const handleMouseLeave = () => {
+      // Don't stop dragging on mouse leave, allow dragging outside the element
+    };
+
+    return {
+      onMouseDown: handleMouseDown,
+      onMouseLeave: handleMouseLeave,
+    };
+  }, []);
+
+  // Carousel drag handlers (existing)
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!carouselRef.current) return;
     setIsDragging(true);
@@ -169,6 +239,25 @@ export default function Home() {
         .scrollbar-hide {
           -ms-overflow-style: none;
           scrollbar-width: none;
+        }
+
+        /* Horizontal scrollbar styling for category sections */
+        .category-scrollbar::-webkit-scrollbar {
+          height: 8px;
+        }
+        
+        .category-scrollbar::-webkit-scrollbar-track {
+          background: #1f2937;
+          border-radius: 4px;
+        }
+        
+        .category-scrollbar::-webkit-scrollbar-thumb {
+          background: linear-gradient(to right, #f97316, #eab308);
+          border-radius: 4px;
+        }
+        
+        .category-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(to right, #ea580c, #ca8a04);
         }
 
         /* Snap scrolling */
@@ -275,7 +364,12 @@ export default function Home() {
         <section className="px-4">
           <h2 className="text-2xl font-bold mb-6">Trending Now</h2>
           <div className="relative">
-            <div className="flex overflow-x-auto gap-6 pb-6 scrollbar-hide">
+            <div 
+              ref={trendingRef}
+              className="flex overflow-x-auto gap-6 pb-6 category-scrollbar cursor-grab active:cursor-grabbing"
+              style={{ scrollBehavior: 'smooth' }}
+              {...createDragHandlers(trendingRef, 'trending')}
+            >
               {trending.map((show, index) => (
                 <div
                   key={`trending-list-${show.id}-${index}`}
@@ -312,7 +406,12 @@ export default function Home() {
         <section className="px-4" ref={moviesRef}>
           <h2 className="text-2xl font-bold mb-6">Movies</h2>
           <div className="relative">
-            <div className="flex overflow-x-auto gap-6 pb-6 scrollbar-hide">
+            <div 
+              ref={moviesSectionRef}
+              className="flex overflow-x-auto gap-6 pb-6 category-scrollbar cursor-grab active:cursor-grabbing"
+              style={{ scrollBehavior: 'smooth' }}
+              {...createDragHandlers(moviesSectionRef, 'movies')}
+            >
               {movies.map((movie, index) => (
                 <div
                   key={`movie-${movie.id}-${index}`}
@@ -342,7 +441,12 @@ export default function Home() {
         <section className="px-4">
           <h2 className="text-2xl font-bold mb-6">TV Shows</h2>
           <div className="relative">
-            <div className="flex overflow-x-auto gap-6 pb-6 scrollbar-hide">
+            <div 
+              ref={seriesRef}
+              className="flex overflow-x-auto gap-6 pb-6 category-scrollbar cursor-grab active:cursor-grabbing"
+              style={{ scrollBehavior: 'smooth' }}
+              {...createDragHandlers(seriesRef, 'series')}
+            >
               {series.map((show, index) => (
                 <div
                   key={`series-${show.id}-${index}`}
@@ -372,7 +476,12 @@ export default function Home() {
         <section className="px-4">
           <h2 className="text-2xl font-bold mb-6">Anime</h2>
           <div className="relative">
-            <div className="flex overflow-x-auto gap-6 pb-6 scrollbar-hide">
+            <div 
+              ref={animeRef}
+              className="flex overflow-x-auto gap-6 pb-6 category-scrollbar cursor-grab active:cursor-grabbing"
+              style={{ scrollBehavior: 'smooth' }}
+              {...createDragHandlers(animeRef, 'anime')}
+            >
               {anime.map((show, index) => (
                 <div
                   key={`anime-${show.id}-${index}`}
