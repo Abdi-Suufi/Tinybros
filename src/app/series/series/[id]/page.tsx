@@ -214,7 +214,7 @@ export default function SeriesPage({ params }: { params: Promise<{ id: string }>
                     </p>
                     <Link
                       href={`/watch/tv/${resolvedParams.id}?season=${selectedSeason}&episode=${episode.episode_number}`}
-                      className="inline-block w-full text-center px-4 py-2 bg-gradient-to-r from-sky-600 to-teal-600 rounded-full font-semibold hover:opacity-90 transition-opacity"
+                      className="inline-block w-full text-center px-4 py-2 bg-gradient-to-r from-orange-600 to-yellow-600 rounded-full font-semibold hover:opacity-90 transition-opacity"
                     >
                       Watch Episode
                     </Link>
