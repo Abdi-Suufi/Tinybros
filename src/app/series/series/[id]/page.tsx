@@ -1,7 +1,8 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
-import { use } from 'react';
-import type { Metadata } from 'next';
+import { use, useEffect, useState } from 'react';
 import { getImageUrl, TMDBShow, TMDBSeason, TMDBEpisode } from '@/lib/tmdb';
 
 async function getShowDetails(id: string): Promise<TMDBShow> {
@@ -14,22 +15,6 @@ async function getShowDetails(id: string): Promise<TMDBShow> {
   }
 
   return response.json();
-}
-
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
-  const resolvedParams = await params;
-  try {
-    const show = await getShowDetails(resolvedParams.id);
-    return {
-      title: `${show.name || show.title || 'Series'} | TinyBros`,
-      description: show.overview || 'Watch on TinyBros',
-    };
-  } catch {
-    return {
-      title: 'Series | TinyBros',
-      description: 'Watch on TinyBros',
-    };
-  }
 }
 
 async function getEpisodes(showId: string, season: number): Promise<TMDBSeason | null> {
@@ -46,8 +31,66 @@ async function getEpisodes(showId: string, season: number): Promise<TMDBSeason |
 
 export default function SeriesPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
-  const show = use(getShowDetails(resolvedParams.id));
-  const episodes = use(getEpisodes(resolvedParams.id, 1));
+  const [show, setShow] = useState<TMDBShow | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedSeason, setSelectedSeason] = useState(1);
+  const [episodes, setEpisodes] = useState<TMDBEpisode[]>([]);
+  const [loadingEpisodes, setLoadingEpisodes] = useState(false);
+
+  // Fetch show details
+  useEffect(() => {
+    const fetchShow = async () => {
+      try {
+        const showData = await getShowDetails(resolvedParams.id);
+        setShow(showData);
+      } catch (error) {
+        console.error('Error fetching show:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchShow();
+  }, [resolvedParams.id]);
+
+  // Fetch episodes when season changes
+  useEffect(() => {
+    if (resolvedParams.id) {
+      const fetchEpisodes = async () => {
+        setLoadingEpisodes(true);
+        try {
+          const episodesData = await getEpisodes(resolvedParams.id, selectedSeason);
+          if (episodesData && episodesData.episodes) {
+            setEpisodes(episodesData.episodes);
+          } else {
+            setEpisodes([]);
+          }
+        } catch (error) {
+          console.error('Error fetching episodes:', error);
+          setEpisodes([]);
+        } finally {
+          setLoadingEpisodes(false);
+        }
+      };
+
+      fetchEpisodes();
+    }
+  }, [selectedSeason, resolvedParams.id]);
+
+  // Set page title
+  useEffect(() => {
+    if (show) {
+      document.title = `${show.name || show.title || 'Series'} | TinyBros`;
+    }
+  }, [show]);
+
+  if (loading || !show) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-xl">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -123,13 +166,30 @@ export default function SeriesPage({ params }: { params: Promise<{ id: string }>
         </div>
 
         {/* Episodes Section */}
-        {episodes && episodes.episodes && (
-          <div className="mt-16">
-            <h2 className="text-2xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-teal-500">
+        <div className="mt-16">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-teal-500">
               Episodes
             </h2>
+            <select
+              value={selectedSeason}
+              onChange={(e) => setSelectedSeason(Number(e.target.value))}
+              className="bg-gray-800/50 text-white px-4 py-2 rounded-full border border-gray-700 focus:outline-none focus:border-gray-500 transition-colors"
+            >
+              {Array.from({ length: show.number_of_seasons || 1 }, (_, i) => i + 1).map(
+                (season) => (
+                  <option key={season} value={season}>
+                    Season {season}
+                  </option>
+                )
+              )}
+            </select>
+          </div>
+          {loadingEpisodes ? (
+            <div className="text-center py-8 text-gray-400">Loading episodes...</div>
+          ) : episodes.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {episodes.episodes.map((episode: TMDBEpisode) => (
+              {episodes.map((episode: TMDBEpisode) => (
                 <div
                   key={episode.id}
                   className="bg-gray-800/50 rounded-xl overflow-hidden hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 group"
@@ -153,7 +213,7 @@ export default function SeriesPage({ params }: { params: Promise<{ id: string }>
                       {episode.overview}
                     </p>
                     <Link
-                      href={`/watch/tv/${resolvedParams.id}?season=1&episode=${episode.episode_number}`}
+                      href={`/watch/tv/${resolvedParams.id}?season=${selectedSeason}&episode=${episode.episode_number}`}
                       className="inline-block w-full text-center px-4 py-2 bg-gradient-to-r from-sky-600 to-teal-600 rounded-full font-semibold hover:opacity-90 transition-opacity"
                     >
                       Watch Episode
@@ -162,8 +222,10 @@ export default function SeriesPage({ params }: { params: Promise<{ id: string }>
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="text-center py-8 text-gray-400">No episodes found for this season.</div>
+          )}
+        </div>
       </div>
     </div>
   );

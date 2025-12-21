@@ -121,6 +121,28 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
     fetchData();
   }, [resolvedParams.id, resolvedParams.type, searchParams]);
 
+  // Fetch episodes when season changes
+  useEffect(() => {
+    if (resolvedParams.type === 'tv' && show) {
+      const fetchEpisodes = async () => {
+        try {
+          const episodesResponse = await fetch(
+            `https://api.themoviedb.org/3/tv/${resolvedParams.id}/season/${selectedSeason}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
+          );
+          
+          if (episodesResponse.ok) {
+            const episodesData = await episodesResponse.json();
+            setEpisodes(episodesData.episodes || []);
+          }
+        } catch (error) {
+          console.error('Error fetching episodes:', error);
+        }
+      };
+
+      fetchEpisodes();
+    }
+  }, [selectedSeason, resolvedParams.id, resolvedParams.type, show]);
+
   // Update page title when show or episode changes
   useEffect(() => {
     if (show) {
@@ -300,7 +322,14 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
               </h2>
               <select
                 value={selectedSeason}
-                onChange={(e) => setSelectedSeason(Number(e.target.value))}
+                onChange={(e) => {
+                  const newSeason = Number(e.target.value);
+                  setSelectedSeason(newSeason);
+                  // Update URL without reloading
+                  const url = new URL(window.location.href);
+                  url.searchParams.set('season', newSeason.toString());
+                  window.history.pushState({}, '', url.toString());
+                }}
                 className="bg-gray-800/50 text-white px-4 py-2 rounded-full border border-gray-700 focus:outline-none focus:border-gray-500 transition-colors"
               >
                 {Array.from({ length: show.number_of_seasons || 1 }, (_, i) => i + 1).map(
