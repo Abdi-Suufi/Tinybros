@@ -329,7 +329,7 @@ export default function Home() {
                   </p>
                   <button
                     onClick={() => handleShowClick(show.id, show.media_type)}
-                    className="bg-gradient-to-r from-orange-500 to-yellow-600 px-10 py-4 rounded-full text-xl font-semibold hover:opacity-90 transition-opacity flex items-center gap-3 shadow-lg"
+                    className="bg-gradient-orange-yellow-light bg-gradient-to-r from-orange-500 to-yellow-600 px-10 py-4 rounded-full text-xl font-semibold hover:opacity-90 transition-opacity flex items-center gap-3 shadow-lg"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -356,7 +356,7 @@ export default function Home() {
                 onClick={() => goToSlide(index)}
                 className={`w-3 h-3 rounded-full transition-all ${
                   index === currentIndex
-                    ? 'bg-gradient-to-r from-yellow-400 to-yellow-500 w-8'
+                    ? 'bg-gradient-yellow-dot bg-gradient-to-r from-yellow-400 to-yellow-500 w-8'
                     : 'bg-gray-600 hover:bg-gray-500'
                 }`}
                 aria-label={`Go to slide ${index + 1}`}

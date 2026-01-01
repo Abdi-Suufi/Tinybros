@@ -242,8 +242,8 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
                         source.disabled
                           ? 'bg-gray-700/50 cursor-not-allowed opacity-50'
                           : source.id === 'vidlink'
-                            ? 'bg-gradient-to-r from-orange-600 to-yellow-600 ring-2 ring-orange-400 ring-offset-2 ring-offset-black hover:opacity-90' 
-                            : 'bg-gradient-to-r from-orange-600 to-yellow-600 hover:opacity-90'
+                            ? 'bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 ring-2 ring-orange-400 ring-offset-2 ring-offset-black hover:opacity-90' 
+                            : 'bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 hover:opacity-90'
                       }`}
                     >
                       {source.name}
@@ -273,8 +273,8 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
                     ? 'bg-gray-700/50 cursor-not-allowed opacity-50'
                     : selectedSource === source.id
                       ? source.id === 'vidlink'
-                        ? 'bg-gradient-to-r from-orange-600 to-yellow-600 ring-2 ring-orange-400 ring-offset-2 ring-offset-black'
-                        : 'bg-gradient-to-r from-orange-600 to-yellow-600'
+                        ? 'bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 ring-2 ring-orange-400 ring-offset-2 ring-offset-black'
+                        : 'bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600'
                       : source.id === 'vidlink'
                         ? 'bg-gray-800 hover:bg-gray-700 ring-1 ring-orange-400/50'
                         : 'bg-gray-800 hover:bg-gray-700'
@@ -367,7 +367,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
                     </p>
                     <Link
                       href={`/watch/${resolvedParams.type}/${resolvedParams.id}?season=${selectedSeason}&episode=${episode.episode_number}`}
-                      className="inline-block w-full text-center px-4 py-2 bg-gradient-to-r from-orange-600 to-yellow-600 rounded-full font-semibold hover:opacity-90 transition-opacity"
+                      className="inline-block w-full text-center px-4 py-2 bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 rounded-full font-semibold hover:opacity-90 transition-opacity"
                     >
                       Watch Episode
                     </Link>

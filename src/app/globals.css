@@ -49,3 +49,28 @@ body {
   scrollbar-width: thin;
   scrollbar-color: #fbbf24 #000000;
 }
+
+/* Android WebView gradient fallback */
+.bg-gradient-orange-yellow {
+  background-color: #ea580c; /* orange-600 fallback */
+  background-image: linear-gradient(to right, #ea580c, #ca8a04);
+  -webkit-background-image: linear-gradient(to right, #ea580c, #ca8a04);
+  -moz-background-image: linear-gradient(to right, #ea580c, #ca8a04);
+  -o-background-image: linear-gradient(to right, #ea580c, #ca8a04);
+}
+
+.bg-gradient-orange-yellow-light {
+  background-color: #f97316; /* orange-500 fallback */
+  background-image: linear-gradient(to right, #f97316, #ca8a04);
+  -webkit-background-image: linear-gradient(to right, #f97316, #ca8a04);
+  -moz-background-image: linear-gradient(to right, #f97316, #ca8a04);
+  -o-background-image: linear-gradient(to right, #f97316, #ca8a04);
+}
+
+.bg-gradient-yellow-dot {
+  background-color: #facc15; /* yellow-400 fallback */
+  background-image: linear-gradient(to right, #facc15, #eab308);
+  -webkit-background-image: linear-gradient(to right, #facc15, #eab308);
+  -moz-background-image: linear-gradient(to right, #facc15, #eab308);
+  -o-background-image: linear-gradient(to right, #facc15, #eab308);
+}
