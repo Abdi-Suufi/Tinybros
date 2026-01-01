@@ -1,5 +1,5 @@
 # TinyBros🎬
-<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/7d0c76cb-d4c0-4eb6-9ee0-2979f203ec79" />
+<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/68edeabf-bd46-4565-b1b6-fa16ab3eb4ee" />
 A modern, clean streaming platform that provides access to movies, TV shows, and anime with an intuitive user interface and seamless viewing experience.
 
 ## 🌟 Purpose
@@ -7,7 +7,7 @@ A modern, clean streaming platform that provides access to movies, TV shows, and
 TinyBros is designed to be your gateway to the future of entertainment. It's a comprehensive streaming platform that aggregates content from various sources, providing users with a unified interface to discover, browse, and watch their favorite movies, TV series, and anime.
 
 ## ✨ Features
-<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/2500887d-4960-430a-a526-40b64a6db060" />
+<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/af93996a-7346-4fa4-9314-d7b8c384fab5" />
 
 ### 🎯 Content Discovery
 - **Trending Content**: Curated trending movies and shows updated weekly
