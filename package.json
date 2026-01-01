@@ -9,7 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/cli": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
     "@vercel/analytics": "^1.5.0",
+    "cross-env": "^10.1.0",
     "disqus-react": "^1.1.6",
     "g3watch": "file:",
     "next": "^15.3.6",
