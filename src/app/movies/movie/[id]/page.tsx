@@ -51,7 +51,7 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
       </div>
 
       {/* Content */}
-      <div className="relative -mt-32 container mx-auto px-4">
+      <div className="relative -mt-32 container mx-auto px-4 pb-8">
         <div className="flex flex-col md:flex-row gap-8">
           {/* Poster */}
           <div className="md:w-1/3 lg:w-1/4">
