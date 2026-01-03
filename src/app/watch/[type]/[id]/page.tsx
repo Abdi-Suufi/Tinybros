@@ -1,5 +1,3 @@
-// src/app/watch/[type]/[id]/page.tsx
-
 'use client';
 
 import { useEffect, useState, use } from 'react';
@@ -169,6 +167,32 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
     return source ? source.url : playbackSources[0].url;
   };
 
+  //NAVIGATION LOGIC
+  const currentSeason = Number(searchParams.get('season')) || 1;
+  const currentEpisode = Number(searchParams.get('episode')) || 1;
+  
+  // Next Episode Logic
+  let nextEpisodeUrl = '';
+  if (resolvedParams.type === 'tv' && show) {
+    const hasNextInSeason = episodes.some(ep => ep.episode_number === currentEpisode + 1);
+    const hasNextSeason = (show.number_of_seasons || 0) > currentSeason;
+
+    if (hasNextInSeason) {
+      nextEpisodeUrl = `/watch/${resolvedParams.type}/${resolvedParams.id}?season=${currentSeason}&episode=${currentEpisode + 1}`;
+    } else if (hasNextSeason) {
+      nextEpisodeUrl = `/watch/${resolvedParams.type}/${resolvedParams.id}?season=${currentSeason + 1}&episode=1`;
+    }
+  }
+
+  // Previous Episode Logic
+  let prevEpisodeUrl = '';
+  if (resolvedParams.type === 'tv' && show) {
+    // Only support going back to previous episode in the SAME season for simplicity
+    if (currentEpisode > 1) {
+      prevEpisodeUrl = `/watch/${resolvedParams.type}/${resolvedParams.id}?season=${currentSeason}&episode=${currentEpisode - 1}`;
+    }
+  }
+
   if (loading) {
     return <Loading />;
   }
@@ -204,9 +228,6 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
         }
       `}</style>
 
-      {/* Header with Logo */}
-      
-
       {/* Video Player */}
       <div className="w-full max-w-5xl mx-auto pt-28 pb-8 px-4">
         {showPlayer ? (
@@ -232,60 +253,132 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
               )}
               <div className="mt-6">
                 <h3 className="text-xl mb-4">Select a playback source:</h3>
-                <div className="flex flex-wrap justify-center gap-3">
-                  {playbackSources.map((source) => (
-                    <button
-                      key={source.id}
-                      onClick={() => handleSourceChange(source.id)}
-                      disabled={source.disabled}
-                      className={`px-4 py-2 rounded-full text-white font-semibold transition-opacity ${
-                        source.disabled
-                          ? 'bg-gray-700/50 cursor-not-allowed opacity-50'
-                          : source.id === 'vidlink'
-                            ? 'bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 ring-2 ring-orange-400 ring-offset-2 ring-offset-black hover:opacity-90' 
-                            : 'bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 hover:opacity-90'
-                      }`}
-                    >
-                      {source.name}
-                      {source.id === 'vidlink' && (
-                        <span className="ml-1 text-xs bg-orange-400 text-black px-1.5 py-0.5 rounded-full">★</span>
-                      )}
-                    </button>
-                  ))}
+                
+                <div className="flex flex-col items-center gap-6">
+                  {/* Source Buttons */}
+                  <div className="flex flex-wrap justify-center gap-3">
+                    {playbackSources.map((source) => (
+                      <button
+                        key={source.id}
+                        onClick={() => handleSourceChange(source.id)}
+                        disabled={source.disabled}
+                        className={`px-4 py-2 rounded-full text-white font-semibold transition-opacity ${
+                          source.disabled
+                            ? 'bg-gray-700/50 cursor-not-allowed opacity-50'
+                            : source.id === 'vidlink'
+                              ? 'bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 ring-2 ring-orange-400 ring-offset-2 ring-offset-black hover:opacity-90' 
+                              : 'bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 hover:opacity-90'
+                        }`}
+                      >
+                        {source.name}
+                        {source.id === 'vidlink' && (
+                          <span className="ml-1 text-xs bg-orange-400 text-black px-1.5 py-0.5 rounded-full">★</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Navigation Buttons for Placeholder */}
+                  <div className="flex gap-4">
+                    {prevEpisodeUrl && (
+                      <Link
+                        href={prevEpisodeUrl}
+                        className="inline-flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-orange-600 to-yellow-600 hover:opacity-90 text-white rounded-full font-semibold transition-opacity"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                        </svg>
+                        <span>Prev</span>
+                      </Link>
+                    )}
+                    {nextEpisodeUrl && (
+                      <Link
+                        href={nextEpisodeUrl}
+                        className="inline-flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-orange-600 to-yellow-600 hover:opacity-90 text-white rounded-full font-semibold transition-opacity"
+                      >
+                        <span>Next</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                        </svg>
+                      </Link>
+                    )}
+                  </div>
                 </div>
+
               </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Source Selector (when player is active) */}
+      {/* Source Selector & Navigation (when player is active) */}
       {showPlayer && (
-        <div className="bg-gray-900 p-4 flex justify-center">
-          <div className="flex flex-wrap gap-3">
-            {playbackSources.map((source) => (
-              <button
-                key={source.id}
-                onClick={() => handleSourceChange(source.id)}
-                disabled={source.disabled}
-                className={`px-4 py-2 rounded-full text-white font-semibold transition-all ${
-                  source.disabled
-                    ? 'bg-gray-700/50 cursor-not-allowed opacity-50'
-                    : selectedSource === source.id
-                      ? source.id === 'vidlink'
-                        ? 'bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 ring-2 ring-orange-400 ring-offset-2 ring-offset-black'
-                        : 'bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600'
-                      : source.id === 'vidlink'
-                        ? 'bg-gray-800 hover:bg-gray-700 ring-1 ring-orange-400/50'
-                        : 'bg-gray-800 hover:bg-gray-700'
-                }`}
-              >
-                {source.name}
-                {source.id === 'vidlink' && (
-                  <span className="ml-1 text-xs bg-orange-400 text-black px-1.5 py-0.5 rounded-full">★</span>
-                )}
-              </button>
-            ))}
+        <div className="bg-gray-900 p-4">
+          <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4 max-w-5xl">
+            
+            {/* Previous Episode Button (Left Side) */}
+            <div className="flex-shrink-0 w-full md:w-auto flex justify-center md:justify-start">
+              {prevEpisodeUrl ? (
+                <Link
+                  href={prevEpisodeUrl}
+                  className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-orange-600 to-yellow-600 hover:opacity-90 text-white rounded-full font-semibold transition-opacity group"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 group-hover:-translate-x-1 transition-transform">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                  </svg>
+                  <span>Prev</span>
+                </Link>
+              ) : (
+                // Invisible spacer to maintain center alignment of sources when Prev is missing
+                <div className="hidden md:block w-[100px]" />
+              )}
+            </div>
+
+            {/* Source Buttons (Center) */}
+            <div className="flex flex-wrap gap-3 justify-center flex-1">
+              {playbackSources.map((source) => (
+                <button
+                  key={source.id}
+                  onClick={() => handleSourceChange(source.id)}
+                  disabled={source.disabled}
+                  className={`px-4 py-2 rounded-full text-white font-semibold transition-all ${
+                    source.disabled
+                      ? 'bg-gray-700/50 cursor-not-allowed opacity-50'
+                      : selectedSource === source.id
+                        ? source.id === 'vidlink'
+                          ? 'bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 ring-2 ring-orange-400 ring-offset-2 ring-offset-black'
+                          : 'bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600'
+                        : source.id === 'vidlink'
+                          ? 'bg-gray-800 hover:bg-gray-700 ring-1 ring-orange-400/50'
+                          : 'bg-gray-800 hover:bg-gray-700'
+                  }`}
+                >
+                  {source.name}
+                  {source.id === 'vidlink' && (
+                    <span className="ml-1 text-xs bg-orange-400 text-black px-1.5 py-0.5 rounded-full">★</span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Next Episode Button (Right Side) */}
+            <div className="flex-shrink-0 w-full md:w-auto flex justify-center md:justify-end">
+              {nextEpisodeUrl ? (
+                <Link
+                  href={nextEpisodeUrl}
+                  className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-orange-600 to-yellow-600 hover:opacity-90 text-white rounded-full font-semibold transition-opacity group"
+                >
+                  <span>Next</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 group-hover:translate-x-1 transition-transform">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                  </svg>
+                </Link>
+              ) : (
+                // Invisible spacer
+                <div className="hidden md:block w-[100px]" />
+              )}
+            </div>
+
           </div>
         </div>
       )}
