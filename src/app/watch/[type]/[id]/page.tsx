@@ -233,14 +233,19 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
         {showPlayer ? (
           <div className="relative w-full aspect-video bg-gray-900 rounded-lg shadow-2xl">
             <iframe
-              key={selectedSource}
-              src={getCurrentSourceUrl()}
-              className="w-full h-full rounded-lg"
-              allowFullScreen={true}
-              allow="fullscreen; autoplay; encrypted-media; picture-in-picture; web-share; accelerometer; gyroscope"
-              style={{ border: 'none' }}
-              referrerPolicy="no-referrer-when-downgrade"
-            />
+  key={selectedSource}
+  src={getCurrentSourceUrl()}
+  className="w-full h-full rounded-lg"
+  allowFullScreen={true}
+  // Apply sandbox ONLY when VidKing is the selected source
+  sandbox={selectedSource === 'vidking' 
+    ? "allow-forms allow-scripts allow-same-origin allow-presentation" 
+    : undefined
+  }
+  allow="fullscreen; autoplay; encrypted-media; picture-in-picture; web-share; accelerometer; gyroscope"
+  style={{ border: 'none' }}
+  referrerPolicy="no-referrer-when-downgrade"
+/>
           </div>
         ) : (
           <div className="relative w-full aspect-video bg-gray-900 rounded-lg overflow-hidden shadow-2xl flex items-center justify-center">
