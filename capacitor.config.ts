@@ -1,11 +1,11 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.tinybros.app',
-  appName: 'TinyBros',
+  appId: 'com.tinywatch.app',
+  appName: 'Tinywatch',
   webDir: 'out',
   server: {
-    url: 'https://tinybros.vercel.app', 
+    url: 'https://tinywatch.vercel.app', 
     cleartext: true
   }
 };
