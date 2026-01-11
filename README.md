@@ -76,7 +76,7 @@ TinyBros is designed to be your gateway to the future of entertainment. It's a c
 ## 🎨 Design Philosophy
 
 TinyBros follows a minimalist design approach with:
-- **Gradient Themes**: Sky-blue to teal color schemes
+- **Gradient Themes**: orange to yellow color schemes
 - **Card-based Layout**: Clean content organization
 - **Smooth Interactions**: Hover effects and transitions
 - **Mobile-first**: Responsive design principles
