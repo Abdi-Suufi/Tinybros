@@ -316,6 +316,31 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
         )}
       </div>
 
+      {/* Current Episode Display (when player is active) */}
+      {showPlayer && resolvedParams.type === 'tv' && (
+        <div className="w-full max-w-5xl mx-auto px-4 pb-2">
+          <div className="text-center">
+            <div className="inline-flex items-center gap-3 px-6 py-3 bg-gray-900/80 backdrop-blur-sm rounded-full border border-gray-700/50">
+              <span className="text-white font-semibold text-lg">
+                {show.title || show.name}
+              </span>
+              <span className="text-gray-400">•</span>
+              <span className="text-orange-400 font-bold text-lg">
+                Season {currentSeason} • Episode {currentEpisode}
+              </span>
+              {episodes.find(ep => ep.episode_number === currentEpisode) && (
+                <>
+                  <span className="text-gray-400">•</span>
+                  <span className="text-gray-300 text-sm">
+                    {episodes.find(ep => ep.episode_number === currentEpisode)?.name}
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Source Selector & Navigation (when player is active) */}
       {showPlayer && (
         <div className="bg-gray-900 p-4">
@@ -440,38 +465,61 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
               </select>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {episodes.map((episode) => (
-                <div
-                  key={episode.id}
-                  className="bg-gray-800/50 rounded-xl overflow-hidden hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 group"
-                >
-                  <div className="relative h-40">
-                    <Image
-                      src={getImageUrl(episode.still_path)}
-                      alt={episode.name}
-                      fill
-                      className="object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                  <div className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold">Episode {episode.episode_number}</h3>
-                      <span className="text-sm text-gray-400">{episode.air_date}</span>
+              {episodes.map((episode) => {
+                const isCurrentEpisode = episode.episode_number === currentEpisode && selectedSeason === currentSeason;
+                return (
+                  <div
+                    key={episode.id}
+                    className={`rounded-xl overflow-hidden transition-all duration-300 transform ${
+                      isCurrentEpisode
+                        ? 'bg-gradient-to-br from-orange-900/40 to-yellow-900/40 border-2 border-orange-500/50'
+                        : 'bg-gray-800/50 hover:bg-gray-800/80 hover:scale-105 group'
+                    }`}
+                  >
+                    <div className="relative h-40">
+                      <Image
+                        src={getImageUrl(episode.still_path)}
+                        alt={episode.name}
+                        fill
+                        className="object-cover"
+                      />
+                      <div className={`absolute inset-0 bg-gradient-to-t from-black/80 to-transparent ${
+                        isCurrentEpisode ? 'opacity-50' : 'opacity-0 group-hover:opacity-100'
+                      } transition-opacity`} />
+                      {isCurrentEpisode && (
+                        <div className="absolute top-2 right-2 bg-gradient-to-r from-orange-600 to-yellow-600 text-white px-3 py-1 rounded-full text-xs font-bold">
+                          Currently Watching
+                        </div>
+                      )}
                     </div>
-                    <h4 className="text-lg font-bold mb-2">{episode.name}</h4>
-                    <p className="text-gray-300 text-sm mb-4 line-clamp-2">
-                      {episode.overview}
-                    </p>
-                    <Link
-                      href={`/watch/${resolvedParams.type}/${resolvedParams.id}?season=${selectedSeason}&episode=${episode.episode_number}`}
-                      className="inline-block w-full text-center px-4 py-2 bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 rounded-full font-semibold hover:opacity-90 transition-opacity"
-                    >
-                      Watch Episode
-                    </Link>
+                    <div className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold">Episode {episode.episode_number}</h3>
+                        <span className="text-sm text-gray-400">{episode.air_date}</span>
+                      </div>
+                      <h4 className="text-lg font-bold mb-2">{episode.name}</h4>
+                      <p className="text-gray-300 text-sm mb-4 line-clamp-2">
+                        {episode.overview}
+                      </p>
+                      {isCurrentEpisode ? (
+                        <button
+                          disabled
+                          className="inline-block w-full text-center px-4 py-2 bg-gray-700/50 text-gray-400 rounded-full font-semibold cursor-not-allowed"
+                        >
+                          Currently Watching
+                        </button>
+                      ) : (
+                        <Link
+                          href={`/watch/${resolvedParams.type}/${resolvedParams.id}?season=${selectedSeason}&episode=${episode.episode_number}`}
+                          className="inline-block w-full text-center px-4 py-2 bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 rounded-full font-semibold hover:opacity-90 transition-opacity"
+                        >
+                          Watch Episode
+                        </Link>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
