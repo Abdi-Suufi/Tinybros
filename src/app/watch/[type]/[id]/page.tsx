@@ -42,8 +42,8 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [selectedSeason, setSelectedSeason] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [selectedSource, setSelectedSource] = useState<string>('vidlink');
-  const [showPlayer, setShowPlayer] = useState(false);
+  const [selectedSource, setSelectedSource] = useState<string>('vidking');
+  const [showPlayer, setShowPlayer] = useState(true);
 
   // Define available playback sources
   const playbackSources: PlaybackSource[] = [
