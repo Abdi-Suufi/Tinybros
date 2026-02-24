@@ -4,7 +4,6 @@ import Image from "next/image";
 import { useRef, useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { fetchTrending, fetchMovies, fetchTVShows, fetchAnime, getImageUrl, TMDBShow } from "@/lib/tmdb";
-import Loading from '@/components/Loading';
 
 export default function Home() {
   const moviesRef = useRef<HTMLDivElement>(null);
@@ -234,9 +233,7 @@ export default function Home() {
   }, [trending.length, isDragging]);
 
 
-  if (loading) {
-    return <Loading />;
-  }
+  const showSkeletonArray = Array.from({ length: 8 });
 
   return (
     <div className="min-h-screen bg-black">
@@ -291,80 +288,97 @@ export default function Home() {
 
       {/* Trending Shows Hero Carousel */}
       <section className="relative h-[70vh] bg-black overflow-hidden">
-        <div
-          ref={carouselRef}
-          className="flex h-full overflow-x-scroll snap-x snap-mandatory scrollbar-hide"
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseLeave}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
-        >
-          {trending.map((show, index) => (
-            <div
-              key={`trending-${show.id}-${index}`}
-              className="relative flex-none w-full h-full snap-center"
-            >
-              <div className="relative w-full h-full">
-                <Image
-                  src={getImageUrl(show.backdrop_path, 'original')}
-                  alt={show.title || show.name || ''}
-                  fill
-                  className="object-cover"
-                  style={{ objectPosition: 'center 30%' }}
-                  quality={100}
-                  priority={index === 0}
-                  sizes="100vw"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
-                <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4">
-                  <h2 className="text-5xl md:text-7xl font-bold mb-4 text-center max-w-4xl">
-                    {show.title || show.name}
-                  </h2>
-                  <p className="text-lg md:text-xl text-gray-300 mb-8 text-center max-w-3xl line-clamp-3">
-                    {show.overview}
-                  </p>
-                  <button
-                    onClick={() => handleShowClick(show.id, show.media_type)}
-                    className="bg-gradient-orange-yellow-light bg-gradient-to-r from-orange-500 to-yellow-600 px-10 py-4 rounded-full text-xl font-semibold hover:opacity-90 transition-opacity flex items-center gap-3 shadow-lg"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-7 w-7"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                    Watch Now
-                  </button>
-                </div>
+        {loading ? (
+          <div className="w-full h-full relative">
+            <div className="absolute inset-0 animate-pulse bg-gradient-to-b from-orange-900/40 via-black to-yellow-900/40" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4 space-y-4">
+              <div className="h-12 md:h-16 rounded-full w-3/4 max-w-xl bg-gradient-to-r from-orange-500/70 to-yellow-400/70" />
+              <div className="space-y-3 w-full max-w-2xl">
+                <div className="h-4 rounded-full w-full bg-gradient-to-r from-orange-500/60 to-yellow-400/60" />
+                <div className="h-4 rounded-full w-5/6 bg-gradient-to-r from-orange-500/50 to-yellow-400/50" />
+                <div className="h-4 rounded-full w-2/3 bg-gradient-to-r from-orange-500/40 to-yellow-400/40" />
               </div>
+              <div className="h-12 rounded-full w-40 bg-gradient-to-r from-orange-500/70 to-yellow-400/70" />
             </div>
-          ))}
-        </div>
-        
-        {/* Navigation Dots */}
-        {trending.length > 1 && (
-          <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-20 flex gap-2">
-            {trending.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => goToSlide(index)}
-                className={`w-3 h-3 rounded-full transition-all ${
-                  index === currentIndex
-                    ? 'bg-gradient-yellow-dot bg-gradient-to-r from-yellow-400 to-yellow-500 w-8'
-                    : 'bg-gray-600 hover:bg-gray-500'
-                }`}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
           </div>
+        ) : (
+          <>
+            <div
+              ref={carouselRef}
+              className="flex h-full overflow-x-scroll snap-x snap-mandatory scrollbar-hide"
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseLeave}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+            >
+              {trending.map((show, index) => (
+                <div
+                  key={`trending-${show.id}-${index}`}
+                  className="relative flex-none w-full h-full snap-center"
+                >
+                  <div className="relative w-full h-full">
+                    <Image
+                      src={getImageUrl(show.backdrop_path, 'original')}
+                      alt={show.title || show.name || ''}
+                      fill
+                      className="object-cover"
+                      style={{ objectPosition: 'center 30%' }}
+                      quality={100}
+                      priority={index === 0}
+                      sizes="100vw"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+                    <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4">
+                      <h2 className="text-5xl md:text-7xl font-bold mb-4 text-center max-w-4xl">
+                        {show.title || show.name}
+                      </h2>
+                      <p className="text-lg md:text-xl text-gray-300 mb-8 text-center max-w-3xl line-clamp-3">
+                        {show.overview}
+                      </p>
+                      <button
+                        onClick={() => handleShowClick(show.id, show.media_type)}
+                        className="bg-gradient-orange-yellow-light bg-gradient-to-r from-orange-500 to-yellow-600 px-10 py-4 rounded-full text-xl font-semibold hover:opacity-90 transition-opacity flex items-center gap-3 shadow-lg"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-7 w-7"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                        Watch Now
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {/* Navigation Dots */}
+            {trending.length > 1 && (
+              <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-20 flex gap-2">
+                {trending.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => goToSlide(index)}
+                    className={`w-3 h-3 rounded-full transition-all ${
+                      index === currentIndex
+                        ? 'bg-gradient-yellow-dot bg-gradient-to-r from-yellow-400 to-yellow-500 w-8'
+                        : 'bg-gray-600 hover:bg-gray-500'
+                    }`}
+                    aria-label={`Go to slide ${index + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+          </>
         )}
-        
+
         {/* Bottom gradient transition to black */}
         <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-b from-transparent via-black/30 to-black z-10 pointer-events-none" />
       </section>
@@ -381,35 +395,49 @@ export default function Home() {
               style={{ scrollBehavior: 'smooth' }}
               {...createDragHandlers(trendingRef, 'trending')}
             >
-              {trending.map((show, index) => (
-                <div
-                  key={`trending-list-${show.id}-${index}`}
-                  onClick={() => handleShowClick(show.id, show.media_type)}
-                  onDragStart={(e) => e.preventDefault()}
-                  className="flex-none w-[400px] rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group relative select-none"
-                >
-                  <div className="absolute top-4 left-4 z-20 bg-gradient-to-r from-yellow-500 to-yellow-600 w-12 h-12 rounded-full flex items-center justify-center text-2xl font-bold">
-                    {index + 1}
-                  </div>
-                  <div className="relative aspect-[16/9]">
-                    <Image
-                      src={getImageUrl(show.backdrop_path)}
-                      alt={show.title || show.name || ''}
-                      fill
-                      className="object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="absolute bottom-0 left-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <h3 className="text-2xl font-bold mb-2">{show.title || show.name}</h3>
-                      <p className="text-lg text-gray-300">{show.overview}</p>
+              {loading
+                ? showSkeletonArray.map((_, idx) => (
+                    <div
+                      key={`trend-skel-${idx}`}
+                      className="flex-none w-[400px] rounded-xl overflow-hidden animate-pulse bg-gradient-to-br from-orange-900/40 via-gray-900/60 to-yellow-900/40 relative"
+                    >
+                      <div className="absolute top-4 left-4 z-20 w-12 h-12 rounded-full bg-gradient-to-r from-orange-500/80 to-yellow-400/80" />
+                      <div className="relative aspect-[16/9] bg-gradient-to-t from-orange-700/40 via-gray-900 to-yellow-600/40" />
+                      <div className="p-6 space-y-3">
+                        <div className="h-5 rounded-full w-2/3 bg-gradient-to-r from-orange-500/70 to-yellow-400/70" />
+                        <div className="h-4 rounded-full w-full bg-gradient-to-r from-orange-500/60 to-yellow-400/60" />
+                      </div>
                     </div>
-                  </div>
-                  <div className="p-6">
-                    <h3 className="text-2xl font-bold truncate">{show.title || show.name}</h3>
-                    <p className="text-lg text-gray-400 truncate">{show.overview}</p>
-                  </div>
-                </div>
-              ))}
+                  ))
+                : trending.map((show, index) => (
+                    <div
+                      key={`trending-list-${show.id}-${index}`}
+                      onClick={() => handleShowClick(show.id, show.media_type)}
+                      onDragStart={(e) => e.preventDefault()}
+                      className="flex-none w-[400px] rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group relative select-none"
+                    >
+                      <div className="absolute top-4 left-4 z-20 bg-gradient-to-r from-yellow-500 to-yellow-600 w-12 h-12 rounded-full flex items-center justify-center text-2xl font-bold">
+                        {index + 1}
+                      </div>
+                      <div className="relative aspect-[16/9]">
+                        <Image
+                          src={getImageUrl(show.backdrop_path)}
+                          alt={show.title || show.name || ''}
+                          fill
+                          className="object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="absolute bottom-0 left-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <h3 className="text-2xl font-bold mb-2">{show.title || show.name}</h3>
+                          <p className="text-lg text-gray-300">{show.overview}</p>
+                        </div>
+                      </div>
+                      <div className="p-6">
+                        <h3 className="text-2xl font-bold truncate">{show.title || show.name}</h3>
+                        <p className="text-lg text-gray-400 truncate">{show.overview}</p>
+                      </div>
+                    </div>
+                  ))}
             </div>
           </div>
         </section>
@@ -424,28 +452,41 @@ export default function Home() {
               style={{ scrollBehavior: 'smooth' }}
               {...createDragHandlers(moviesSectionRef, 'movies')}
             >
-              {movies.map((movie, index) => (
-                <div
-                  key={`movie-${movie.id}-${index}`}
-                  onClick={() => handleShowClick(movie.id, 'movie')}
-                  onDragStart={(e) => e.preventDefault()}
-                  className="flex-none w-[300px] rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group select-none"
-                >
-                  <div className="relative aspect-[2/3]">
-                    <Image
-                      src={getImageUrl(movie.poster_path)}
-                      alt={movie.title || ''}
-                      fill
-                      className="object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="text-xl font-bold truncate">{movie.title}</h3>
-                    <p className="text-sm text-gray-400 truncate">{movie.overview}</p>
-                  </div>
-                </div>
-              ))}
+              {loading
+                ? showSkeletonArray.map((_, idx) => (
+                    <div
+                      key={`movie-skel-${idx}`}
+                      className="flex-none w-[300px] rounded-xl overflow-hidden animate-pulse bg-gradient-to-br from-orange-900/40 via-gray-900/60 to-yellow-900/40"
+                    >
+                      <div className="relative aspect-[2/3] bg-gradient-to-t from-orange-700/40 via-gray-900 to-yellow-600/40" />
+                      <div className="p-4 space-y-2">
+                        <div className="h-4 rounded-full w-3/4 bg-gradient-to-r from-orange-500/70 to-yellow-400/70" />
+                        <div className="h-3 rounded-full w-full bg-gradient-to-r from-orange-500/60 to-yellow-400/60" />
+                      </div>
+                    </div>
+                  ))
+                : movies.map((movie, index) => (
+                    <div
+                      key={`movie-${movie.id}-${index}`}
+                      onClick={() => handleShowClick(movie.id, 'movie')}
+                      onDragStart={(e) => e.preventDefault()}
+                      className="flex-none w-[300px] rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group select-none"
+                    >
+                      <div className="relative aspect-[2/3]">
+                        <Image
+                          src={getImageUrl(movie.poster_path)}
+                          alt={movie.title || ''}
+                          fill
+                          className="object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                      <div className="p-4">
+                        <h3 className="text-xl font-bold truncate">{movie.title}</h3>
+                        <p className="text-sm text-gray-400 truncate">{movie.overview}</p>
+                      </div>
+                    </div>
+                  ))}
             </div>
           </div>
         </section>
@@ -460,28 +501,41 @@ export default function Home() {
               style={{ scrollBehavior: 'smooth' }}
               {...createDragHandlers(seriesRef, 'series')}
             >
-              {series.map((show, index) => (
-                <div
-                  key={`series-${show.id}-${index}`}
-                  onClick={() => handleShowClick(show.id, 'tv')}
-                  onDragStart={(e) => e.preventDefault()}
-                  className="flex-none w-[300px] rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group select-none"
-                >
-                  <div className="relative aspect-[2/3]">
-                    <Image
-                      src={getImageUrl(show.poster_path)}
-                      alt={show.name || ''}
-                      fill
-                      className="object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="text-xl font-bold truncate">{show.name}</h3>
-                    <p className="text-sm text-gray-400 truncate">{show.overview}</p>
-                  </div>
-                </div>
-              ))}
+              {loading
+                ? showSkeletonArray.map((_, idx) => (
+                    <div
+                      key={`series-skel-${idx}`}
+                      className="flex-none w-[300px] rounded-xl overflow-hidden animate-pulse bg-gradient-to-br from-orange-900/40 via-gray-900/60 to-yellow-900/40"
+                    >
+                      <div className="relative aspect-[2/3] bg-gradient-to-t from-orange-700/40 via-gray-900 to-yellow-600/40" />
+                      <div className="p-4 space-y-2">
+                        <div className="h-4 rounded-full w-3/4 bg-gradient-to-r from-orange-500/70 to-yellow-400/70" />
+                        <div className="h-3 rounded-full w-full bg-gradient-to-r from-orange-500/60 to-yellow-400/60" />
+                      </div>
+                    </div>
+                  ))
+                : series.map((show, index) => (
+                    <div
+                      key={`series-${show.id}-${index}`}
+                      onClick={() => handleShowClick(show.id, 'tv')}
+                      onDragStart={(e) => e.preventDefault()}
+                      className="flex-none w-[300px] rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group select-none"
+                    >
+                      <div className="relative aspect-[2/3]">
+                        <Image
+                          src={getImageUrl(show.poster_path)}
+                          alt={show.name || ''}
+                          fill
+                          className="object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                      <div className="p-4">
+                        <h3 className="text-xl font-bold truncate">{show.name}</h3>
+                        <p className="text-sm text-gray-400 truncate">{show.overview}</p>
+                      </div>
+                    </div>
+                  ))}
             </div>
           </div>
         </section>
@@ -496,28 +550,41 @@ export default function Home() {
               style={{ scrollBehavior: 'smooth' }}
               {...createDragHandlers(animeRef, 'anime')}
             >
-              {anime.map((show, index) => (
-                <div
-                  key={`anime-${show.id}-${index}`}
-                  onClick={() => handleShowClick(show.id, 'tv')}
-                  onDragStart={(e) => e.preventDefault()}
-                  className="flex-none w-[300px] rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group select-none"
-                >
-                  <div className="relative aspect-[2/3]">
-                    <Image
-                      src={getImageUrl(show.poster_path)}
-                      alt={show.name || ''}
-                      fill
-                      className="object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="text-xl font-bold truncate">{show.name}</h3>
-                    <p className="text-sm text-gray-400 truncate">{show.overview}</p>
-                  </div>
-                </div>
-              ))}
+              {loading
+                ? showSkeletonArray.map((_, idx) => (
+                    <div
+                      key={`anime-skel-${idx}`}
+                      className="flex-none w-[300px] rounded-xl overflow-hidden animate-pulse bg-gradient-to-br from-orange-900/40 via-gray-900/60 to-yellow-900/40"
+                    >
+                      <div className="relative aspect-[2/3] bg-gradient-to-t from-orange-700/40 via-gray-900 to-yellow-600/40" />
+                      <div className="p-4 space-y-2">
+                        <div className="h-4 rounded-full w-3/4 bg-gradient-to-r from-orange-500/70 to-yellow-400/70" />
+                        <div className="h-3 rounded-full w-full bg-gradient-to-r from-orange-500/60 to-yellow-400/60" />
+                      </div>
+                    </div>
+                  ))
+                : anime.map((show, index) => (
+                    <div
+                      key={`anime-${show.id}-${index}`}
+                      onClick={() => handleShowClick(show.id, 'tv')}
+                      onDragStart={(e) => e.preventDefault()}
+                      className="flex-none w-[300px] rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group select-none"
+                    >
+                      <div className="relative aspect-[2/3]">
+                        <Image
+                          src={getImageUrl(show.poster_path)}
+                          alt={show.name || ''}
+                          fill
+                          className="object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                      <div className="p-4">
+                        <h3 className="text-xl font-bold truncate">{show.name}</h3>
+                        <p className="text-sm text-gray-400 truncate">{show.overview}</p>
+                      </div>
+                    </div>
+                  ))}
             </div>
           </div>
         </section>

@@ -214,7 +214,29 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
   }
 
   if (loading) {
-    return <Loading />;
+    return (
+      <div className="min-h-screen bg-black">
+        <div className="w-full max-w-5xl mx-auto pt-28 pb-8 px-4">
+          <div className="relative w-full aspect-video rounded-lg overflow-hidden animate-pulse bg-gradient-to-br from-orange-900/40 via-gray-900/60 to-yellow-900/40">
+            <div className="absolute inset-0 bg-gradient-to-t from-orange-700/40 via-black to-yellow-600/40" />
+          </div>
+        </div>
+
+        <div className="w-full max-w-5xl mx-auto px-4 pb-2">
+          <div className="flex flex-col md:flex-row gap-8 animate-pulse">
+            <div className="w-48 h-72 rounded-xl flex-shrink-0 bg-gradient-to-b from-orange-700/50 via-gray-900 to-yellow-600/50" />
+            <div className="flex-1 space-y-4 mt-2">
+              <div className="h-8 rounded-full w-2/3 bg-gradient-to-r from-orange-500/70 to-yellow-400/70" />
+              <div className="space-y-2">
+                <div className="h-3 rounded-full w-full bg-gradient-to-r from-orange-500/60 to-yellow-400/60" />
+                <div className="h-3 rounded-full w-5/6 bg-gradient-to-r from-orange-500/50 to-yellow-400/50" />
+                <div className="h-3 rounded-full w-4/6 bg-gradient-to-r from-orange-500/40 to-yellow-400/40" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!show) {
