@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { fetchMovies, getImageUrl, TMDBShow } from '@/lib/tmdb';
+import WatchlistToggle from '@/components/WatchlistToggle';
 
 export default function MoviesPage() {
   const [movies, setMovies] = useState<TMDBShow[]>([]);
@@ -63,6 +64,18 @@ export default function MoviesPage() {
                       className="object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <WatchlistToggle
+                      item={{
+                        id: movie.id,
+                        media_type: 'movie',
+                        title: movie.title,
+                        name: movie.title,
+                        overview: movie.overview,
+                        poster_path: movie.poster_path,
+                        backdrop_path: movie.backdrop_path,
+                      }}
+                      size="sm"
+                    />
                     <div className="absolute bottom-0 left-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
                       <h3 className="text-lg font-semibold">{movie.title}</h3>
                       <p className="text-sm text-gray-300 line-clamp-3">{movie.overview}</p>

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { TMDBShow, getImageUrl } from '@/lib/tmdb';
+import WatchlistToggle from '@/components/WatchlistToggle';
 
 interface ShowGridProps {
   getShows: () => Promise<TMDBShow[]>;
@@ -64,6 +65,17 @@ export default function ShowGrid({ getShows }: ShowGridProps) {
                     sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, (max-width: 1536px) 20vw, 16vw"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <WatchlistToggle
+                    item={{
+                      id: show.id,
+                      media_type: show.media_type,
+                      title: show.title,
+                      name: show.name,
+                      overview: show.overview,
+                      poster_path: show.poster_path,
+                      backdrop_path: show.backdrop_path,
+                    }}
+                  />
                   <div className="absolute bottom-0 left-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
                     <h3 className="text-lg font-semibold mb-2">{show.title || show.name}</h3>
                     <p className="text-sm text-gray-300 line-clamp-3">{show.overview}</p>

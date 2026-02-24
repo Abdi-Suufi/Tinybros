@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { Analytics } from '@vercel/analytics/next';
 import Navbar from "@/components/Navbar";
 import BackToTopButton from "@/components/BackToTopButton";
+import { Providers } from "./Providers";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -22,7 +23,7 @@ export default function RootLayout({
       <body className={`${inter.className} min-h-screen`} suppressHydrationWarning>
         <Navbar />
         <main className="w-full">
-          {children}
+          <Providers>{children}</Providers>
         </main>
         <BackToTopButton />
         <Analytics />

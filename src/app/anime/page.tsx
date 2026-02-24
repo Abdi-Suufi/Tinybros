@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { fetchAnime, getImageUrl, TMDBShow } from '@/lib/tmdb';
+import WatchlistToggle from '@/components/WatchlistToggle';
 
 export default function AnimePage() {
   const [anime, setAnime] = useState<TMDBShow[]>([]);
@@ -65,6 +66,18 @@ export default function AnimePage() {
                         className="object-cover"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <WatchlistToggle
+                        item={{
+                          id: show.id,
+                          media_type: 'tv',
+                          title: show.title,
+                          name: show.name,
+                          overview: show.overview,
+                          poster_path: show.poster_path,
+                          backdrop_path: show.backdrop_path,
+                        }}
+                        size="sm"
+                      />
                       <div className="absolute bottom-0 left-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
                         <h3 className="text-lg font-semibold">{show.name}</h3>
                         <p className="text-sm text-gray-300 line-clamp-3">{show.overview}</p>

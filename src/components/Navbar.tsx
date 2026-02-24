@@ -143,6 +143,16 @@ export default function Navbar() {
             )}
           </div>
           <Link 
+            href="/watchlist" 
+            className={`transition-colors flex items-center gap-1 ${
+              !isScrolled
+                ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-yellow-400'
+                : 'text-gray-300 hover:text-yellow-400'
+            }`}
+          >
+            <span>Watchlist</span>
+          </Link>
+          <Link 
             href="/movies" 
             className={`transition-colors ${
               !isScrolled
@@ -325,6 +335,17 @@ export default function Navbar() {
               }`}
             >
               Anime
+            </Link>
+            <Link
+              href="/watchlist"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`block py-2 px-4 rounded-lg transition-colors ${
+                pathname === '/watchlist'
+                  ? 'bg-yellow-500/20 text-yellow-400'
+                  : 'text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400'
+              }`}
+            >
+              Watchlist
             </Link>
           </div>
         </div>

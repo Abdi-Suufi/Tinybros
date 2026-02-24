@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRef, useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { fetchTrending, fetchMovies, fetchTVShows, fetchAnime, getImageUrl, TMDBShow } from "@/lib/tmdb";
+import WatchlistToggle from "@/components/WatchlistToggle";
 
 export default function Home() {
   const moviesRef = useRef<HTMLDivElement>(null);
@@ -427,6 +428,18 @@ export default function Home() {
                           className="object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <WatchlistToggle
+                          item={{
+                            id: show.id,
+                            media_type: show.media_type,
+                            title: show.title,
+                            name: show.name,
+                            overview: show.overview,
+                            poster_path: show.poster_path,
+                            backdrop_path: show.backdrop_path,
+                          }}
+                          size="sm"
+                        />
                         <div className="absolute bottom-0 left-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity">
                           <h3 className="text-2xl font-bold mb-2">{show.title || show.name}</h3>
                           <p className="text-lg text-gray-300">{show.overview}</p>
@@ -480,6 +493,18 @@ export default function Home() {
                           className="object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <WatchlistToggle
+                          item={{
+                            id: movie.id,
+                            media_type: 'movie',
+                            title: movie.title,
+                            name: movie.name,
+                            overview: movie.overview,
+                            poster_path: movie.poster_path,
+                            backdrop_path: movie.backdrop_path,
+                          }}
+                          size="sm"
+                        />
                       </div>
                       <div className="p-4">
                         <h3 className="text-xl font-bold truncate">{movie.title}</h3>
@@ -529,6 +554,18 @@ export default function Home() {
                           className="object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <WatchlistToggle
+                          item={{
+                            id: show.id,
+                            media_type: 'tv',
+                            title: show.title,
+                            name: show.name,
+                            overview: show.overview,
+                            poster_path: show.poster_path,
+                            backdrop_path: show.backdrop_path,
+                          }}
+                          size="sm"
+                        />
                       </div>
                       <div className="p-4">
                         <h3 className="text-xl font-bold truncate">{show.name}</h3>
@@ -578,6 +615,18 @@ export default function Home() {
                           className="object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <WatchlistToggle
+                          item={{
+                            id: show.id,
+                            media_type: 'tv',
+                            title: show.title,
+                            name: show.name,
+                            overview: show.overview,
+                            poster_path: show.poster_path,
+                            backdrop_path: show.backdrop_path,
+                          }}
+                          size="sm"
+                        />
                       </div>
                       <div className="p-4">
                         <h3 className="text-xl font-bold truncate">{show.name}</h3>

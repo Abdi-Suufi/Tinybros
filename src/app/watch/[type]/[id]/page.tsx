@@ -7,6 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { DiscussionEmbed } from 'disqus-react';
 import Loading from '@/components/Loading';
+import WatchlistToggle from '@/components/WatchlistToggle';
 
 interface ShowDetails {
   id: number;
@@ -467,6 +468,18 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
               className="object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <WatchlistToggle
+              item={{
+                id: show.id,
+                media_type: resolvedParams.type === 'movie' ? 'movie' : 'tv',
+                title: show.title,
+                name: show.name,
+                overview: show.overview,
+                poster_path: show.poster_path,
+                backdrop_path: show.backdrop_path,
+              }}
+              size="sm"
+            />
           </div>
 
           {/* Info */}
