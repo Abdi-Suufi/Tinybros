@@ -28,6 +28,14 @@ interface Episode {
   air_date: string;
 }
 
+interface RecommendedShow {
+  id: number;
+  title?: string;
+  name?: string;
+  overview?: string;
+  poster_path: string;
+}
+
 interface PlaybackSource {
   id: string;
   name: string;
@@ -40,6 +48,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
   const searchParams = useSearchParams();
   const [show, setShow] = useState<ShowDetails | null>(null);
   const [episodes, setEpisodes] = useState<Episode[]>([]);
+  const [recommendations, setRecommendations] = useState<RecommendedShow[]>([]);
   const [selectedSeason, setSelectedSeason] = useState(1);
   const [loading, setLoading] = useState(true);
   const [selectedSource, setSelectedSource] = useState<string>('vidking');
@@ -108,6 +117,17 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
             setEpisodes(episodesData.episodes);
             setSelectedSeason(Number(season));
           }
+        }
+
+        // Fetch recommendations
+        const recommendationsResponse = await fetch(
+          `https://api.themoviedb.org/3/${resolvedParams.type}/${resolvedParams.id}/recommendations?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
+        );
+
+        if (recommendationsResponse.ok) {
+          const recommendationsData = await recommendationsResponse.json();
+          const results = (recommendationsData.results || []) as RecommendedShow[];
+          setRecommendations(results.filter((item) => item.poster_path));
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -537,6 +557,46 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
             }}
           />
         </div>
+
+        {/* Recommended Section */}
+        {recommendations.length > 0 && (
+          <div className="mt-16">
+            <h2 className="text-2xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-yellow-500">
+              Recommended
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+              {recommendations.map((rec) => (
+                <div
+                  key={rec.id}
+                  className="bg-gray-800/50 rounded-xl overflow-hidden hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 group"
+                >
+                  <Link href={`/watch/${resolvedParams.type}/${rec.id}`}>
+                    <div className="relative aspect-[2/3]">
+                      <Image
+                        src={getImageUrl(rec.poster_path)}
+                        alt={rec.title || rec.name || ''}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="absolute bottom-0 left-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <h3 className="text-sm sm:text-base font-semibold mb-1">
+                          {rec.title || rec.name}
+                        </h3>
+                        {rec.overview && (
+                          <p className="text-xs sm:text-sm text-gray-300 line-clamp-2">
+                            {rec.overview}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
