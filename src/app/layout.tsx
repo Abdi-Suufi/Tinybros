@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Analytics } from '@vercel/analytics/next';
 import Navbar from "@/components/Navbar";
+import BackToTopButton from "@/components/BackToTopButton";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -23,6 +24,7 @@ export default function RootLayout({
         <main className="w-full">
           {children}
         </main>
+        <BackToTopButton />
         <Analytics />
       </body>
     </html>
