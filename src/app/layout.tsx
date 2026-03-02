@@ -21,11 +21,13 @@ export default function RootLayout({
   return (
     <html lang="en" className="bg-black text-white">
       <body className={`${inter.className} min-h-screen`} suppressHydrationWarning>
-        <Navbar />
-        <main className="w-full">
-          <Providers>{children}</Providers>
-        </main>
-        <BackToTopButton />
+        <Providers>
+          <Navbar />
+          <main className="w-full">
+            {children}
+          </main>
+          <BackToTopButton />
+        </Providers>
         <Analytics />
       </body>
     </html>

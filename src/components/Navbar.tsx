@@ -1,17 +1,21 @@
 'use client';
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
+import { useWatchlist } from "@/components/WatchlistContext";
+import { getImageUrl } from "@/lib/tmdb";
 
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
+  const { items } = useWatchlist();
   const [searchQuery, setSearchQuery] = useState("");
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const isHomePage = pathname === '/';
+  const previewItems = items.slice(0, 6);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -142,16 +146,67 @@ export default function Navbar() {
               </form>
             )}
           </div>
-          <Link 
-            href="/watchlist" 
-            className={`transition-colors flex items-center gap-1 ${
-              !isScrolled
-                ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-yellow-400'
-                : 'text-gray-300 hover:text-yellow-400'
-            }`}
-          >
-            <span>Watchlist</span>
-          </Link>
+          <div className="relative group">
+            <Link 
+              href="/watchlist" 
+              className={`transition-colors flex items-center gap-1 ${
+                !isScrolled
+                  ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-yellow-400'
+                  : 'text-gray-300 hover:text-yellow-400'
+              }`}
+            >
+              <span>Watchlist</span>
+            </Link>
+
+            <div className="absolute right-0 top-full pt-3 opacity-0 pointer-events-none -translate-y-1 group-hover:opacity-100 group-hover:pointer-events-auto group-hover:translate-y-0 transition-all duration-200">
+              <div className="w-[min(92vw,640px)] rounded-xl border border-yellow-500/25 bg-black/95 backdrop-blur-md shadow-2xl p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-semibold text-yellow-400">
+                    Watchlist Preview
+                  </p>
+                  <Link
+                    href="/watchlist"
+                    className="text-xs text-gray-300 hover:text-yellow-400 transition-colors"
+                  >
+                    View all
+                  </Link>
+                </div>
+
+                {previewItems.length === 0 ? (
+                  <p className="text-sm text-gray-400">
+                    Your watchlist is empty.
+                  </p>
+                ) : (
+                  <div className="flex gap-3 overflow-x-auto pb-1">
+                    {previewItems.map((item) => (
+                      <Link
+                        key={`${item.media_type}-${item.id}`}
+                        href={
+                          item.media_type === 'movie'
+                            ? `/movies/movie/${item.id}`
+                            : `/series/series/${item.id}`
+                        }
+                        className="group/item flex-shrink-0 w-24"
+                      >
+                        <div className="relative aspect-[2/3] rounded-lg overflow-hidden border border-gray-700/80">
+                          <Image
+                            src={getImageUrl(item.poster_path)}
+                            alt={item.title || item.name || ''}
+                            fill
+                            className="object-cover transition-transform duration-300 group-hover/item:scale-105"
+                            sizes="96px"
+                          />
+                        </div>
+                        <p className="mt-2 text-xs text-gray-200 leading-tight line-clamp-2 group-hover/item:text-yellow-300 transition-colors">
+                          {item.title || item.name}
+                        </p>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
           <Link 
             href="/movies" 
             className={`transition-colors ${
