@@ -2,23 +2,74 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { fetchMovies, getImageUrl, TMDBShow } from '@/lib/tmdb';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { discoverMovies, fetchMovieGenres, getImageUrl, TMDBGenre, TMDBShow, type DiscoverSort } from '@/lib/tmdb';
 import WatchlistToggle from '@/components/WatchlistToggle';
+import DiscoverFilterBar, { DiscoverFilterValues } from '@/components/DiscoverFilterBar';
+
+const MOVIE_SORTS: Record<string, DiscoverSort> = {
+  'popularity.desc': 'popularity.desc',
+  'vote_average.desc': 'vote_average.desc',
+  'primary_release_date.desc': 'primary_release_date.desc',
+};
 
 export default function MoviesPage() {
   const [movies, setMovies] = useState<TMDBShow[]>([]);
+  const [imdbRatings, setImdbRatings] = useState<Record<number, number | null>>({});
+  const [imdbLoading, setImdbLoading] = useState(false);
+  const [genres, setGenres] = useState<TMDBGenre[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const genreParam = searchParams.get('genre') || '';
+  const sortParam = searchParams.get('sort') || 'popularity.desc';
+  const yearParam = searchParams.get('year') || '';
+  const minRatingParam = searchParams.get('minRating') || '';
+  const langParam = searchParams.get('lang') || '';
+  const ratingParam = searchParams.get('rating') || 'tmdb';
+  const ratingSource: 'tmdb' | 'imdb' = ratingParam === 'imdb' ? 'imdb' : 'tmdb';
+
+  const safeSort: DiscoverSort = MOVIE_SORTS[sortParam] ?? 'popularity.desc';
+
+  const values: DiscoverFilterValues = {
+    genre: genreParam || undefined,
+    sort: safeSort,
+    year: yearParam || undefined,
+    minRating: minRatingParam || undefined,
+    language: langParam || undefined,
+    ratingSource,
+  };
 
   useEffect(() => {
     document.title = 'Movies | TinyBros';
   }, []);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchGenres = async () => {
       try {
-        const data = await fetchMovies();
+        const data = await fetchMovieGenres();
+        setGenres(data);
+      } catch (error) {
+        console.error('Error fetching movie genres:', error);
+      }
+    };
+
+    fetchGenres();
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const data = await discoverMovies({
+          sort_by: safeSort,
+          with_genres: genreParam || undefined,
+          year: yearParam ? Number(yearParam) : undefined,
+          'vote_average.gte': ratingSource === 'tmdb' && minRatingParam ? Number(minRatingParam) : undefined,
+          with_original_language: langParam || undefined,
+          pages: 3,
+        });
         setMovies(data);
       } catch (error) {
         console.error('Error fetching movies:', error);
@@ -28,16 +79,92 @@ export default function MoviesPage() {
     };
 
     fetchData();
-  }, []);
+  }, [genreParam, safeSort, yearParam, minRatingParam, langParam, ratingSource]);
+
+  useEffect(() => {
+    if (ratingSource !== 'imdb') return;
+    if (movies.length === 0) return;
+
+    let cancelled = false;
+
+    const idsToFetch = movies.map((m) => m.id).filter((id) => !(id in imdbRatings));
+    if (idsToFetch.length === 0) return;
+
+    const run = async () => {
+      if (minRatingParam) setImdbLoading(true);
+      const next: Record<number, number | null> = {};
+      const concurrency = 8;
+      let cursor = 0;
+
+      const worker = async () => {
+        while (cursor < idsToFetch.length && !cancelled) {
+          const id = idsToFetch[cursor++];
+          try {
+            const res = await fetch(`/api/imdb-rating?type=movie&tmdbId=${id}`);
+            const json = await res.json();
+            next[id] = typeof json?.imdbRating === 'number' ? json.imdbRating : null;
+          } catch {
+            next[id] = null;
+          }
+        }
+      };
+
+      await Promise.all(Array.from({ length: Math.min(concurrency, idsToFetch.length) }, () => worker()));
+      if (cancelled) return;
+      setImdbRatings((prev) => ({ ...prev, ...next }));
+      setImdbLoading(false);
+    };
+
+    run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [ratingSource, movies, imdbRatings, minRatingParam]);
+
+  const applyFilters = (next: DiscoverFilterValues) => {
+    const params = new URLSearchParams();
+    if (next.genre) params.set('genre', next.genre);
+    if (next.sort) params.set('sort', next.sort);
+    if (next.year) params.set('year', next.year);
+    if (next.minRating) params.set('minRating', next.minRating);
+    if (next.language) params.set('lang', next.language);
+    if (next.ratingSource) params.set('rating', next.ratingSource);
+    const qs = params.toString();
+    router.push(qs ? `/movies?${qs}` : '/movies');
+  };
+
+  const resetFilters = () => {
+    router.push('/movies');
+  };
 
   const skeletonItems = Array.from({ length: 20 });
+  const minImdb = minRatingParam ? Number(minRatingParam) : null;
+  const useImdbFilter = ratingSource === 'imdb' && minImdb !== null && Number.isFinite(minImdb);
+  const visibleMovies = useImdbFilter
+    ? movies.filter((m) => (imdbRatings[m.id] ?? -1) >= (minImdb as number))
+    : movies;
 
   return (
     <div className="min-h-screen bg-black text-white pt-24 pb-8 px-8">
       <div className="max-w-7xl mx-auto">
+        <DiscoverFilterBar
+          title="Movies"
+          genres={genres}
+          values={values}
+          defaults={{ sort: 'popularity.desc', ratingSource: 'tmdb' }}
+          yearLabel="Release year"
+          sortOptions={[
+            { value: 'popularity.desc', label: 'Popular' },
+            { value: 'vote_average.desc', label: 'Top rated' },
+            { value: 'primary_release_date.desc', label: 'Newest' },
+          ]}
+          onApply={applyFilters}
+          onReset={resetFilters}
+        />
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {loading
+          {loading || (useImdbFilter && imdbLoading)
             ? skeletonItems.map((_, idx) => (
                 <div
                   key={`movie-skel-${idx}`}
@@ -50,9 +177,9 @@ export default function MoviesPage() {
                   </div>
                 </div>
               ))
-            : movies.map((movie) => (
+            : visibleMovies.map((movie) => (
                 <div
-                  key={movie.id}
+                  key={`movie-${movie.id}`}
                   onClick={() => router.push(`/movies/movie/${movie.id}`)}
                   className="rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group"
                 >
@@ -64,6 +191,17 @@ export default function MoviesPage() {
                       className="object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute top-3 left-3 z-10">
+                      {ratingSource === 'imdb' ? (
+                        <span className="text-xs px-2 py-1 rounded-full bg-black/70 border border-yellow-500/30 text-yellow-300">
+                          IMDb {imdbRatings[movie.id] ?? '...'}
+                        </span>
+                      ) : (
+                        <span className="text-xs px-2 py-1 rounded-full bg-black/70 border border-yellow-500/30 text-yellow-300">
+                          TMDB {Math.round((movie.vote_average ?? 0) * 10) / 10}
+                        </span>
+                      )}
+                    </div>
                     <WatchlistToggle
                       item={{
                         id: movie.id,

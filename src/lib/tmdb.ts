@@ -5,6 +5,11 @@ if (!TMDB_API_KEY) {
   throw new Error('TMDB API key is not defined. Please check your .env.local file.');
 }
 
+export interface TMDBGenre {
+  id: number;
+  name: string;
+}
+
 export interface TMDBShow {
   id: number;
   title?: string;
@@ -43,6 +48,11 @@ export interface TMDBSeason {
 }
 
 async function fetchFromTMDB(endpoint: string) {
+  const data = await fetchJsonFromTMDB(endpoint);
+  return data.results;
+}
+
+async function fetchJsonFromTMDB(endpoint: string) {
   try {
     const url = new URL(`${TMDB_BASE_URL}${endpoint}`);
     url.searchParams.append('api_key', TMDB_API_KEY);
@@ -61,8 +71,7 @@ async function fetchFromTMDB(endpoint: string) {
       );
     }
 
-    const data = await response.json();
-    return data.results;
+    return response.json();
   } catch (error) {
     console.error('Error fetching from TMDB:', error);
     throw error;
@@ -180,6 +189,112 @@ export async function fetchAnime(): Promise<TMDBShow[]> {
 
 export async function searchShows(query: string): Promise<TMDBShow[]> {
   return fetchFromTMDB(`/search/multi?query=${encodeURIComponent(query)}`);
+}
+
+export async function fetchMovieGenres(): Promise<TMDBGenre[]> {
+  const data = await fetchJsonFromTMDB('/genre/movie/list');
+  return Array.isArray(data?.genres) ? data.genres : [];
+}
+
+export async function fetchTVGenres(): Promise<TMDBGenre[]> {
+  const data = await fetchJsonFromTMDB('/genre/tv/list');
+  return Array.isArray(data?.genres) ? data.genres : [];
+}
+
+export type DiscoverSort =
+  | 'popularity.desc'
+  | 'vote_average.desc'
+  | 'primary_release_date.desc'
+  | 'first_air_date.desc';
+
+export interface DiscoverOptions {
+  page?: number;
+  sort_by?: DiscoverSort;
+  with_genres?: string; // comma-separated genre IDs
+  year?: number; // movies
+  first_air_date_year?: number; // TV
+  'vote_average.gte'?: number;
+  with_original_language?: string;
+}
+
+async function discover(endpoint: '/discover/movie' | '/discover/tv', options: DiscoverOptions) {
+  const params = new URLSearchParams();
+  if (options.sort_by) params.set('sort_by', options.sort_by);
+  if (options.with_genres) params.set('with_genres', options.with_genres);
+  if (typeof options.year === 'number') params.set('primary_release_year', String(options.year));
+  if (typeof options.first_air_date_year === 'number')
+    params.set('first_air_date_year', String(options.first_air_date_year));
+  if (typeof options['vote_average.gte'] === 'number')
+    params.set('vote_average.gte', String(options['vote_average.gte']));
+  if (options.with_original_language) params.set('with_original_language', options.with_original_language);
+  params.set('include_adult', 'false');
+  params.set('page', String(options.page ?? 1));
+
+  const data = await fetchJsonFromTMDB(`${endpoint}?${params.toString()}`);
+  return Array.isArray(data?.results) ? data.results : [];
+}
+
+export async function discoverMovies(options: Omit<DiscoverOptions, 'first_air_date_year'> & { pages?: number } = {}) {
+  const pages = Math.max(1, Math.min(5, options.pages ?? 3));
+  let allResults: TMDBShow[] = [];
+
+  for (let page = 1; page <= pages; page++) {
+    try {
+      const results = await discover('/discover/movie', {
+        ...options,
+        page,
+      });
+      allResults = [...allResults, ...results];
+    } catch (error) {
+      console.error(`Error discovering movies page ${page}:`, error);
+    }
+  }
+
+  const seen = new Set<number>();
+  const unique = allResults.filter((movie: TMDBShow) => {
+    if (seen.has(movie.id)) return false;
+    seen.add(movie.id);
+    return true;
+  });
+
+  return unique
+    .filter((movie: TMDBShow) => movie.poster_path && movie.backdrop_path)
+    .map((movie: TMDBShow) => ({ ...movie, media_type: 'movie' as const }));
+}
+
+export async function discoverTVShows(
+  options: Omit<DiscoverOptions, 'year'> & { pages?: number; excludeAnime?: boolean } = {}
+) {
+  const pages = Math.max(1, Math.min(5, options.pages ?? 3));
+  const excludeAnime = options.excludeAnime ?? true;
+  let allResults: TMDBShow[] = [];
+
+  for (let page = 1; page <= pages; page++) {
+    try {
+      const results = await discover('/discover/tv', {
+        ...options,
+        page,
+      });
+      allResults = [...allResults, ...results];
+    } catch (error) {
+      console.error(`Error discovering TV shows page ${page}:`, error);
+    }
+  }
+
+  const seen = new Set<number>();
+  const unique = allResults.filter((show: TMDBShow) => {
+    if (seen.has(show.id)) return false;
+    seen.add(show.id);
+    return true;
+  });
+
+  return unique
+    .filter((show: TMDBShow) => {
+      if (!show.poster_path || !show.backdrop_path) return false;
+      if (!excludeAnime) return true;
+      return show.original_language !== 'ja' && (!show.origin_country || !show.origin_country.includes('JP'));
+    })
+    .map((show: TMDBShow) => ({ ...show, media_type: 'tv' as const }));
 }
 
 export function getImageUrl(path: string, size: 'w500' | 'original' = 'w500'): string {
