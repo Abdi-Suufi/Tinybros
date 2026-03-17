@@ -6,7 +6,6 @@ import { getImageUrl } from '@/lib/tmdb';
 import Image from 'next/image';
 import Link from 'next/link';
 import { DiscussionEmbed } from 'disqus-react';
-import Loading from '@/components/Loading';
 import WatchlistToggle from '@/components/WatchlistToggle';
 
 interface ShowDetails {

@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { use } from 'react';
 import type { Metadata } from 'next';
-import { getImageUrl, TMDBShow, TMDBSeason, TMDBEpisode } from '@/lib/tmdb';
+import { getImageUrl, TMDBShow } from '@/lib/tmdb';
 
 async function getShowDetails(id: string): Promise<TMDBShow> {
   const response = await fetch(
