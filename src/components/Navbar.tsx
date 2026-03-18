@@ -3,9 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useWatchlist } from "@/components/WatchlistContext";
 import { getImageUrl } from "@/lib/tmdb";
+
+const WATCHLIST_PREVIEW_INITIAL = 8;
+const WATCHLIST_PREVIEW_CHUNK = 8;
 
 export default function Navbar() {
   const router = useRouter();
@@ -15,7 +18,10 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const previewItems = items.slice(0, 6);
+  const [watchlistPreviewCount, setWatchlistPreviewCount] = useState(WATCHLIST_PREVIEW_INITIAL);
+  const previewItems = items.slice(0, watchlistPreviewCount);
+  const watchlistPreviewScrollRef = useRef<HTMLDivElement | null>(null);
+  const watchlistPreviewWheelHandlerRef = useRef<(e: WheelEvent) => void>(() => {});
 
   useEffect(() => {
     const handleScroll = () => {
@@ -47,6 +53,49 @@ export default function Navbar() {
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
   }, [isSearchExpanded, isMobileMenuOpen]);
+
+  useEffect(() => {
+    // If the list shrinks, keep the preview count in bounds.
+    setWatchlistPreviewCount((prev) => Math.min(Math.max(WATCHLIST_PREVIEW_INITIAL, prev), items.length || WATCHLIST_PREVIEW_INITIAL));
+  }, [items.length]);
+
+  watchlistPreviewWheelHandlerRef.current = (e: WheelEvent) => {
+    const el = watchlistPreviewScrollRef.current;
+    if (!el) return;
+    if (el.scrollWidth <= el.clientWidth) return;
+
+    const deltaX = e.deltaMode === 1 ? e.deltaX * 16 : e.deltaX;
+    const deltaY = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+    const primaryDelta = Math.abs(deltaY) >= Math.abs(deltaX) ? deltaY : deltaX;
+
+    // Convert wheel input into horizontal scroll.
+    el.scrollLeft += primaryDelta;
+    e.preventDefault();
+  };
+
+  const setWatchlistPreviewScrollEl = useCallback((node: HTMLDivElement | null) => {
+    const prev = watchlistPreviewScrollRef.current;
+    const handler = watchlistPreviewWheelHandlerRef.current;
+
+    if (prev) {
+      prev.removeEventListener('wheel', handler as EventListener);
+    }
+
+    watchlistPreviewScrollRef.current = node;
+
+    if (node) {
+      node.addEventListener('wheel', handler as EventListener, { passive: false });
+    }
+  }, []);
+
+  const maybeLoadMorePreview = useCallback(() => {
+    const el = watchlistPreviewScrollRef.current;
+    if (!el) return;
+    const nearEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 64;
+    if (!nearEnd) return;
+
+    setWatchlistPreviewCount((prev) => Math.min(items.length, prev + WATCHLIST_PREVIEW_CHUNK));
+  }, [items.length]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,7 +195,11 @@ export default function Navbar() {
               </form>
             )}
           </div>
-          <div className="relative group">
+          <div
+            className="relative group"
+            onMouseEnter={() => setWatchlistPreviewCount(Math.min(items.length, Math.max(WATCHLIST_PREVIEW_INITIAL, watchlistPreviewCount)))}
+            onMouseLeave={() => setWatchlistPreviewCount(WATCHLIST_PREVIEW_INITIAL)}
+          >
             <Link 
               href="/watchlist" 
               className={`transition-colors flex items-center gap-1 ${
@@ -177,7 +230,12 @@ export default function Navbar() {
                     Your watchlist is empty.
                   </p>
                 ) : (
-                  <div className="flex gap-3 overflow-x-auto pb-1">
+                  <div
+                    ref={setWatchlistPreviewScrollEl}
+                    onScroll={maybeLoadMorePreview}
+                    className="flex gap-3 overflow-x-auto pb-1 overscroll-contain"
+                    aria-label="Watchlist preview scroller"
+                  >
                     {previewItems.map((item) => (
                       <Link
                         key={`${item.media_type}-${item.id}`}
