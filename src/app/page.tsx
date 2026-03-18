@@ -20,10 +20,129 @@ export default function Home() {
   const [anime, setAnime] = useState<TMDBShow[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
-  const [draggingSection, setDraggingSection] = useState<string | null>(null);
+  const isInteractingRef = useRef(false);
+  const suppressClickUntilRef = useRef(0);
+
+  type DragState = {
+    active: boolean;
+    pointerId: number;
+    startClientX: number;
+    startScrollLeft: number;
+    moved: boolean;
+    captured: boolean;
+    prevScrollBehavior: string;
+    prevScrollSnapType: string;
+    lastTime: number;
+    lastScrollLeft: number;
+    velocity: number; // px per ms
+  };
+
+  const categoryDragRef = useRef<DragState>({
+    active: false,
+    pointerId: -1,
+    startClientX: 0,
+    startScrollLeft: 0,
+    moved: false,
+    captured: false,
+    prevScrollBehavior: "",
+    prevScrollSnapType: "",
+    lastTime: 0,
+    lastScrollLeft: 0,
+    velocity: 0,
+  });
+
+  const heroDragRef = useRef<DragState>({
+    active: false,
+    pointerId: -1,
+    startClientX: 0,
+    startScrollLeft: 0,
+    moved: false,
+    captured: false,
+    prevScrollBehavior: "",
+    prevScrollSnapType: "",
+    lastTime: 0,
+    lastScrollLeft: 0,
+    velocity: 0,
+  });
+
+  const categoryMomentumRef = useRef<{
+    rafId: number;
+    el: HTMLDivElement | null;
+    lastTime: number;
+    velocity: number;
+    restore: null | (() => void);
+  }>({
+    rafId: 0,
+    el: null,
+    lastTime: 0,
+    velocity: 0,
+    restore: null,
+  });
+
+  const heroMomentumRef = useRef<{
+    rafId: number;
+    el: HTMLDivElement | null;
+    lastTime: number;
+    velocity: number;
+    restore: null | (() => void);
+  }>({
+    rafId: 0,
+    el: null,
+    lastTime: 0,
+    velocity: 0,
+    restore: null,
+  });
+
+  const cancelMomentum = useCallback((which: 'category' | 'hero') => {
+    const ref = which === 'category' ? categoryMomentumRef : heroMomentumRef;
+    if (ref.current.rafId) cancelAnimationFrame(ref.current.rafId);
+    if (ref.current.restore) ref.current.restore();
+    ref.current.rafId = 0;
+    ref.current.el = null;
+    ref.current.velocity = 0;
+    ref.current.lastTime = 0;
+    ref.current.restore = null;
+  }, []);
+
+  const startMomentum = useCallback(
+    (which: 'category' | 'hero', el: HTMLDivElement, initialVelocity: number, restore: () => void) => {
+      cancelMomentum(which);
+
+      const ref = which === 'category' ? categoryMomentumRef : heroMomentumRef;
+      ref.current.el = el;
+      ref.current.velocity = initialVelocity;
+      ref.current.lastTime = performance.now();
+      ref.current.restore = restore;
+
+      const friction = 0.95; // per frame-ish (dt adjusted below)
+      const minVelocity = 0.02; // px/ms
+
+      const tick = (now: number) => {
+        const state = ref.current;
+        const node = state.el;
+        if (!node) return;
+
+        const dt = Math.max(8, Math.min(32, now - state.lastTime)); // clamp for stability
+        state.lastTime = now;
+
+        node.scrollLeft += state.velocity * dt;
+
+        // Exponential-ish decay: scale friction relative to dt (baseline ~16ms)
+        const decay = Math.pow(friction, dt / 16);
+        state.velocity *= decay;
+
+        if (Math.abs(state.velocity) < minVelocity) {
+          cancelMomentum(which);
+          return;
+        }
+
+        state.rafId = requestAnimationFrame(tick);
+      };
+
+      ref.current.rafId = requestAnimationFrame(tick);
+    },
+    [cancelMomentum]
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -65,7 +184,7 @@ export default function Home() {
 
   const handleShowClick = (id: number, mediaType: string) => {
     // Don't navigate if user was dragging
-    if (isDragging) return;
+    if (Date.now() < suppressClickUntilRef.current) return;
     
     if (mediaType === 'movie') {
       router.push(`/movies/movie/${id}`);
@@ -74,117 +193,201 @@ export default function Home() {
     }
   };
 
-  // Global mouse move handler for dragging
-  useEffect(() => {
-    const handleGlobalMouseMove = (e: MouseEvent) => {
-      if (!isDragging || !draggingSection) return;
-      
-      let currentRef: React.RefObject<HTMLDivElement> | null = null;
-      if (draggingSection === 'trending') currentRef = trendingRef;
-      else if (draggingSection === 'movies') currentRef = moviesSectionRef;
-      else if (draggingSection === 'series') currentRef = seriesRef;
-      else if (draggingSection === 'anime') currentRef = animeRef;
-      
-      if (!currentRef?.current) return;
-      
-      e.preventDefault();
-      const x = e.pageX - currentRef.current.offsetLeft;
-      const walk = (x - startX) * 2;
-      currentRef.current.scrollLeft = scrollLeft - walk;
-    };
-
-    const handleGlobalMouseUp = () => {
-      setIsDragging(false);
-      setDraggingSection(null);
-      [trendingRef, moviesSectionRef, seriesRef, animeRef].forEach(ref => {
-        if (ref.current) {
-          ref.current.style.cursor = 'grab';
-          ref.current.style.userSelect = '';
-        }
-      });
-    };
-
-    if (isDragging) {
-      document.addEventListener('mousemove', handleGlobalMouseMove);
-      document.addEventListener('mouseup', handleGlobalMouseUp);
-      // Prevent text selection globally while dragging
-      document.body.style.userSelect = 'none';
-    } else {
-      document.body.style.userSelect = '';
-    }
-
-    return () => {
-      document.removeEventListener('mousemove', handleGlobalMouseMove);
-      document.removeEventListener('mouseup', handleGlobalMouseUp);
-      document.body.style.userSelect = '';
-    };
-  }, [isDragging, draggingSection, startX, scrollLeft]);
-
   // Create drag handlers for each section
   const createDragHandlers = useCallback((sectionRef: React.RefObject<HTMLDivElement>, sectionId: string) => {
-    const handleMouseDown = (e: React.MouseEvent) => {
-      if (!sectionRef.current) return;
-      setIsDragging(true);
-      setDraggingSection(sectionId);
-      setStartX(e.pageX - sectionRef.current.offsetLeft);
-      setScrollLeft(sectionRef.current.scrollLeft);
-      sectionRef.current.style.cursor = 'grabbing';
-      sectionRef.current.style.userSelect = 'none';
-      // Prevent text selection
+    const onPointerDown = (e: React.PointerEvent) => {
+      const el = sectionRef.current;
+      if (!el) return;
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+
+      cancelMomentum('category');
+
+      const now = performance.now();
+      categoryDragRef.current = {
+        active: true,
+        pointerId: e.pointerId,
+        startClientX: e.clientX,
+        startScrollLeft: el.scrollLeft,
+        moved: false,
+        captured: false,
+        prevScrollBehavior: el.style.scrollBehavior || "",
+        prevScrollSnapType: el.style.scrollSnapType || "",
+        lastTime: now,
+        lastScrollLeft: el.scrollLeft,
+        velocity: 0,
+      };
+    };
+
+    const onPointerMove = (e: React.PointerEvent) => {
+      const el = sectionRef.current;
+      const st = categoryDragRef.current;
+      if (!el || !st.active || st.pointerId !== e.pointerId) return;
+
+      const dx = e.clientX - st.startClientX;
+      if (!st.moved && Math.abs(dx) > 2) {
+        st.moved = true;
+        isInteractingRef.current = true;
+        el.style.cursor = 'grabbing';
+        el.style.userSelect = 'none';
+        el.style.scrollBehavior = 'auto';
+        el.style.scrollSnapType = 'none';
+
+        try {
+          el.setPointerCapture(e.pointerId);
+          st.captured = true;
+        } catch {}
+      }
+
+      if (!st.moved) return;
+      el.scrollLeft = st.startScrollLeft - dx;
+
+      const now = performance.now();
+      const dt = now - st.lastTime;
+      if (dt > 0) {
+        const v = (el.scrollLeft - st.lastScrollLeft) / dt; // px/ms
+        // Light smoothing to avoid jitter
+        st.velocity = st.velocity * 0.8 + v * 0.2;
+        st.lastTime = now;
+        st.lastScrollLeft = el.scrollLeft;
+      }
       e.preventDefault();
     };
 
-    const handleMouseLeave = () => {
-      // Don't stop dragging on mouse leave, allow dragging outside the element
+    const end = (e: React.PointerEvent) => {
+      const el = sectionRef.current;
+      const st = categoryDragRef.current;
+      if (!el || !st.active || st.pointerId !== e.pointerId) return;
+
+      st.active = false;
+      st.pointerId = -1;
+
+      if (!st.moved) return;
+
+      suppressClickUntilRef.current = Date.now() + 250;
+
+      if (st.captured) {
+        try {
+          el.releasePointerCapture(e.pointerId);
+        } catch {}
+      }
+
+      el.style.cursor = 'grab';
+      el.style.userSelect = '';
+
+      const restore = () => {
+        el.style.scrollBehavior = st.prevScrollBehavior;
+        el.style.scrollSnapType = st.prevScrollSnapType;
+        isInteractingRef.current = false;
+      };
+
+      if (Math.abs(st.velocity) > 0.02) {
+        startMomentum('category', el, st.velocity, restore);
+      } else {
+        restore();
+      }
     };
 
     return {
-      onMouseDown: handleMouseDown,
-      onMouseLeave: handleMouseLeave,
-      onDragStart: (e: React.DragEvent) => e.preventDefault(), // Prevent image dragging
+      onPointerDown,
+      onPointerMove,
+      onPointerUp: end,
+      onPointerCancel: end,
+      onDragStart: (e: React.DragEvent) => e.preventDefault(),
+      style: { touchAction: 'pan-y' as const, scrollBehavior: 'auto' as const },
+      "data-drag-section": sectionId,
     };
-  }, []);
+  }, [cancelMomentum, startMomentum]);
 
-  // Carousel drag handlers (existing)
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!carouselRef.current) return;
-    setIsDragging(true);
-    setStartX(e.pageX - carouselRef.current.offsetLeft);
-    setScrollLeft(carouselRef.current.scrollLeft);
+  // Carousel drag handlers (1:1 pointer drag)
+  const handleCarouselPointerDown = (e: React.PointerEvent) => {
+    const el = carouselRef.current;
+    if (!el) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+
+    cancelMomentum('hero');
+
+    const now = performance.now();
+    heroDragRef.current = {
+      active: true,
+      pointerId: e.pointerId,
+      startClientX: e.clientX,
+      startScrollLeft: el.scrollLeft,
+      moved: false,
+      captured: false,
+      prevScrollBehavior: el.style.scrollBehavior || "",
+      prevScrollSnapType: el.style.scrollSnapType || "",
+      lastTime: now,
+      lastScrollLeft: el.scrollLeft,
+      velocity: 0,
+    };
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !carouselRef.current) return;
+  const handleCarouselPointerMove = (e: React.PointerEvent) => {
+    const el = carouselRef.current;
+    const st = heroDragRef.current;
+    if (!el || !st.active || st.pointerId !== e.pointerId) return;
+
+    const dx = e.clientX - st.startClientX;
+    if (!st.moved && Math.abs(dx) > 2) {
+      st.moved = true;
+      isInteractingRef.current = true;
+      el.style.cursor = 'grabbing';
+      el.style.userSelect = 'none';
+      el.style.scrollBehavior = 'auto';
+      el.style.scrollSnapType = 'none';
+
+      try {
+        el.setPointerCapture(e.pointerId);
+        st.captured = true;
+      } catch {}
+    }
+
+    if (!st.moved) return;
+    el.scrollLeft = st.startScrollLeft - dx;
+
+    const now = performance.now();
+    const dt = now - st.lastTime;
+    if (dt > 0) {
+      const v = (el.scrollLeft - st.lastScrollLeft) / dt; // px/ms
+      st.velocity = st.velocity * 0.8 + v * 0.2;
+      st.lastTime = now;
+      st.lastScrollLeft = el.scrollLeft;
+    }
     e.preventDefault();
-    const x = e.pageX - carouselRef.current.offsetLeft;
-    const walk = (x - startX) * 2;
-    carouselRef.current.scrollLeft = scrollLeft - walk;
   };
 
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
+  const handleCarouselPointerEnd = (e: React.PointerEvent) => {
+    const el = carouselRef.current;
+    const st = heroDragRef.current;
+    if (!el || !st.active || st.pointerId !== e.pointerId) return;
 
-  const handleMouseLeave = () => {
-    setIsDragging(false);
-  };
+    st.active = false;
+    st.pointerId = -1;
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (!carouselRef.current) return;
-    setIsDragging(true);
-    setStartX(e.touches[0].pageX - carouselRef.current.offsetLeft);
-    setScrollLeft(carouselRef.current.scrollLeft);
-  };
+    if (!st.moved) return;
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging || !carouselRef.current) return;
-    const x = e.touches[0].pageX - carouselRef.current.offsetLeft;
-    const walk = (x - startX) * 2;
-    carouselRef.current.scrollLeft = scrollLeft - walk;
-  };
+    suppressClickUntilRef.current = Date.now() + 250;
 
-  const handleTouchEnd = () => {
-    setIsDragging(false);
+    if (st.captured) {
+      try {
+        el.releasePointerCapture(e.pointerId);
+      } catch {}
+    }
+
+    el.style.cursor = 'grab';
+    el.style.userSelect = '';
+
+    const restore = () => {
+      el.style.scrollBehavior = st.prevScrollBehavior;
+      el.style.scrollSnapType = st.prevScrollSnapType;
+      isInteractingRef.current = false;
+    };
+
+    if (Math.abs(st.velocity) > 0.02) {
+      startMomentum('hero', el, st.velocity, restore);
+    } else {
+      restore();
+    }
   };
 
   const goToSlide = (index: number) => {
@@ -215,9 +418,10 @@ export default function Home() {
 
   // Auto-advance carousel
   useEffect(() => {
-    if (trending.length <= 1 || isDragging) return;
+    if (trending.length <= 1) return;
 
     const interval = setInterval(() => {
+      if (isInteractingRef.current) return;
       setCurrentIndex((prevIndex) => {
         const nextIndex = (prevIndex + 1) % trending.length;
         if (carouselRef.current) {
@@ -231,7 +435,7 @@ export default function Home() {
     }, 5000); // Change slide every 5 seconds
 
     return () => clearInterval(interval);
-  }, [trending.length, isDragging]);
+  }, [trending.length]);
 
 
   const showSkeletonArray = Array.from({ length: 8 });
@@ -307,14 +511,12 @@ export default function Home() {
             <div
               ref={carouselRef}
               className="flex h-full overflow-x-scroll snap-x snap-mandatory scrollbar-hide"
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseLeave}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-              style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+              onPointerDown={handleCarouselPointerDown}
+              onPointerMove={handleCarouselPointerMove}
+              onPointerUp={handleCarouselPointerEnd}
+              onPointerCancel={handleCarouselPointerEnd}
+              onDragStart={(e) => e.preventDefault()}
+              style={{ cursor: 'grab', touchAction: 'pan-y' }}
             >
               {trending.map((show, index) => (
                 <div
