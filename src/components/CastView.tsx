@@ -24,17 +24,17 @@ export default function CastView({ cast }: CastViewProps) {
         {mainCast.map((actor) => (
           <div
             key={actor.id}
-            className="group bg-gray-800/50 rounded-xl overflow-hidden hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105"
+            className="group bg-gray-800/50 rounded-xl overflow-hidden"
           >
             {/* Actor Image */}
-            <div className="relative h-48 w-full">
+            <div className="relative w-full aspect-[2/3] bg-gray-700/50 flex items-center justify-center overflow-hidden">
               <Image
                 src={getImageUrl(actor.profile_path, 'w500')}
                 alt={actor.name}
                 fill
-                className="object-cover"
+                className="object-contain"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0" />
             </div>
 
             {/* Actor Info */}
