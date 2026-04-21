@@ -3,7 +3,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { use, useEffect, useState } from 'react';
-import { getImageUrl, TMDBShow, TMDBSeason, TMDBEpisode } from '@/lib/tmdb';
+import { getImageUrl, TMDBShow, TMDBSeason, TMDBEpisode, fetchTVCast, TMDBCredits } from '@/lib/tmdb';
+import CastView from '@/components/CastView';
 
 async function getShowDetails(id: string): Promise<TMDBShow> {
   const response = await fetch(
@@ -36,6 +37,8 @@ export default function SeriesPage({ params }: { params: Promise<{ id: string }>
   const [selectedSeason, setSelectedSeason] = useState(1);
   const [episodes, setEpisodes] = useState<TMDBEpisode[]>([]);
   const [loadingEpisodes, setLoadingEpisodes] = useState(false);
+  const [credits, setCredits] = useState<TMDBCredits | null>(null);
+  const [loadingCredits, setLoadingCredits] = useState(true);
 
   // Fetch show details
   useEffect(() => {
@@ -51,6 +54,22 @@ export default function SeriesPage({ params }: { params: Promise<{ id: string }>
     };
 
     fetchShow();
+  }, [resolvedParams.id]);
+
+  // Fetch cast
+  useEffect(() => {
+    const fetchCast = async () => {
+      try {
+        const castData = await fetchTVCast(resolvedParams.id);
+        setCredits(castData);
+      } catch (error) {
+        console.error('Error fetching cast:', error);
+      } finally {
+        setLoadingCredits(false);
+      }
+    };
+
+    fetchCast();
   }, [resolvedParams.id]);
 
   // Fetch episodes when season changes
@@ -164,6 +183,9 @@ export default function SeriesPage({ params }: { params: Promise<{ id: string }>
             </Link>
           </div>
         </div>
+
+        {/* Cast Section */}
+        {!loadingCredits && credits && <CastView cast={credits.cast} />}
 
         {/* Episodes Section */}
         <div className="mt-16">

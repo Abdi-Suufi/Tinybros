@@ -2,7 +2,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { use } from 'react';
 import type { Metadata } from 'next';
-import { getImageUrl, TMDBShow } from '@/lib/tmdb';
+import { getImageUrl, TMDBShow, fetchMovieCast, TMDBCredits } from '@/lib/tmdb';
+import CastView from '@/components/CastView';
 
 async function getShowDetails(id: string): Promise<TMDBShow> {
   const response = await fetch(
@@ -14,6 +15,15 @@ async function getShowDetails(id: string): Promise<TMDBShow> {
   }
 
   return response.json();
+}
+
+async function getMovieCast(id: string): Promise<TMDBCredits | null> {
+  try {
+    const credits = await fetchMovieCast(id);
+    return credits;
+  } catch {
+    return null;
+  }
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -35,6 +45,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default function MoviePage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const show = use(getShowDetails(resolvedParams.id));
+  const credits = use(getMovieCast(resolvedParams.id));
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -108,6 +119,9 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
             </Link>
           </div>
         </div>
+
+        {/* Cast Section */}
+        {credits && <CastView cast={credits.cast} />}
       </div>
     </div>
   );
