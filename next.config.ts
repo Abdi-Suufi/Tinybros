@@ -8,8 +8,8 @@ const nextConfig: NextConfig = {
   output: isApp ? "export" : undefined,
   
   images: {
-    // 2. Disable image optimization for the App (phones handle it)
-    unoptimized: isApp,
+    // 2. Disable image optimization (TMDB provides pre-optimized images)
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
