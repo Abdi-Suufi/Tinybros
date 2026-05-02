@@ -2,11 +2,12 @@
 
 import { useEffect, useState, use } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { getImageUrl } from '@/lib/tmdb';
+import { getImageUrl, TMDBCast } from '@/lib/tmdb';
 import Image from 'next/image';
 import Link from 'next/link';
 import { DiscussionEmbed } from 'disqus-react';
 import WatchlistToggle from '@/components/WatchlistToggle';
+import CastView from '@/components/CastView';
 
 interface ShowDetails {
   id: number;
@@ -49,6 +50,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
   const [show, setShow] = useState<ShowDetails | null>(null);
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [recommendations, setRecommendations] = useState<RecommendedShow[]>([]);
+  const [cast, setCast] = useState<TMDBCast[]>([]);
   const [selectedSeason, setSelectedSeason] = useState(1);
   const [loading, setLoading] = useState(true);
   const [selectedSource, setSelectedSource] = useState<string>('vidking');
@@ -128,6 +130,16 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
           const recommendationsData = await recommendationsResponse.json();
           const results = (recommendationsData.results || []) as RecommendedShow[];
           setRecommendations(results.filter((item) => item.poster_path));
+        }
+
+        // Fetch cast
+        const creditsResponse = await fetch(
+          `https://api.themoviedb.org/3/${resolvedParams.type}/${resolvedParams.id}/credits?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
+        );
+
+        if (creditsResponse.ok) {
+          const creditsData = await creditsResponse.json();
+          setCast(creditsData.cast || []);
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -484,6 +496,11 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
             <p className="text-gray-300">{show.overview}</p>
           </div>
         </div>
+
+        {/* Cast Section */}
+        {cast.length > 0 && (
+          <CastView cast={cast} />
+        )}
 
         {/* Episodes (for TV shows) */}
         {resolvedParams.type === 'tv' && episodes.length > 0 && (
