@@ -80,7 +80,7 @@ export function WatchlistProvider({ children }: { children: React.ReactNode }) {
       toggleItem,
       isSaved,
     }),
-    [items]
+    [items, isSaved]
   );
 
   return <WatchlistContext.Provider value={value}>{children}</WatchlistContext.Provider>;

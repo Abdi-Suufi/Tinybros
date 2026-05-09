@@ -12,11 +12,9 @@ const WATCHLIST_PREVIEW_INITIAL = 8;
 const WATCHLIST_PREVIEW_CHUNK = 8;
 
 export default function Navbar() {
-  const router = useRouter();
   const pathname = usePathname();
   const { items } = useWatchlist();
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [watchlistPreviewCount, setWatchlistPreviewCount] = useState(WATCHLIST_PREVIEW_INITIAL);
   const previewItems = items.slice(0, watchlistPreviewCount);

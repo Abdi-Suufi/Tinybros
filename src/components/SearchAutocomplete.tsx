@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import Image from 'next/image';
 import { searchShows, TMDBShow, getImageUrl } from '@/lib/tmdb';
 
@@ -65,7 +64,7 @@ export default function SearchAutocomplete({ isScrolled }: SearchAutocompletePro
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!isOpen || suggestions.length === 0) {
       if (e.key === 'Enter' && searchQuery.trim()) {
-        handleSearch(e as any);
+        handleSearch(e as React.FormEvent);
       }
       return;
     }
@@ -86,7 +85,7 @@ export default function SearchAutocomplete({ isScrolled }: SearchAutocompletePro
         if (highlightedIndex >= 0) {
           selectSuggestion(suggestions[highlightedIndex]);
         } else if (searchQuery.trim()) {
-          handleSearch(e as any);
+          handleSearch(e as React.FormEvent);
         }
         break;
       case 'Escape':
@@ -244,7 +243,7 @@ export default function SearchAutocomplete({ isScrolled }: SearchAutocompletePro
             </ul>
           ) : (
             <div className="p-4 text-center text-gray-400 text-sm">
-              No results found for "{searchQuery}"
+              No results found for &quot;{searchQuery}&quot;
             </div>
           )}
 
@@ -255,7 +254,7 @@ export default function SearchAutocomplete({ isScrolled }: SearchAutocompletePro
                 onClick={handleSearch}
                 className="w-full text-center text-sm text-yellow-400 hover:text-yellow-300 transition-colors"
               >
-                View all results for "{searchQuery}"
+                View all results for &quot;{searchQuery}&quot;
               </button>
             </div>
           )}
