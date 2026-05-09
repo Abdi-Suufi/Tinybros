@@ -6,6 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useWatchlist } from "@/components/WatchlistContext";
 import { getImageUrl } from "@/lib/tmdb";
+import SearchAutocomplete from "@/components/SearchAutocomplete";
 
 const WATCHLIST_PREVIEW_INITIAL = 8;
 const WATCHLIST_PREVIEW_CHUNK = 8;
@@ -14,7 +15,6 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const { items } = useWatchlist();
-  const [searchQuery, setSearchQuery] = useState("");
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -39,20 +39,16 @@ export default function Navbar() {
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (isSearchExpanded && !target.closest('.search-container')) {
-        setIsSearchExpanded(false);
-        setSearchQuery("");
-      }
       if (isMobileMenuOpen && !target.closest('.mobile-menu-container')) {
         setIsMobileMenuOpen(false);
       }
     };
 
-    if (isSearchExpanded || isMobileMenuOpen) {
+    if (isMobileMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [isSearchExpanded, isMobileMenuOpen]);
+  }, [isMobileMenuOpen]);
 
   useEffect(() => {
     // If the list shrinks, keep the preview count in bounds.
@@ -97,19 +93,6 @@ export default function Navbar() {
     setWatchlistPreviewCount((prev) => Math.min(items.length, prev + WATCHLIST_PREVIEW_CHUNK));
   }, [items.length]);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
-      setIsSearchExpanded(false);
-      setSearchQuery("");
-    }
-  };
-
-  const handleSearchIconClick = () => {
-    setIsSearchExpanded(true);
-  };
-
   return (
     <>
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,backdrop-filter,border-color] duration-300 ease-in-out ${
@@ -128,73 +111,8 @@ export default function Navbar() {
         
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-6" suppressHydrationWarning>
-          {/* Search Bar */}
-          <div className="search-container relative" suppressHydrationWarning>
-            {!isSearchExpanded ? (
-              <button
-                onClick={handleSearchIconClick}
-                className={`transition-colors p-2 rounded-full hover:bg-black/30 ${
-                  !isScrolled
-                    ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-yellow-400'
-                    : 'text-gray-300 hover:text-yellow-400'
-                }`}
-                aria-label="Search"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </button>
-            ) : (
-              <form onSubmit={handleSearch} className="relative transition-all duration-300">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search..."
-                  autoFocus
-                  className={`rounded-full py-2 px-4 pr-10 text-white placeholder-gray-400 focus:outline-none transition-all duration-300 w-64 ${
-                    !isScrolled
-                      ? 'bg-black/60 border border-gray-600 focus:border-yellow-500'
-                      : 'bg-black/80 border border-gray-700 focus:border-yellow-500'
-                  }`}
-                />
-                <button
-                  type="submit"
-                  className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-colors ${
-                    !isScrolled
-                      ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-yellow-400'
-                      : 'text-gray-400 hover:text-yellow-400'
-                  }`}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
-                </button>
-              </form>
-            )}
-          </div>
+          {/* Search Bar with Autocomplete */}
+          <SearchAutocomplete isScrolled={isScrolled} />
           <div
             className="relative group"
             onMouseEnter={() => setWatchlistPreviewCount(Math.min(items.length, Math.max(WATCHLIST_PREVIEW_INITIAL, watchlistPreviewCount)))}
@@ -299,72 +217,9 @@ export default function Navbar() {
 
         {/* Mobile Menu Button and Search */}
         <div className="flex items-center space-x-3 md:hidden" suppressHydrationWarning>
-          {/* Search Icon for Mobile */}
-          <div className="search-container relative" suppressHydrationWarning>
-            {!isSearchExpanded ? (
-              <button
-                onClick={handleSearchIconClick}
-                className={`transition-colors p-2 rounded-full hover:bg-black/30 ${
-                  !isScrolled
-                    ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-yellow-400'
-                    : 'text-gray-300 hover:text-yellow-400'
-                }`}
-                aria-label="Search"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </button>
-            ) : (
-              <form onSubmit={handleSearch} className="relative transition-all duration-300">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search..."
-                  autoFocus
-                  className={`rounded-full py-2 px-4 pr-10 text-white placeholder-gray-400 focus:outline-none transition-all duration-300 w-48 ${
-                    !isScrolled
-                      ? 'bg-black/60 border border-gray-600 focus:border-yellow-500'
-                      : 'bg-black/80 border border-gray-700 focus:border-yellow-500'
-                  }`}
-                />
-                <button
-                  type="submit"
-                  className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-colors ${
-                    !isScrolled
-                      ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-yellow-400'
-                      : 'text-gray-400 hover:text-yellow-400'
-                  }`}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
-                </button>
-              </form>
-            )}
+          {/* Search with Autocomplete for Mobile */}
+          <div className="w-32">
+            <SearchAutocomplete isScrolled={isScrolled} />
           </div>
 
           {/* Hamburger Menu Button */}
