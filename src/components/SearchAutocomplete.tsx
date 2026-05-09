@@ -137,7 +137,7 @@ export default function SearchAutocomplete({ isScrolled }: SearchAutocompletePro
   }, []);
 
   return (
-    <div ref={containerRef} className="relative w-64">
+    <div ref={containerRef} className="relative w-full sm:w-48 md:w-64">
       <form onSubmit={handleSearch} className="relative transition-all duration-300">
         <input
           type="text"
@@ -149,9 +149,9 @@ export default function SearchAutocomplete({ isScrolled }: SearchAutocompletePro
               setIsOpen(true);
             }
           }}
-          placeholder="Search movies, shows..."
+          placeholder="Search..."
           autoComplete="off"
-          className={`rounded-full py-2 px-4 pr-10 text-white placeholder-gray-400 focus:outline-none transition-all duration-300 w-full ${
+          className={`rounded-full py-2 px-4 pr-10 text-sm text-white placeholder-gray-400 focus:outline-none transition-all duration-300 w-full ${
             isScrolled
               ? 'bg-black/80 border border-gray-700 focus:border-yellow-500'
               : 'bg-black/60 border border-gray-600 focus:border-yellow-500'
@@ -184,7 +184,7 @@ export default function SearchAutocomplete({ isScrolled }: SearchAutocompletePro
 
       {/* Dropdown suggestions */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-black/95 backdrop-blur-md border border-yellow-500/30 rounded-lg shadow-2xl z-50 overflow-hidden">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-black/95 backdrop-blur-md border border-yellow-500/30 rounded-lg shadow-2xl z-50 overflow-hidden max-h-[calc(100vh-120px)]">
           {isLoading ? (
             <div className="p-4 text-center text-gray-400 text-sm">
               Loading suggestions...

@@ -214,11 +214,9 @@ export default function Navbar() {
         </div>
 
         {/* Mobile Menu Button and Search */}
-        <div className="flex items-center space-x-3 md:hidden" suppressHydrationWarning>
+        <div className="flex items-center gap-2 md:hidden flex-1 max-w-xs" suppressHydrationWarning>
           {/* Search with Autocomplete for Mobile */}
-          <div className="w-32">
-            <SearchAutocomplete isScrolled={isScrolled} />
-          </div>
+          <SearchAutocomplete isScrolled={isScrolled} />
 
           {/* Hamburger Menu Button */}
           <button
