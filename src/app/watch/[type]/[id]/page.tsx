@@ -59,36 +59,19 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
   // Define available playback sources
   const playbackSources: PlaybackSource[] = [
     { 
-      id: 'vidsrc', 
-      name: 'VidSrc', 
-      url: `https://vidsrc.xyz/embed/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}`,
-      disabled: true
-    },
-    { 
-      id: 'vidsrc-to', 
-      name: 'VidSrc.to', 
-      url: `https://vidsrc.to/embed/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}`
-    },
-    { 
       id: 'vidking',
       name: 'VidKing.net', 
       url: `https://www.vidking.net/embed/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}` 
     },
     { 
-      id: 'vidora', 
-      name: 'Vidora', 
-      url: `https://vidora.su/embed/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}` 
+      id: 'videasy', 
+      name: 'Videasy', 
+      url: `https://player.videasy.net/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}` 
     },
     { 
       id: 'vidlink', 
       name: 'VidLink', 
       url: `https://vidlink.pro/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}` 
-    },
-    { 
-      id: 'superembed', 
-      name: 'SuperEmbed', 
-      url: `https://multiembed.mov/?video_id=${resolvedParams.id}&tmdb=1${resolvedParams.type === 'tv' ? `&s=${searchParams.get('season') || '1'}&e=${searchParams.get('episode') || '1'}` : ''}`,
-      disabled: true
     }
   ];
 
