@@ -248,7 +248,15 @@ async function discover(endpoint: '/discover/movie' | '/discover/tv', options: D
   params.set('page', String(options.page ?? 1));
 
   const data = await fetchJsonFromTMDB(`${endpoint}?${params.toString()}`);
-  return Array.isArray(data?.results) ? data.results : [];
+  const results = Array.isArray(data?.results) ? data.results : [];
+  const page = typeof data?.page === 'number' ? data.page : options.page ?? 1;
+  const totalPages = typeof data?.total_pages === 'number' ? data.total_pages : page;
+
+  return {
+    results,
+    page,
+    totalPages,
+  };
 }
 
 export async function discoverMovies(options: Omit<DiscoverOptions, 'first_air_date_year'> & { pages?: number } = {}) {
@@ -257,11 +265,11 @@ export async function discoverMovies(options: Omit<DiscoverOptions, 'first_air_d
 
   for (let page = 1; page <= pages; page++) {
     try {
-      const results = await discover('/discover/movie', {
+      const data = await discover('/discover/movie', {
         ...options,
         page,
       });
-      allResults = [...allResults, ...results];
+      allResults = [...allResults, ...data.results];
     } catch (error) {
       console.error(`Error discovering movies page ${page}:`, error);
     }
@@ -279,6 +287,29 @@ export async function discoverMovies(options: Omit<DiscoverOptions, 'first_air_d
     .map((movie: TMDBShow) => ({ ...movie, media_type: 'movie' as const }));
 }
 
+export async function discoverMoviesPage(options: Omit<DiscoverOptions, 'first_air_date_year'> = {}) {
+  const page = Math.max(1, options.page ?? 1);
+  const data = await discover('/discover/movie', {
+    ...options,
+    page,
+  });
+  const seen = new Set<number>();
+  const results = data.results
+    .filter((movie: TMDBShow) => movie.poster_path && movie.backdrop_path)
+    .filter((movie: TMDBShow) => {
+      if (seen.has(movie.id)) return false;
+      seen.add(movie.id);
+      return true;
+    })
+    .map((movie: TMDBShow) => ({ ...movie, media_type: 'movie' as const }));
+
+  return {
+    results,
+    page: data.page,
+    totalPages: data.totalPages,
+  };
+}
+
 export async function discoverTVShows(
   options: Omit<DiscoverOptions, 'year'> & { pages?: number; excludeAnime?: boolean } = {}
 ) {
@@ -288,11 +319,11 @@ export async function discoverTVShows(
 
   for (let page = 1; page <= pages; page++) {
     try {
-      const results = await discover('/discover/tv', {
+      const data = await discover('/discover/tv', {
         ...options,
         page,
       });
-      allResults = [...allResults, ...results];
+      allResults = [...allResults, ...data.results];
     } catch (error) {
       console.error(`Error discovering TV shows page ${page}:`, error);
     }
@@ -312,6 +343,36 @@ export async function discoverTVShows(
       return show.original_language !== 'ja' && (!show.origin_country || !show.origin_country.includes('JP'));
     })
     .map((show: TMDBShow) => ({ ...show, media_type: 'tv' as const }));
+}
+
+export async function discoverTVShowsPage(
+  options: Omit<DiscoverOptions, 'year'> & { excludeAnime?: boolean } = {}
+) {
+  const page = Math.max(1, options.page ?? 1);
+  const excludeAnime = options.excludeAnime ?? true;
+  const data = await discover('/discover/tv', {
+    ...options,
+    page,
+  });
+  const seen = new Set<number>();
+  const results = data.results
+    .filter((show: TMDBShow) => {
+      if (!show.poster_path || !show.backdrop_path) return false;
+      if (!excludeAnime) return true;
+      return show.original_language !== 'ja' && (!show.origin_country || !show.origin_country.includes('JP'));
+    })
+    .filter((show: TMDBShow) => {
+      if (seen.has(show.id)) return false;
+      seen.add(show.id);
+      return true;
+    })
+    .map((show: TMDBShow) => ({ ...show, media_type: 'tv' as const }));
+
+  return {
+    results,
+    page: data.page,
+    totalPages: data.totalPages,
+  };
 }
 
 export function getImageUrl(path: string, size: 'w500' | 'original' = 'w500'): string {

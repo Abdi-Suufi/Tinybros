@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { discoverTVShows, fetchTVGenres, getImageUrl, TMDBGenre, TMDBShow, type DiscoverSort } from '@/lib/tmdb';
+import { discoverTVShowsPage, fetchTVGenres, getImageUrl, TMDBGenre, TMDBShow, type DiscoverSort } from '@/lib/tmdb';
 import WatchlistToggle from '@/components/WatchlistToggle';
 import DiscoverFilterBar, { DiscoverFilterValues } from '@/components/DiscoverFilterBar';
 
@@ -19,6 +19,10 @@ export default function SeriesClient() {
   const [imdbLoading, setImdbLoading] = useState(false);
   const [genres, setGenres] = useState<TMDBGenre[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [nextPage, setNextPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -62,18 +66,23 @@ export default function SeriesClient() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const data = await discoverTVShows({
+        const data = await discoverTVShowsPage({
           sort_by: safeSort,
           with_genres: genreParam || undefined,
           first_air_date_year: yearParam ? Number(yearParam) : undefined,
           'vote_average.gte': ratingSource === 'tmdb' && minRatingParam ? Number(minRatingParam) : undefined,
           with_original_language: langParam || undefined,
-          pages: 3,
+          page: 1,
           excludeAnime: true,
         });
-        setSeries(data);
+        setSeries(data.results);
+        setNextPage(data.page + 1);
+        setHasMore(data.page < data.totalPages);
+        setImdbRatings({});
       } catch (error) {
         console.error('Error fetching series:', error);
+        setSeries([]);
+        setHasMore(false);
       } finally {
         setLoading(false);
       }
@@ -81,6 +90,50 @@ export default function SeriesClient() {
 
     fetchData();
   }, [genreParam, safeSort, yearParam, minRatingParam, langParam, ratingSource]);
+
+  useEffect(() => {
+    if (!sentinelRef.current || loading || loadingMore || !hasMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (!entry?.isIntersecting) return;
+
+        const fetchMore = async () => {
+          setLoadingMore(true);
+          try {
+            const data = await discoverTVShowsPage({
+              sort_by: safeSort,
+              with_genres: genreParam || undefined,
+              first_air_date_year: yearParam ? Number(yearParam) : undefined,
+              'vote_average.gte': ratingSource === 'tmdb' && minRatingParam ? Number(minRatingParam) : undefined,
+              with_original_language: langParam || undefined,
+              page: nextPage,
+              excludeAnime: true,
+            });
+            setSeries((prev) => {
+              const existing = new Set(prev.map((item) => item.id));
+              const incoming = data.results.filter((item) => !existing.has(item.id));
+              return [...prev, ...incoming];
+            });
+            setNextPage(data.page + 1);
+            setHasMore(data.page < data.totalPages);
+          } catch (error) {
+            console.error('Error loading more series:', error);
+            setHasMore(false);
+          } finally {
+            setLoadingMore(false);
+          }
+        };
+
+        void fetchMore();
+      },
+      { rootMargin: '400px 0px' }
+    );
+
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [loading, loadingMore, hasMore, nextPage, safeSort, genreParam, yearParam, minRatingParam, langParam, ratingSource]);
 
   useEffect(() => {
     if (ratingSource !== 'imdb') return;
@@ -165,7 +218,7 @@ export default function SeriesClient() {
         />
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {loading || (useImdbFilter && imdbLoading)
+          {((loading || (useImdbFilter && imdbLoading)) && series.length === 0)
             ? skeletonItems.map((_, idx) => (
                 <div
                   key={`series-skel-${idx}`}
@@ -222,6 +275,10 @@ export default function SeriesClient() {
                 </div>
               ))}
         </div>
+        {loadingMore && (
+          <p className="text-center text-sm text-gray-400 mt-6">Loading more series...</p>
+        )}
+        {!loading && !loadingMore && hasMore && <div ref={sentinelRef} className="h-10" aria-hidden="true" />}
       </div>
     </div>
   );
