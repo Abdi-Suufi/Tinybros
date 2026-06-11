@@ -19,6 +19,8 @@ export interface TMDBShow {
   backdrop_path: string;
   media_type: 'movie' | 'tv';
   vote_average: number;
+  popularity?: number;
+  order?: number;
   release_date?: string;
   first_air_date?: string;
   original_language: string;
@@ -212,17 +214,31 @@ export async function fetchPersonCredits(personId: string): Promise<TMDBShow[]> 
   const data = await fetchJsonFromTMDB(`/person/${personId}/combined_credits`);
   const cast = Array.isArray(data?.cast) ? data.cast : [];
   const seen = new Set<string>();
+  const mainCastLimit = 8;
 
   return cast
     .filter((show: TMDBShow) => show.media_type === 'movie' || show.media_type === 'tv')
     .filter((show: TMDBShow) => show.poster_path)
+    .filter((show: TMDBShow) => typeof show.order !== 'number' || show.order <= mainCastLimit)
     .filter((show: TMDBShow) => {
       const key = `${show.media_type}-${show.id}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
     })
-    .sort((a: TMDBShow, b: TMDBShow) => (b.vote_average || 0) - (a.vote_average || 0));
+    .sort((a: TMDBShow, b: TMDBShow) => {
+      const aHasKnownMainRole = typeof a.order === 'number' && a.order <= mainCastLimit;
+      const bHasKnownMainRole = typeof b.order === 'number' && b.order <= mainCastLimit;
+
+      if (aHasKnownMainRole !== bHasKnownMainRole) {
+        return bHasKnownMainRole ? 1 : -1;
+      }
+
+      const popularityDifference = (b.popularity || 0) - (a.popularity || 0);
+      if (popularityDifference !== 0) return popularityDifference;
+
+      return (b.vote_average || 0) - (a.vote_average || 0);
+    });
 }
 
 export async function fetchMovieGenres(): Promise<TMDBGenre[]> {

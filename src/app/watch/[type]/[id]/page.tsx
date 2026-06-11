@@ -53,20 +53,20 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
   const [cast, setCast] = useState<TMDBCast[]>([]);
   const [selectedSeason, setSelectedSeason] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [selectedSource, setSelectedSource] = useState<string>('vidking');
+  const [selectedSource, setSelectedSource] = useState<string>('videasy');
   const [showPlayer, setShowPlayer] = useState(true);
 
   // Define available playback sources
   const playbackSources: PlaybackSource[] = [
     { 
-      id: 'vidking',
-      name: 'VidKing.net', 
-      url: `https://www.vidking.net/embed/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}` 
-    },
-    { 
       id: 'videasy', 
       name: 'Videasy', 
       url: `https://player.videasy.net/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}` 
+    },
+    { 
+      id: 'vidking',
+      name: 'VidKing.net', 
+      url: `https://www.vidking.net/embed/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}` 
     },
     { 
       id: 'vidlink', 
@@ -302,13 +302,13 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
                         className={`px-4 py-2 rounded-full text-white font-semibold transition-opacity ${
                           source.disabled
                             ? 'bg-gray-700/50 cursor-not-allowed opacity-50'
-                            : source.id === 'vidlink'
+                            : source.id === 'videasy'
                               ? 'bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 ring-2 ring-orange-400 ring-offset-2 ring-offset-black hover:opacity-90' 
                               : 'bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 hover:opacity-90'
                         }`}
                       >
                         {source.name}
-                        {source.id === 'vidlink' && (
+                        {source.id === 'videasy' && (
                           <span className="ml-1 text-xs bg-orange-400 text-black px-1.5 py-0.5 rounded-full">★</span>
                         )}
                       </button>
@@ -407,16 +407,16 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
                     source.disabled
                       ? 'bg-gray-700/50 cursor-not-allowed opacity-50'
                       : selectedSource === source.id
-                        ? source.id === 'vidlink'
+                        ? source.id === 'videasy'
                           ? 'bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 ring-2 ring-orange-400 ring-offset-2 ring-offset-black'
                           : 'bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600'
-                        : source.id === 'vidlink'
+                        : source.id === 'videasy'
                           ? 'bg-gray-800 hover:bg-gray-700 ring-1 ring-orange-400/50'
                           : 'bg-gray-800 hover:bg-gray-700'
                   }`}
                 >
                   {source.name}
-                  {source.id === 'vidlink' && (
+                  {source.id === 'videasy' && (
                     <span className="ml-1 text-xs bg-orange-400 text-black px-1.5 py-0.5 rounded-full">★</span>
                   )}
                 </button>
