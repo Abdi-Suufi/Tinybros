@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { getImageUrl, TMDBCast } from '@/lib/tmdb';
 
 interface CastViewProps {
@@ -22,14 +23,16 @@ export default function CastView({ cast }: CastViewProps) {
       </h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
         {mainCast.map((actor) => (
-          <div
+          <Link
             key={actor.id}
-            className="group bg-gray-800/50 rounded-xl overflow-hidden"
+            href={`/search?person=${actor.id}&name=${encodeURIComponent(actor.name)}`}
+            className="group block bg-gray-800/50 rounded-xl overflow-hidden hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-sky-400"
+            aria-label={`View movies and series with ${actor.name}`}
           >
             {/* Actor Image */}
             <div className="relative w-full aspect-[2/3] bg-gray-700/50 flex items-center justify-center overflow-hidden">
               <Image
-                src={getImageUrl(actor.profile_path, 'w500')}
+                src={getImageUrl(actor.profile_path || '', 'w500')}
                 alt={actor.name}
                 fill
                 className="object-contain"
@@ -46,7 +49,7 @@ export default function CastView({ cast }: CastViewProps) {
                 {actor.character}
               </p>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>

@@ -1,29 +1,43 @@
 'use client';
 
-import { Suspense, useEffect } from 'react';
+import { Suspense, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { searchShows } from '@/lib/tmdb';
+import { fetchPersonCredits, searchShows } from '@/lib/tmdb';
 import ShowGrid from '@/components/ShowGrid';
 
 function SearchResults() {
   const searchParams = useSearchParams();
   const query = searchParams.get('q') || '';
+  const personId = searchParams.get('person') || '';
+  const personName = searchParams.get('name') || '';
+  const heading = personId
+    ? `Movies and Series with ${personName || 'This Cast Member'}`
+    : `Search Results for "${query}"`;
+  const getShows = useCallback(() => {
+    if (personId) {
+      return fetchPersonCredits(personId);
+    }
+
+    return searchShows(query);
+  }, [personId, query]);
 
   // Update page title based on search query
   useEffect(() => {
-    if (query) {
+    if (personId) {
+      document.title = `${personName || 'Cast Member'} | TinyBros`;
+    } else if (query) {
       document.title = `Search: "${query}" | TinyBros`;
     } else {
       document.title = 'Search | TinyBros';
     }
-  }, [query]);
+  }, [personId, personName, query]);
 
     return (
     <div className="w-full px-4 sm:px-6 lg:px-8 pt-24 pb-8">
       <h1 className="text-3xl font-bold mb-8">
-        Search Results for &ldquo;{query}&rdquo;
+        {heading}
       </h1>
-      <ShowGrid getShows={() => searchShows(query)} />
+      <ShowGrid getShows={getShows} />
       </div>
     );
   }

@@ -208,6 +208,23 @@ export async function searchShows(query: string): Promise<TMDBShow[]> {
   return fetchFromTMDB(`/search/multi?query=${encodeURIComponent(query)}`);
 }
 
+export async function fetchPersonCredits(personId: string): Promise<TMDBShow[]> {
+  const data = await fetchJsonFromTMDB(`/person/${personId}/combined_credits`);
+  const cast = Array.isArray(data?.cast) ? data.cast : [];
+  const seen = new Set<string>();
+
+  return cast
+    .filter((show: TMDBShow) => show.media_type === 'movie' || show.media_type === 'tv')
+    .filter((show: TMDBShow) => show.poster_path)
+    .filter((show: TMDBShow) => {
+      const key = `${show.media_type}-${show.id}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((a: TMDBShow, b: TMDBShow) => (b.vote_average || 0) - (a.vote_average || 0));
+}
+
 export async function fetchMovieGenres(): Promise<TMDBGenre[]> {
   const data = await fetchJsonFromTMDB('/genre/movie/list');
   return Array.isArray(data?.genres) ? data.genres : [];
