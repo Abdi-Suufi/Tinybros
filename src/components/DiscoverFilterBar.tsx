@@ -43,7 +43,7 @@ export default function DiscoverFilterBar({
   const year = values.year ?? '';
   const minRating = values.minRating ?? '';
   const language = values.language ?? '';
-  const ratingSource = values.ratingSource ?? 'tmdb';
+  const ratingSource = values.ratingSource ?? defaults.ratingSource;
 
   const [draft, setDraft] = useState<DiscoverFilterValues>(values);
 
@@ -165,7 +165,7 @@ export default function DiscoverFilterBar({
         <label className="flex flex-col gap-1">
           <span className="text-xs text-gray-300">Rating source</span>
           <select
-            value={draft.ratingSource ?? 'tmdb'}
+            value={draft.ratingSource ?? defaults.ratingSource}
             onChange={(e) => setDraft((prev) => ({ ...prev, ratingSource: e.target.value as 'tmdb' | 'imdb' }))}
             className="rounded-lg bg-black/50 border border-gray-700/60 px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-500/60"
           >

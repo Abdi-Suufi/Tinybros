@@ -12,6 +12,11 @@ const TV_SORTS: Record<string, DiscoverSort> = {
   'vote_average.desc': 'vote_average.desc',
   'first_air_date.desc': 'first_air_date.desc',
 };
+const K_DRAMA_GENRE_ID = -100;
+const K_DRAMA_GENRE_VALUE = String(K_DRAMA_GENRE_ID);
+const DRAMA_GENRE_VALUE = '18';
+const DEFAULT_RATING_SOURCE: 'imdb' | 'tmdb' = 'imdb';
+const MIN_SERIES_VOTES = 50;
 
 export default function SeriesClient() {
   const [series, setSeries] = useState<TMDBShow[]>([]);
@@ -31,8 +36,12 @@ export default function SeriesClient() {
   const yearParam = searchParams.get('year') || '';
   const minRatingParam = searchParams.get('minRating') || '';
   const langParam = searchParams.get('lang') || '';
-  const ratingParam = searchParams.get('rating') || 'tmdb';
-  const ratingSource: 'tmdb' | 'imdb' = ratingParam === 'imdb' ? 'imdb' : 'tmdb';
+  const ratingParam = searchParams.get('rating') || DEFAULT_RATING_SOURCE;
+  const ratingSource: 'tmdb' | 'imdb' = ratingParam === 'tmdb' ? 'tmdb' : 'imdb';
+  const isKDramaFilter = genreParam === K_DRAMA_GENRE_VALUE;
+  const apiGenreParam = isKDramaFilter ? DRAMA_GENRE_VALUE : genreParam;
+  const apiLanguageParam = isKDramaFilter ? 'ko' : langParam;
+  const apiOriginCountryParam = isKDramaFilter ? 'KR' : undefined;
 
   const safeSort: DiscoverSort = TV_SORTS[sortParam] ?? 'popularity.desc';
 
@@ -41,7 +50,7 @@ export default function SeriesClient() {
     sort: safeSort,
     year: yearParam || undefined,
     minRating: minRatingParam || undefined,
-    language: langParam || undefined,
+    language: isKDramaFilter ? undefined : langParam || undefined,
     ratingSource,
   };
 
@@ -53,7 +62,7 @@ export default function SeriesClient() {
     const fetchGenres = async () => {
       try {
         const data = await fetchTVGenres();
-        setGenres(data);
+        setGenres([{ id: K_DRAMA_GENRE_ID, name: 'K-Dramas' }, ...data].sort((a, b) => a.name.localeCompare(b.name)));
       } catch (error) {
         console.error('Error fetching TV genres:', error);
       }
@@ -68,10 +77,12 @@ export default function SeriesClient() {
       try {
         const data = await discoverTVShowsPage({
           sort_by: safeSort,
-          with_genres: genreParam || undefined,
+          with_genres: apiGenreParam || undefined,
           first_air_date_year: yearParam ? Number(yearParam) : undefined,
           'vote_average.gte': ratingSource === 'tmdb' && minRatingParam ? Number(minRatingParam) : undefined,
-          with_original_language: langParam || undefined,
+          'vote_count.gte': MIN_SERIES_VOTES,
+          with_original_language: apiLanguageParam || undefined,
+          with_origin_country: apiOriginCountryParam,
           page: 1,
           excludeAnime: true,
         });
@@ -89,7 +100,7 @@ export default function SeriesClient() {
     };
 
     fetchData();
-  }, [genreParam, safeSort, yearParam, minRatingParam, langParam, ratingSource]);
+  }, [apiGenreParam, apiLanguageParam, apiOriginCountryParam, safeSort, yearParam, minRatingParam, ratingSource]);
 
   useEffect(() => {
     if (!sentinelRef.current || loading || loadingMore || !hasMore) return;
@@ -104,10 +115,12 @@ export default function SeriesClient() {
           try {
             const data = await discoverTVShowsPage({
               sort_by: safeSort,
-              with_genres: genreParam || undefined,
+              with_genres: apiGenreParam || undefined,
               first_air_date_year: yearParam ? Number(yearParam) : undefined,
               'vote_average.gte': ratingSource === 'tmdb' && minRatingParam ? Number(minRatingParam) : undefined,
-              with_original_language: langParam || undefined,
+              'vote_count.gte': MIN_SERIES_VOTES,
+              with_original_language: apiLanguageParam || undefined,
+              with_origin_country: apiOriginCountryParam,
               page: nextPage,
               excludeAnime: true,
             });
@@ -133,7 +146,7 @@ export default function SeriesClient() {
 
     observer.observe(sentinelRef.current);
     return () => observer.disconnect();
-  }, [loading, loadingMore, hasMore, nextPage, safeSort, genreParam, yearParam, minRatingParam, langParam, ratingSource]);
+  }, [loading, loadingMore, hasMore, nextPage, safeSort, apiGenreParam, yearParam, minRatingParam, apiLanguageParam, apiOriginCountryParam, ratingSource]);
 
   useEffect(() => {
     if (ratingSource !== 'imdb') return;
@@ -182,7 +195,7 @@ export default function SeriesClient() {
     if (next.sort) params.set('sort', next.sort);
     if (next.year) params.set('year', next.year);
     if (next.minRating) params.set('minRating', next.minRating);
-    if (next.language) params.set('lang', next.language);
+    if (next.language && next.genre !== K_DRAMA_GENRE_VALUE) params.set('lang', next.language);
     if (next.ratingSource) params.set('rating', next.ratingSource);
     const qs = params.toString();
     router.push(qs ? `/series?${qs}` : '/series');
@@ -206,7 +219,7 @@ export default function SeriesClient() {
           title="TV Shows"
           genres={genres}
           values={values}
-          defaults={{ sort: 'popularity.desc', ratingSource: 'tmdb' }}
+          defaults={{ sort: 'popularity.desc', ratingSource: DEFAULT_RATING_SOURCE }}
           yearLabel="First air year"
           sortOptions={[
             { value: 'popularity.desc', label: 'Popular' },

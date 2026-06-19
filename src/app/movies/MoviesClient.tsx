@@ -12,6 +12,10 @@ const MOVIE_SORTS: Record<string, DiscoverSort> = {
   'vote_average.desc': 'vote_average.desc',
   'primary_release_date.desc': 'primary_release_date.desc',
 };
+const K_DRAMA_GENRE_ID = -100;
+const K_DRAMA_GENRE_VALUE = String(K_DRAMA_GENRE_ID);
+const DEFAULT_RATING_SOURCE: 'imdb' | 'tmdb' = 'imdb';
+const MIN_MOVIE_VOTES = 100;
 
 export default function MoviesClient() {
   const [movies, setMovies] = useState<TMDBShow[]>([]);
@@ -31,8 +35,12 @@ export default function MoviesClient() {
   const yearParam = searchParams.get('year') || '';
   const minRatingParam = searchParams.get('minRating') || '';
   const langParam = searchParams.get('lang') || '';
-  const ratingParam = searchParams.get('rating') || 'tmdb';
-  const ratingSource: 'tmdb' | 'imdb' = ratingParam === 'imdb' ? 'imdb' : 'tmdb';
+  const ratingParam = searchParams.get('rating') || DEFAULT_RATING_SOURCE;
+  const ratingSource: 'tmdb' | 'imdb' = ratingParam === 'tmdb' ? 'tmdb' : 'imdb';
+  const isKDramaFilter = genreParam === K_DRAMA_GENRE_VALUE;
+  const apiGenreParam = isKDramaFilter ? '' : genreParam;
+  const apiLanguageParam = isKDramaFilter ? 'ko' : langParam;
+  const apiOriginCountryParam = isKDramaFilter ? 'KR' : undefined;
 
   const safeSort: DiscoverSort = MOVIE_SORTS[sortParam] ?? 'popularity.desc';
 
@@ -41,7 +49,7 @@ export default function MoviesClient() {
     sort: safeSort,
     year: yearParam || undefined,
     minRating: minRatingParam || undefined,
-    language: langParam || undefined,
+    language: isKDramaFilter ? undefined : langParam || undefined,
     ratingSource,
   };
 
@@ -53,7 +61,7 @@ export default function MoviesClient() {
     const fetchGenres = async () => {
       try {
         const data = await fetchMovieGenres();
-        setGenres(data);
+        setGenres([{ id: K_DRAMA_GENRE_ID, name: 'Korean Movies' }, ...data].sort((a, b) => a.name.localeCompare(b.name)));
       } catch (error) {
         console.error('Error fetching movie genres:', error);
       }
@@ -68,10 +76,12 @@ export default function MoviesClient() {
       try {
         const data = await discoverMoviesPage({
           sort_by: safeSort,
-          with_genres: genreParam || undefined,
+          with_genres: apiGenreParam || undefined,
           year: yearParam ? Number(yearParam) : undefined,
           'vote_average.gte': ratingSource === 'tmdb' && minRatingParam ? Number(minRatingParam) : undefined,
-          with_original_language: langParam || undefined,
+          'vote_count.gte': MIN_MOVIE_VOTES,
+          with_original_language: apiLanguageParam || undefined,
+          with_origin_country: apiOriginCountryParam,
           page: 1,
         });
         setMovies(data.results);
@@ -88,7 +98,7 @@ export default function MoviesClient() {
     };
 
     fetchData();
-  }, [genreParam, safeSort, yearParam, minRatingParam, langParam, ratingSource]);
+  }, [apiGenreParam, apiLanguageParam, apiOriginCountryParam, safeSort, yearParam, minRatingParam, ratingSource]);
 
   useEffect(() => {
     if (!sentinelRef.current || loading || loadingMore || !hasMore) return;
@@ -103,10 +113,12 @@ export default function MoviesClient() {
           try {
             const data = await discoverMoviesPage({
               sort_by: safeSort,
-              with_genres: genreParam || undefined,
+              with_genres: apiGenreParam || undefined,
               year: yearParam ? Number(yearParam) : undefined,
               'vote_average.gte': ratingSource === 'tmdb' && minRatingParam ? Number(minRatingParam) : undefined,
-              with_original_language: langParam || undefined,
+              'vote_count.gte': MIN_MOVIE_VOTES,
+              with_original_language: apiLanguageParam || undefined,
+              with_origin_country: apiOriginCountryParam,
               page: nextPage,
             });
             setMovies((prev) => {
@@ -131,7 +143,7 @@ export default function MoviesClient() {
 
     observer.observe(sentinelRef.current);
     return () => observer.disconnect();
-  }, [loading, loadingMore, hasMore, nextPage, safeSort, genreParam, yearParam, minRatingParam, langParam, ratingSource]);
+  }, [loading, loadingMore, hasMore, nextPage, safeSort, apiGenreParam, yearParam, minRatingParam, apiLanguageParam, apiOriginCountryParam, ratingSource]);
 
   useEffect(() => {
     if (ratingSource !== 'imdb') return;
@@ -180,7 +192,7 @@ export default function MoviesClient() {
     if (next.sort) params.set('sort', next.sort);
     if (next.year) params.set('year', next.year);
     if (next.minRating) params.set('minRating', next.minRating);
-    if (next.language) params.set('lang', next.language);
+    if (next.language && next.genre !== K_DRAMA_GENRE_VALUE) params.set('lang', next.language);
     if (next.ratingSource) params.set('rating', next.ratingSource);
     const qs = params.toString();
     router.push(qs ? `/movies?${qs}` : '/movies');
@@ -204,7 +216,7 @@ export default function MoviesClient() {
           title="Movies"
           genres={genres}
           values={values}
-          defaults={{ sort: 'popularity.desc', ratingSource: 'tmdb' }}
+          defaults={{ sort: 'popularity.desc', ratingSource: DEFAULT_RATING_SOURCE }}
           yearLabel="Release year"
           sortOptions={[
             { value: 'popularity.desc', label: 'Popular' },

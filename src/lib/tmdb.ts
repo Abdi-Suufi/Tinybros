@@ -274,9 +274,11 @@ export interface DiscoverOptions {
   page?: number;
   sort_by?: DiscoverSort;
   with_genres?: string; // comma-separated genre IDs
+  with_origin_country?: string;
   year?: number; // movies
   first_air_date_year?: number; // TV
   'vote_average.gte'?: number;
+  'vote_count.gte'?: number;
   with_original_language?: string;
 }
 
@@ -284,11 +286,14 @@ async function discover(endpoint: '/discover/movie' | '/discover/tv', options: D
   const params = new URLSearchParams();
   if (options.sort_by) params.set('sort_by', options.sort_by);
   if (options.with_genres) params.set('with_genres', options.with_genres);
+  if (options.with_origin_country) params.set('with_origin_country', options.with_origin_country);
   if (typeof options.year === 'number') params.set('primary_release_year', String(options.year));
   if (typeof options.first_air_date_year === 'number')
     params.set('first_air_date_year', String(options.first_air_date_year));
   if (typeof options['vote_average.gte'] === 'number')
     params.set('vote_average.gte', String(options['vote_average.gte']));
+  if (typeof options['vote_count.gte'] === 'number')
+    params.set('vote_count.gte', String(options['vote_count.gte']));
   if (options.with_original_language) params.set('with_original_language', options.with_original_language);
   params.set('include_adult', 'false');
   params.set('page', String(options.page ?? 1));
