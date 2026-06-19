@@ -57,6 +57,15 @@ export interface TMDBCast {
   order: number;
 }
 
+export interface TMDBPerson {
+  id: number;
+  name: string;
+  profile_path: string | null;
+  known_for_department?: string;
+  birthday?: string | null;
+  place_of_birth?: string | null;
+}
+
 export interface TMDBCredits {
   cast: TMDBCast[];
   crew?: Array<{
@@ -239,6 +248,10 @@ export async function fetchPersonCredits(personId: string): Promise<TMDBShow[]> 
 
       return (b.vote_average || 0) - (a.vote_average || 0);
     });
+}
+
+export async function fetchPersonDetails(personId: string): Promise<TMDBPerson> {
+  return fetchJsonFromTMDB(`/person/${personId}`);
 }
 
 export async function fetchMovieGenres(): Promise<TMDBGenre[]> {

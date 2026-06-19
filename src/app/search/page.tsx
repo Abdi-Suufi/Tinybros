@@ -1,8 +1,9 @@
 'use client';
 
-import { Suspense, useCallback, useEffect } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
-import { fetchPersonCredits, searchShows } from '@/lib/tmdb';
+import { fetchPersonCredits, fetchPersonDetails, getImageUrl, searchShows, TMDBPerson } from '@/lib/tmdb';
 import ShowGrid from '@/components/ShowGrid';
 
 function SearchResults() {
@@ -10,8 +11,9 @@ function SearchResults() {
   const query = searchParams.get('q') || '';
   const personId = searchParams.get('person') || '';
   const personName = searchParams.get('name') || '';
+  const [person, setPerson] = useState<TMDBPerson | null>(null);
   const heading = personId
-    ? `Movies and Series with ${personName || 'This Cast Member'}`
+    ? `Movies and Series with ${person?.name || personName || 'This Cast Member'}`
     : `Search Results for "${query}"`;
   const getShows = useCallback(() => {
     if (personId) {
@@ -21,22 +23,76 @@ function SearchResults() {
     return searchShows(query);
   }, [personId, query]);
 
+  useEffect(() => {
+    if (!personId) {
+      setPerson(null);
+      return;
+    }
+
+    let isActive = true;
+
+    const getPerson = async () => {
+      try {
+        const data = await fetchPersonDetails(personId);
+        if (isActive) {
+          setPerson(data);
+        }
+      } catch (error) {
+        console.error('Error fetching person details:', error);
+        if (isActive) {
+          setPerson(null);
+        }
+      }
+    };
+
+    getPerson();
+
+    return () => {
+      isActive = false;
+    };
+  }, [personId]);
+
   // Update page title based on search query
   useEffect(() => {
     if (personId) {
-      document.title = `${personName || 'Cast Member'} | TinyBros`;
+      document.title = `${person?.name || personName || 'Cast Member'} | TinyBros`;
     } else if (query) {
       document.title = `Search: "${query}" | TinyBros`;
     } else {
       document.title = 'Search | TinyBros';
     }
-  }, [personId, personName, query]);
+  }, [personId, personName, person?.name, query]);
 
     return (
     <div className="w-full px-4 sm:px-6 lg:px-8 pt-24 pb-8">
-      <h1 className="text-3xl font-bold mb-8">
-        {heading}
-      </h1>
+      {personId ? (
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-end gap-5">
+          <div className="relative w-32 aspect-[2/3] overflow-hidden rounded-xl bg-gray-800/70 shadow-xl ring-1 ring-white/10">
+            <Image
+              src={getImageUrl(person?.profile_path || '', 'w500')}
+              alt={person?.name || personName || 'Cast member'}
+              fill
+              className="object-cover"
+              sizes="128px"
+              priority
+            />
+          </div>
+          <div className="min-w-0 pb-1">
+            <h1 className="text-3xl font-bold">
+              {heading}
+            </h1>
+            {(person?.known_for_department || person?.place_of_birth) && (
+              <p className="mt-2 text-sm text-gray-400">
+                {[person.known_for_department, person.place_of_birth].filter(Boolean).join(' | ')}
+              </p>
+            )}
+          </div>
+        </div>
+      ) : (
+        <h1 className="text-3xl font-bold mb-8">
+          {heading}
+        </h1>
+      )}
       <ShowGrid getShows={getShows} />
       </div>
     );
