@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState, use, type IframeHTMLAttributes } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { getImageUrl, TMDBCast } from '@/lib/tmdb';
 import Image from 'next/image';
@@ -55,6 +55,14 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
   const [loading, setLoading] = useState(true);
   const [selectedSource, setSelectedSource] = useState<string>('videasy');
   const [showPlayer, setShowPlayer] = useState(true);
+  const fullscreenIframeProps = {
+    allowFullScreen: true,
+    webkitallowfullscreen: "true",
+    mozallowfullscreen: "true",
+  } as IframeHTMLAttributes<HTMLIFrameElement> & {
+    webkitallowfullscreen: string;
+    mozallowfullscreen: string;
+  };
 
   // Define available playback sources
   const playbackSources: PlaybackSource[] = [
@@ -270,14 +278,15 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
         {showPlayer ? (
           <div className="relative w-full aspect-video bg-gray-900 rounded-lg shadow-2xl">
             <iframe
-  key={selectedSource}
-  src={getCurrentSourceUrl()}
-  className="w-full h-full rounded-lg"
-  allowFullScreen={true}
-  allow="fullscreen; autoplay; encrypted-media; picture-in-picture; web-share; accelerometer; gyroscope"
-  style={{ border: 'none' }}
-  referrerPolicy="no-referrer-when-downgrade"
-/>
+              key={`${selectedSource}-${getCurrentSourceUrl()}`}
+              src={getCurrentSourceUrl()}
+              title={`${show.title || show.name || 'Video'} player`}
+              className="w-full h-full rounded-lg"
+              allow="accelerometer *; autoplay *; clipboard-write *; encrypted-media *; fullscreen *; gyroscope *; picture-in-picture *; web-share *"
+              style={{ border: 'none' }}
+              referrerPolicy="no-referrer-when-downgrade"
+              {...fullscreenIframeProps}
+            />
           </div>
         ) : (
           <div className="relative w-full aspect-video bg-gray-900 rounded-lg overflow-hidden shadow-2xl flex items-center justify-center">
