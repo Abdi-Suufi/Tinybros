@@ -71,6 +71,11 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
       name: 'Videasy', 
       url: `https://player.videasy.net/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}` 
     },
+    {
+      id: 'vidcore',
+      name: 'VidCore',
+      url: `https://vidcore.net/${resolvedParams.type === 'movie' ? 'movie' : 'tv'}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}?autoPlay=true&hideServer=true`,
+    },
     { 
       id: 'vidking',
       name: 'VidKing.net', 
@@ -185,9 +190,12 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
   };
 
   // Get current source URL
+  const getCurrentSource = () => {
+    return playbackSources.find(s => s.id === selectedSource) || playbackSources[0];
+  };
+
   const getCurrentSourceUrl = () => {
-    const source = playbackSources.find(s => s.id === selectedSource);
-    return source ? source.url : playbackSources[0].url;
+    return getCurrentSource().url;
   };
 
   //NAVIGATION LOGIC
@@ -285,6 +293,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
               allow="accelerometer *; autoplay *; clipboard-write *; encrypted-media *; fullscreen *; gyroscope *; picture-in-picture *; web-share *"
               style={{ border: 'none' }}
               referrerPolicy="no-referrer-when-downgrade"
+              sandbox={getCurrentSource().sandbox}
               {...fullscreenIframeProps}
             />
           </div>
