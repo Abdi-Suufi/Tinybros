@@ -53,7 +53,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
   const [cast, setCast] = useState<TMDBCast[]>([]);
   const [selectedSeason, setSelectedSeason] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [selectedSource, setSelectedSource] = useState<string>('videasy');
+  const [selectedSource, setSelectedSource] = useState<string>('vidcore');
   const [showPlayer, setShowPlayer] = useState(true);
   const fullscreenIframeProps = {
     allowFullScreen: true,
@@ -320,13 +320,13 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
                         className={`px-4 py-2 rounded-full text-white font-semibold transition-opacity ${
                           source.disabled
                             ? 'bg-gray-700/50 cursor-not-allowed opacity-50'
-                            : source.id === 'videasy'
+                            : source.id === 'vidcore'
                               ? 'bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 ring-2 ring-orange-400 ring-offset-2 ring-offset-black hover:opacity-90' 
                               : 'bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 hover:opacity-90'
                         }`}
                       >
                         {source.name}
-                        {source.id === 'videasy' && (
+                        {source.id === 'vidcore' && (
                           <span className="ml-1 text-xs bg-orange-400 text-black px-1.5 py-0.5 rounded-full">★</span>
                         )}
                       </button>
@@ -425,16 +425,16 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
                     source.disabled
                       ? 'bg-gray-700/50 cursor-not-allowed opacity-50'
                       : selectedSource === source.id
-                        ? source.id === 'videasy'
+                        ? source.id === 'vidcore'
                           ? 'bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 ring-2 ring-orange-400 ring-offset-2 ring-offset-black'
                           : 'bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600'
-                        : source.id === 'videasy'
+                        : source.id === 'vidcore'
                           ? 'bg-gray-800 hover:bg-gray-700 ring-1 ring-orange-400/50'
                           : 'bg-gray-800 hover:bg-gray-700'
                   }`}
                 >
                   {source.name}
-                  {source.id === 'videasy' && (
+                  {source.id === 'vidcore' && (
                     <span className="ml-1 text-xs bg-orange-400 text-black px-1.5 py-0.5 rounded-full">★</span>
                   )}
                 </button>
