@@ -61,9 +61,11 @@ export interface TMDBPerson {
   id: number;
   name: string;
   profile_path: string | null;
+  media_type: 'person';
   known_for_department?: string;
   birthday?: string | null;
   place_of_birth?: string | null;
+  known_for?: TMDBShow[];
 }
 
 export interface TMDBCredits {
@@ -215,8 +217,28 @@ export async function fetchAnime(): Promise<TMDBShow[]> {
   return japaneseAnime.sort((a, b) => b.vote_average - a.vote_average);
 }
 
-export async function searchShows(query: string): Promise<TMDBShow[]> {
+export type TMDBSearchResult = TMDBShow | TMDBPerson;
+
+function isShowResult(item: TMDBSearchResult): item is TMDBShow {
+  return item.media_type === 'movie' || item.media_type === 'tv';
+}
+
+function isPersonResult(item: TMDBSearchResult): item is TMDBPerson {
+  return item.media_type === 'person';
+}
+
+export async function searchMulti(query: string): Promise<TMDBSearchResult[]> {
   return fetchFromTMDB(`/search/multi?query=${encodeURIComponent(query)}`);
+}
+
+export async function searchShows(query: string): Promise<TMDBShow[]> {
+  const results = await searchMulti(query);
+  return results.filter(isShowResult);
+}
+
+export async function searchPeople(query: string): Promise<TMDBPerson[]> {
+  const results = await searchMulti(query);
+  return results.filter(isPersonResult);
 }
 
 export async function fetchPersonCredits(personId: string): Promise<TMDBShow[]> {
