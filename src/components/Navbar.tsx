@@ -315,6 +315,23 @@ export default function Navbar() {
         </div>
       )}
       </nav>
+
+      <div className="fixed top-[60px] left-0 right-0 z-40 overflow-hidden bg-orange-600 py-2 text-sm font-semibold text-white">
+        <style jsx>{`
+          @keyframes maintenance-marquee {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(100vw); }
+          }
+          .maintenance-marquee {
+            display: inline-block;
+            white-space: nowrap;
+            animation: maintenance-marquee 6s linear infinite;
+          }
+        `}</style>
+        <span className="maintenance-marquee">
+          Maintenance is going on until October 2nd
+        </span>
+      </div>
       
       {/* Video Player Alert Banner - Commented out, ready to reuse if needed */}
       {/* <div className="fixed top-[60px] left-0 right-0 z-50 bg-red-600 text-white py-1.5 overflow-hidden">
