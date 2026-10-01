@@ -53,7 +53,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
   const [cast, setCast] = useState<TMDBCast[]>([]);
   const [selectedSeason, setSelectedSeason] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [selectedSource, setSelectedSource] = useState<string>('vidcore');
+  const [selectedSource, setSelectedSource] = useState<string>('cinesrc');
   const [showPlayer, setShowPlayer] = useState(true);
   const fullscreenIframeProps = {
     allowFullScreen: true,
@@ -75,6 +75,13 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
       id: 'vidcore',
       name: 'VidCore',
       url: `https://vidcore.net/${resolvedParams.type === 'movie' ? 'movie' : 'tv'}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}?autoPlay=true&hideServer=true`,
+    },
+    {
+      id: 'cinesrc',
+      name: 'Cinesrc',
+      url: resolvedParams.type === 'tv'
+        ? `https://cinesrc.st/embed/tv/${resolvedParams.id}?s=${searchParams.get('season') || '1'}&e=${searchParams.get('episode') || '1'}`
+        : `https://cinesrc.st/embed/movie/${resolvedParams.id}`
     },
     { 
       id: 'vidking',
@@ -320,13 +327,13 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
                         className={`px-4 py-2 rounded-full text-white font-semibold transition-opacity ${
                           source.disabled
                             ? 'bg-gray-700/50 cursor-not-allowed opacity-50'
-                            : source.id === 'vidcore'
+                            : source.id === 'cinesrc'
                               ? 'bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 ring-2 ring-orange-400 ring-offset-2 ring-offset-black hover:opacity-90' 
                               : 'bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 hover:opacity-90'
                         }`}
                       >
                         {source.name}
-                        {source.id === 'vidcore' && (
+                        {source.id === 'cinesrc' && (
                           <span className="ml-1 text-xs bg-orange-400 text-black px-1.5 py-0.5 rounded-full">★</span>
                         )}
                       </button>
@@ -425,16 +432,16 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
                     source.disabled
                       ? 'bg-gray-700/50 cursor-not-allowed opacity-50'
                       : selectedSource === source.id
-                        ? source.id === 'vidcore'
+                        ? source.id === 'cinesrc'
                           ? 'bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 ring-2 ring-orange-400 ring-offset-2 ring-offset-black'
                           : 'bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600'
-                        : source.id === 'vidcore'
+                        : source.id === 'cinesrc'
                           ? 'bg-gray-800 hover:bg-gray-700 ring-1 ring-orange-400/50'
                           : 'bg-gray-800 hover:bg-gray-700'
                   }`}
                 >
                   {source.name}
-                  {source.id === 'vidcore' && (
+                  {source.id === 'cinesrc' && (
                     <span className="ml-1 text-xs bg-orange-400 text-black px-1.5 py-0.5 rounded-full">★</span>
                   )}
                 </button>
