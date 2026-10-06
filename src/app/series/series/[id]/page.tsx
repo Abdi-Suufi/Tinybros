@@ -185,7 +185,7 @@ export default function SeriesPage({ params }: { params: Promise<{ id: string }>
         </div>
 
         {/* Cast Section */}
-        {!loadingCredits && credits && <CastView cast={credits.cast} />}
+        {!loadingCredits && credits && <CastView cast={credits.cast} crew={credits.crew} />}
 
         {/* Episodes Section */}
         <div className="mt-16">
@@ -252,6 +252,5 @@ export default function SeriesPage({ params }: { params: Promise<{ id: string }>
     </div>
   );
 }
-
 
 

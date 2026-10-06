@@ -11,57 +11,33 @@ function SearchResults() {
   const query = searchParams.get('q') || '';
   const personId = searchParams.get('person') || '';
   const personName = searchParams.get('name') || '';
+  const department = searchParams.get('department');
   const [person, setPerson] = useState<TMDBPerson | null>(null);
+  const isDirector = department === 'directing' || person?.known_for_department === 'Directing';
   const heading = personId
-    ? `Movies and Series with ${person?.name || personName || 'This Cast Member'}`
+    ? `Movies and Series ${isDirector ? 'directed by' : 'with'} ${person?.name || personName || (isDirector ? 'This Director' : 'This Cast Member')}`
     : `Search Results for "${query}"`;
-  const getShows = useCallback(() => {
+  const getShows = useCallback(async () => {
     if (personId) {
-      return fetchPersonCredits(personId);
+      const profile = await fetchPersonDetails(personId);
+      setPerson(profile);
+      const personIsDirector = department === 'directing' || profile.known_for_department === 'Directing';
+      return fetchPersonCredits(personId, personIsDirector ? 'directing' : 'acting');
     }
 
     return searchShows(query);
-  }, [personId, query]);
-
-  useEffect(() => {
-    if (!personId) {
-      setPerson(null);
-      return;
-    }
-
-    let isActive = true;
-
-    const getPerson = async () => {
-      try {
-        const data = await fetchPersonDetails(personId);
-        if (isActive) {
-          setPerson(data);
-        }
-      } catch (error) {
-        console.error('Error fetching person details:', error);
-        if (isActive) {
-          setPerson(null);
-        }
-      }
-    };
-
-    getPerson();
-
-    return () => {
-      isActive = false;
-    };
-  }, [personId]);
+  }, [department, personId, query]);
 
   // Update page title based on search query
   useEffect(() => {
     if (personId) {
-      document.title = `${person?.name || personName || 'Cast Member'} | TinyBros`;
+      document.title = `${person?.name || personName || (isDirector ? 'Director' : 'Cast Member')} | TinyBros`;
     } else if (query) {
       document.title = `Search: "${query}" | TinyBros`;
     } else {
       document.title = 'Search | TinyBros';
     }
-  }, [personId, personName, person?.name, query]);
+  }, [isDirector, personId, personName, person?.name, query]);
 
     return (
     <div className="w-full px-4 sm:px-6 lg:px-8 pt-24 pb-8">

@@ -74,6 +74,7 @@ export interface TMDBCredits {
     id: number;
     name: string;
     job: string;
+    profile_path: string | null;
   }>;
 }
 
@@ -241,16 +242,27 @@ export async function searchPeople(query: string): Promise<TMDBPerson[]> {
   return results.filter(isPersonResult);
 }
 
-export async function fetchPersonCredits(personId: string): Promise<TMDBShow[]> {
+export async function fetchPersonCredits(
+  personId: string,
+  department: 'acting' | 'directing' = 'acting'
+): Promise<TMDBShow[]> {
   const data = await fetchJsonFromTMDB(`/person/${personId}/combined_credits`);
-  const cast = Array.isArray(data?.cast) ? data.cast : [];
+  const credits = department === 'directing'
+    ? (Array.isArray(data?.crew) ? data.crew : []).filter(
+        (show: TMDBShow & { job?: string }) => show.job === 'Director'
+      )
+    : Array.isArray(data?.cast) ? data.cast : [];
   const seen = new Set<string>();
   const mainCastLimit = 8;
 
-  return cast
+  return credits
     .filter((show: TMDBShow) => show.media_type === 'movie' || show.media_type === 'tv')
     .filter((show: TMDBShow) => show.poster_path)
-    .filter((show: TMDBShow) => typeof show.order !== 'number' || show.order <= mainCastLimit)
+    .filter((show: TMDBShow) => (
+      department === 'directing'
+      || typeof show.order !== 'number'
+      || show.order <= mainCastLimit
+    ))
     .filter((show: TMDBShow) => {
       const key = `${show.media_type}-${show.id}`;
       if (seen.has(key)) return false;

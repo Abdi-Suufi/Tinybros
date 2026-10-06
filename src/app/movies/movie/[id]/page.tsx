@@ -121,11 +121,10 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
         </div>
 
         {/* Cast Section */}
-        {credits && <CastView cast={credits.cast} />}
+        {credits && <CastView cast={credits.cast} crew={credits.crew} />}
       </div>
     </div>
   );
 }
-
 
 

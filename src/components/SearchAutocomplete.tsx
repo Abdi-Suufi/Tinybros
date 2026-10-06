@@ -105,7 +105,8 @@ export default function SearchAutocomplete({ isScrolled }: SearchAutocompletePro
   // Handle suggestion selection
   const selectSuggestion = (item: TMDBSearchResult) => {
     if (item.media_type === 'person') {
-      router.push(`/search?person=${item.id}&name=${encodeURIComponent(item.name)}`);
+      const department = item.known_for_department === 'Directing' ? '&department=directing' : '';
+      router.push(`/search?person=${item.id}&name=${encodeURIComponent(item.name)}${department}`);
       resetSearch();
       return;
     }
@@ -149,6 +150,10 @@ export default function SearchAutocomplete({ isScrolled }: SearchAutocompletePro
 
   const getSuggestionMeta = (item: TMDBSearchResult) => {
     if (item.media_type === 'person') {
+      if (item.known_for_department === 'Directing') {
+        return 'Director';
+      }
+
       const knownFor = item.known_for
         ?.filter((credit) => credit.media_type === 'movie' || credit.media_type === 'tv')
         .slice(0, 2)
@@ -156,7 +161,8 @@ export default function SearchAutocomplete({ isScrolled }: SearchAutocompletePro
         .filter(Boolean)
         .join(', ');
 
-      return knownFor ? `Actor - Known for ${knownFor}` : item.known_for_department || 'Actor';
+      const role = item.known_for_department === 'Acting' ? 'Actor' : item.known_for_department || 'Actor';
+      return knownFor ? `${role} - Known for ${knownFor}` : role;
     }
 
     const year = item.release_date
@@ -265,7 +271,7 @@ export default function SearchAutocomplete({ isScrolled }: SearchAutocompletePro
                     </div>
                     {item.media_type === 'person' ? (
                       <span className="flex-shrink-0 rounded-full border border-yellow-400/40 px-2 py-1 text-xs text-yellow-300">
-                        Actor
+                        {item.known_for_department === 'Directing' ? 'Director' : item.known_for_department === 'Acting' ? 'Actor' : item.known_for_department || 'Person'}
                       </span>
                     ) : (
                     <div className="flex-shrink-0 flex items-center gap-1">
