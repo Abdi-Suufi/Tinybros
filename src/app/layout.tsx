@@ -8,7 +8,7 @@ import { Providers } from "./Providers";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
-const adsenseClientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
+const adsenseClientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || 'ca-pub-1648425218847882';
 
 export const metadata: Metadata = {
   title: "TinyBros - Modern Streaming Platform",

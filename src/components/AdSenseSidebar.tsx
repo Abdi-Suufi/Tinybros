@@ -10,7 +10,7 @@ declare global {
   }
 }
 
-const clientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
+const clientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || 'ca-pub-1648425218847882';
 
 const slotIds: Record<AdPlacement, string | undefined> = {
   left: process.env.NEXT_PUBLIC_ADSENSE_LEFT_SLOT_ID,
