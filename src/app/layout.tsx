@@ -23,16 +23,12 @@ export default function RootLayout({
   return (
     <html lang="en" className="bg-black text-white">
       <head>
-        {adsenseClientId && (
-          <Script
-            id="google-adsense-script"
-            async
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClientId}`}
-            crossOrigin="anonymous"
-            strategy="beforeInteractive"
-          />
-        )}
-      </head>
+  <script
+    async
+    src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClientId}`}
+    crossOrigin="anonymous"
+  />
+</head>
       <body className={`${inter.className} min-h-screen`} suppressHydrationWarning>
         <Providers>
           <Navbar />
