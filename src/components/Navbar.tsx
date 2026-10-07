@@ -212,6 +212,36 @@ export default function Navbar() {
           >
             Anime
           </Link>
+          <div className="group relative">
+            <Link
+              href="/patch-notes"
+              aria-label="Patch Notes"
+              className={`block rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 ${
+                !isScrolled
+                  ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-yellow-400'
+                  : 'text-gray-300 hover:text-yellow-400'
+              }`}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path strokeLinecap="round" d="M12 11v5m0-8h.01" />
+              </svg>
+            </Link>
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute right-0 top-full z-[60] mt-2 whitespace-nowrap rounded-md border border-gray-700 bg-gray-900 px-3 py-1.5 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+            >
+              Patch Notes
+            </span>
+          </div>
         </div>
 
         {/* Mobile Menu Button and Search */}
@@ -311,6 +341,17 @@ export default function Navbar() {
               }`}
             >
               Watchlist
+            </Link>
+            <Link
+              href="/patch-notes"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`block py-2 px-4 rounded-lg transition-colors ${
+                pathname === '/patch-notes'
+                  ? 'bg-yellow-500/20 text-yellow-400'
+                  : 'text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400'
+              }`}
+            >
+              Patch Notes
             </Link>
           </div>
         </div>
