@@ -105,7 +105,7 @@ export default function Navbar() {
             ? 'text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]'
             : 'bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-yellow-600'
         }`}>
-          TinyBros
+          Tinywatch
         </Link>
         
         {/* Desktop Navigation */}

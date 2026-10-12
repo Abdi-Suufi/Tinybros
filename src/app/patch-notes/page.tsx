@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { patchNotes } from '@/lib/patchNotes';
 
 export const metadata: Metadata = {
-  title: 'Patch Notes | TinyBros',
-  description: 'See the latest TinyBros updates, new features, and upcoming improvements.',
+  title: 'Patch Notes | Tinywatch',
+  description: 'See the latest Tinywatch updates, new features, and upcoming improvements.',
 };
 
 export default function PatchNotesPage() {
@@ -11,7 +11,7 @@ export default function PatchNotesPage() {
     <main className="min-h-screen px-4 pb-16 pt-28 text-white sm:px-6 lg:px-8">
       <div className="mx-auto max-w-4xl">
         <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-yellow-400">
-          TinyBros updates
+          Tinywatch updates
         </p>
         <h1 className="text-4xl font-bold sm:text-5xl">Patch Notes</h1>
         <p className="mt-4 max-w-2xl text-gray-300">

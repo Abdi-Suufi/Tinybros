@@ -1,10 +1,10 @@
-# TinyBros🎬
+# Tinywatch🎬
 <img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/68edeabf-bd46-4565-b1b6-fa16ab3eb4ee" />
 A modern, clean streaming platform that provides access to movies, TV shows, and anime with an intuitive user interface and seamless viewing experience.
 
 ## 🌟 Purpose
 
-TinyBros is designed to be your gateway to the future of entertainment. It's a comprehensive streaming platform that aggregates content from various sources, providing users with a unified interface to discover, browse, and watch their favorite movies, TV series, and anime.
+Tinywatch is designed to be your gateway to the future of entertainment. It's a comprehensive streaming platform that aggregates content from various sources, providing users with a unified interface to discover, browse, and watch their favorite movies, TV series, and anime.
 
 ## ✨ Features
 <img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/af93996a-7346-4fa4-9314-d7b8c384fab5" />
@@ -75,7 +75,7 @@ TinyBros is designed to be your gateway to the future of entertainment. It's a c
 
 ## 🎨 Design Philosophy
 
-TinyBros follows a minimalist design approach with:
+Tinywatch follows a minimalist design approach with:
 - **Gradient Themes**: orange to yellow color schemes
 - **Card-based Layout**: Clean content organization
 - **Smooth Interactions**: Hover effects and transitions
@@ -106,4 +106,4 @@ The platform integrates with multiple content providers:
 
 ---
 
-**TinyBros** - Your gateway to the future of entertainment 🚀
+**Tinywatch** - Your gateway to the future of entertainment 🚀

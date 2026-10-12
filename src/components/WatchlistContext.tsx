@@ -16,7 +16,7 @@ interface WatchlistContextValue {
 
 const WatchlistContext = createContext<WatchlistContextValue | undefined>(undefined);
 
-const STORAGE_KEY = 'tinybros_watchlist_v1';
+const STORAGE_KEY = 'tinywatch_watchlist_v1';
 
 export function WatchlistProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<WatchlistItem[]>([]);

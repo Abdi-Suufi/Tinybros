@@ -11,7 +11,7 @@ const inter = Inter({ subsets: ["latin"] });
 const adsenseClientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || 'ca-pub-1648425218847882';
 
 export const metadata: Metadata = {
-  title: "TinyBros - Modern Streaming Platform",
+  title: "Tinywatch - Modern Streaming Platform",
   description: "A clean and futuristic streaming service",
 };
 

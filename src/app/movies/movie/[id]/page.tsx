@@ -31,13 +31,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   try {
     const movie = await getShowDetails(resolvedParams.id);
     return {
-      title: `${movie.title || movie.name || 'Movie'} | TinyBros`,
-      description: movie.overview || 'Watch on TinyBros',
+      title: `${movie.title || movie.name || 'Movie'} | Tinywatch`,
+      description: movie.overview || 'Watch on Tinywatch',
     };
   } catch {
     return {
-      title: 'Movie | TinyBros',
-      description: 'Watch on TinyBros',
+      title: 'Movie | Tinywatch',
+      description: 'Watch on Tinywatch',
     };
   }
 }

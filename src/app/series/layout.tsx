@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Series | TinyBros',
-  description: 'Browse TV series on TinyBros',
+  title: 'Series | Tinywatch',
+  description: 'Browse TV series on Tinywatch',
 }
 
 export default function SeriesLayout({

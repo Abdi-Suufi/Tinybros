@@ -199,13 +199,13 @@ export const patchNotes: PatchNote[] = [
     changes: [
       'Drag-to-scroll works across horizontal content sections.',
       'Playback sources and player layouts were refined.',
-      'Page titles and metadata were improved for TinyBros sections.',
+      'Page titles and metadata were improved for Tinywatch sections.',
       'Search and navigation layouts received mobile and usability improvements.',
     ],
   },
   {
     date: 'Earlier releases',
-    title: 'The TinyBros streaming experience',
+    title: 'The Tinywatch streaming experience',
     status: 'released',
     summary: 'The core site grew from a streaming page into a catalog for movies, series, and anime.',
     changes: [

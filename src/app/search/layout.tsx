@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Search | TinyBros',
-  description: 'Search for movies and TV shows on TinyBros',
+  title: 'Search | Tinywatch',
+  description: 'Search for movies and TV shows on Tinywatch',
 }
 
 export default function SearchLayout({

@@ -184,9 +184,9 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
       const episode = searchParams.get('episode');
       const season = searchParams.get('season');
       if (episode && season) {
-        document.title = `${title} - S${season}E${episode} | TinyBros`;
+        document.title = `${title} - S${season}E${episode} | Tinywatch`;
       } else {
-        document.title = `${title} | TinyBros`;
+        document.title = `${title} | Tinywatch`;
       }
     }
   }, [show, searchParams]);
@@ -607,9 +607,9 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
         <div className="mt-16">
           <h2 className="text-2xl font-bold mb-6">Comments</h2>
           <DiscussionEmbed
-            shortname="tinybros"
+            shortname="tinywatch"
             config={{
-              url: `https://tinybros.vercel.app/watch/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `?season=${searchParams.get('season') || '1'}&episode=${searchParams.get('episode') || '1'}` : ''}`,
+              url: `https://tinywatch.vercel.app/watch/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `?season=${searchParams.get('season') || '1'}&episode=${searchParams.get('episode') || '1'}` : ''}`,
               identifier: `${resolvedParams.type}-${resolvedParams.id}${resolvedParams.type === 'tv' ? `-s${searchParams.get('season') || '1'}-e${searchParams.get('episode') || '1'}` : ''}`,
               title: show.title || show.name,
               language: 'en'

@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Watch | TinyBros',
-  description: 'Watch movies and TV shows on TinyBros',
+  title: 'Watch | Tinywatch',
+  description: 'Watch movies and TV shows on Tinywatch',
 }
 
 export default function WatchLayout({

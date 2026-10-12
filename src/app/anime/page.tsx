@@ -12,7 +12,7 @@ export default function AnimePage() {
   const router = useRouter();
 
   useEffect(() => {
-    document.title = 'Anime | TinyBros';
+    document.title = 'Anime | Tinywatch';
   }, []);
 
   useEffect(() => {

@@ -31,11 +31,11 @@ function SearchResults() {
   // Update page title based on search query
   useEffect(() => {
     if (personId) {
-      document.title = `${person?.name || personName || (isDirector ? 'Director' : 'Cast Member')} | TinyBros`;
+      document.title = `${person?.name || personName || (isDirector ? 'Director' : 'Cast Member')} | Tinywatch`;
     } else if (query) {
-      document.title = `Search: "${query}" | TinyBros`;
+      document.title = `Search: "${query}" | Tinywatch`;
     } else {
-      document.title = 'Search | TinyBros';
+      document.title = 'Search | Tinywatch';
     }
   }, [isDirector, personId, personName, person?.name, query]);
 

@@ -11,7 +11,7 @@ export default function WatchlistPage() {
   const { items } = useWatchlist();
 
   useEffect(() => {
-    document.title = 'Watchlist | TinyBros';
+    document.title = 'Watchlist | Tinywatch';
   }, []);
 
   return (

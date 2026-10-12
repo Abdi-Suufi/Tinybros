@@ -54,7 +54,7 @@ export default function MoviesClient() {
   };
 
   useEffect(() => {
-    document.title = 'Movies | TinyBros';
+    document.title = 'Movies | Tinywatch';
   }, []);
 
   useEffect(() => {
