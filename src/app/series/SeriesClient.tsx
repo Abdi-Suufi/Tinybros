@@ -55,7 +55,7 @@ export default function SeriesClient() {
   };
 
   useEffect(() => {
-    document.title = 'Series | TinyBros';
+    document.title = 'Series | Tinywatch';
   }, []);
 
   useEffect(() => {
