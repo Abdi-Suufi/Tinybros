@@ -1,7 +1,5 @@
 'use client';
 
-const sandbox = 'allow-scripts allow-popups allow-popups-to-escape-sandbox';
-
 export function AdsterraSidebar({ placement }: { placement: 'left' | 'right' }) {
   const ad = placement === 'left'
     ? {
@@ -24,7 +22,6 @@ export function AdsterraSidebar({ placement }: { placement: 'left' | 'right' }) 
       <iframe
         title={`Adsterra 160 by ${ad.height} ${placement} banner`}
         className={`${placement === 'left' ? 'h-[600px]' : 'h-[300px]'} w-[160px] border-0`}
-        sandbox={sandbox}
         referrerPolicy="strict-origin-when-cross-origin"
         srcDoc={`<!doctype html>
           <html>
