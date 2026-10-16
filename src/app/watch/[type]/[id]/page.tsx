@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { DiscussionEmbed } from 'disqus-react';
 import WatchlistToggle from '@/components/WatchlistToggle';
 import CastView from '@/components/CastView';
-import AdSenseSidebar from '@/components/AdSenseSidebar';
+import { AdsterraSidebar } from '@/components/AdsterraAds';
 
 interface ShowDetails {
   id: number;
@@ -291,7 +291,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
 
       {/* Video Player */}
       <div className="mx-auto grid w-full max-w-[1408px] grid-cols-1 gap-4 px-4 pt-28 pb-8 2xl:grid-cols-[160px_minmax(0,1fr)_160px]">
-        <AdSenseSidebar placement="left" />
+        <AdsterraSidebar placement="left" />
         <div className="w-full max-w-5xl justify-self-center 2xl:max-w-none">
         {showPlayer ? (
           <div className="relative w-full aspect-video bg-gray-900 rounded-lg shadow-2xl">
@@ -375,9 +375,8 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
           </div>
         )}
         </div>
-        <AdSenseSidebar placement="right" />
+        <AdsterraSidebar placement="right" />
       </div>
-
       {/* Current Episode Display (when player is active) */}
       {showPlayer && resolvedParams.type === 'tv' && (
         <div className="w-full max-w-5xl mx-auto px-4 pb-2">
