@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import { patchNotes } from '@/lib/patchNotes';
 
 export const metadata: Metadata = {
@@ -22,27 +23,42 @@ export default function PatchNotesPage() {
           {patchNotes.map((note) => (
             <article
               key={`${note.date}-${note.title}`}
-              className="rounded-2xl border border-gray-800 bg-gray-900/70 p-6 sm:p-8"
+              className={`rounded-2xl border border-gray-800 bg-gray-900/70 p-6 sm:p-8 ${
+                note.image ? 'grid gap-6 md:grid-cols-[2fr_1fr] md:items-stretch' : ''
+              }`}
             >
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <time className="text-sm text-gray-400">{note.date}</time>
-                <span
-                  className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${
-                    note.status === 'upcoming'
-                      ? 'bg-sky-400/10 text-sky-300'
-                      : 'bg-green-400/10 text-green-300'
-                  }`}
-                >
-                  {note.status === 'upcoming' ? 'Coming soon' : 'Released'}
-                </span>
+              <div>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <time className="text-sm text-gray-400">{note.date}</time>
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${
+                      note.status === 'upcoming'
+                        ? 'bg-sky-400/10 text-sky-300'
+                        : 'bg-green-400/10 text-green-300'
+                    }`}
+                  >
+                    {note.status === 'upcoming' ? 'Coming soon' : 'Released'}
+                  </span>
+                </div>
+                <h2 className="mt-4 text-2xl font-bold">{note.title}</h2>
+                <p className="mt-3 text-gray-300">{note.summary}</p>
+                <ul className="mt-5 list-disc space-y-2 pl-5 text-gray-300 marker:text-yellow-400">
+                  {note.changes.map((change) => (
+                    <li key={change}>{change}</li>
+                  ))}
+                </ul>
               </div>
-              <h2 className="mt-4 text-2xl font-bold">{note.title}</h2>
-              <p className="mt-3 text-gray-300">{note.summary}</p>
-              <ul className="mt-5 list-disc space-y-2 pl-5 text-gray-300 marker:text-yellow-400">
-                {note.changes.map((change) => (
-                  <li key={change}>{change}</li>
-                ))}
-              </ul>
+              {note.image && (
+                <div className="relative min-h-48 overflow-hidden rounded-xl bg-black/40 md:min-h-full">
+                  <Image
+                    src={note.image.src}
+                    alt={note.image.alt}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 250px"
+                    className="object-cover"
+                  />
+                </div>
+              )}
             </article>
           ))}
         </div>

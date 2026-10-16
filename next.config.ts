@@ -16,6 +16,11 @@ const nextConfig: NextConfig = {
         hostname: 'image.tmdb.org',
         pathname: '/t/p/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'i.pinimg.com',
+        pathname: '/originals/**',
+      },
     ],
     minimumCacheTTL: 60,
     formats: ['image/avif', 'image/webp'],

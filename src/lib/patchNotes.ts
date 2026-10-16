@@ -4,9 +4,37 @@ export interface PatchNote {
   status: 'upcoming' | 'released';
   summary: string;
   changes: string[];
+  image?: {
+    src: string;
+    alt: string;
+  };
 }
 
 export const patchNotes: PatchNote[] = [
+  {
+    date: 'October 16, 2026',
+    title: 'A more considerate ad experience',
+    status: 'upcoming',
+    summary: 'We are developing optional banner placements designed to stay unobtrusive and never interrupt playback.',
+    changes: [
+      'Tinywatch banners will be designed not to interrupt playback, so an ad blocker should not be needed to avoid interruptions from our banners.',
+      'Third-party playback providers may have their own ads, which are outside Tinywatch’s control.',
+    ],
+  },
+  {
+    date: 'October 16, 2026',
+    title: 'Main player has no ads!',
+    status: 'released',
+    summary: 'The main player is ad freeeeeee. lowkey whitelist the site from your adblocker if you want to support it, but it’s not necessary to enjoy the content.',
+    changes: [
+      'Enjoy ad-free playback with the main player.',
+      'Whitelist Tinywatch if you want to support the site; it is not required to enjoy the content.',
+    ],
+    image: {
+      src: 'https://i.pinimg.com/originals/08/b8/ec/08b8ec3667f4dd3ba85211f303f5fc27.jpg',
+      alt: 'Main player playback update',
+    },
+  },
   {
     date: 'October 7, 2026',
     title: 'Director profiles and filmographies',

@@ -43,7 +43,10 @@ interface PlaybackSource {
   name: string;
   url: string;
   disabled?: boolean;
+  sandbox?: string;
 }
+
+const PLAYER_SANDBOX = 'allow-scripts allow-same-origin allow-forms allow-presentation';
 
 export default function WatchPage({ params }: { params: Promise<{ type: string; id: string }> }) {
   const resolvedParams = use(params);
@@ -79,7 +82,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
     },
     {
       id: 'cinesrc',
-      name: 'Cinesrc',
+      name: 'Main player',
       url: resolvedParams.type === 'tv'
         ? `https://cinesrc.st/embed/tv/${resolvedParams.id}?s=${searchParams.get('season') || '1'}&e=${searchParams.get('episode') || '1'}`
         : `https://cinesrc.st/embed/movie/${resolvedParams.id}`
@@ -302,7 +305,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
               allow="accelerometer *; autoplay *; clipboard-write *; encrypted-media *; fullscreen *; gyroscope *; picture-in-picture *; web-share *"
               style={{ border: 'none' }}
               referrerPolicy="no-referrer-when-downgrade"
-              sandbox={getCurrentSource().sandbox}
+              sandbox={getCurrentSource().sandbox ?? PLAYER_SANDBOX}
               {...fullscreenIframeProps}
             />
           </div>
@@ -374,8 +377,8 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
           </div>
         )}
         </div>
-        <AdsterraSidebar placement="left" />
-        <AdsterraSidebar placement="right" />
+        {/* <AdsterraSidebar placement="left" /> */}
+        {/* <AdsterraSidebar placement="right" /> */}
       </div>
       {/* Current Episode Display (when player is active) */}
       {showPlayer && resolvedParams.type === 'tv' && (
