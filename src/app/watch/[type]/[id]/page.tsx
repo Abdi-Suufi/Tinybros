@@ -290,9 +290,8 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
       `}</style>
 
       {/* Video Player */}
-      <div className="mx-auto grid w-full max-w-[1408px] grid-cols-1 gap-4 px-4 pt-28 pb-8 2xl:grid-cols-[160px_minmax(0,1fr)_160px]">
-        <AdsterraSidebar placement="left" />
-        <div className="w-full max-w-5xl justify-self-center 2xl:max-w-none">
+      <div className="mx-auto grid w-full max-w-[1408px] grid-cols-1 gap-4 px-4 pt-28 pb-8 lg:grid-cols-[160px_minmax(0,1fr)_160px]">
+        <div className="row-start-1 w-full max-w-5xl justify-self-center lg:col-start-2 lg:row-start-1 lg:max-w-none">
         {showPlayer ? (
           <div className="relative w-full aspect-video bg-gray-900 rounded-lg shadow-2xl">
             <iframe
@@ -375,6 +374,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
           </div>
         )}
         </div>
+        <AdsterraSidebar placement="left" />
         <AdsterraSidebar placement="right" />
       </div>
       {/* Current Episode Display (when player is active) */}

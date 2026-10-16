@@ -16,7 +16,9 @@ export function AdsterraSidebar({ placement }: { placement: 'left' | 'right' }) 
   return (
     <aside
       aria-label={`${placement === 'left' ? 'Left' : 'Right'} advertisement`}
-      className="hidden w-[160px] flex-col items-center 2xl:flex"
+      className={`mx-auto flex w-[160px] flex-col items-center lg:mx-0 ${
+        placement === 'left' ? 'lg:col-start-1' : 'lg:col-start-3'
+      } lg:row-start-1`}
     >
       <span className="mb-2 text-xs text-gray-500">Advertisement</span>
       <iframe
