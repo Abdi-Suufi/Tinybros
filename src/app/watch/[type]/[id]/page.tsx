@@ -377,8 +377,8 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
           </div>
         )}
         </div>
-        {/* <AdsterraSidebar placement="left" /> */}
-        {/* <AdsterraSidebar placement="right" /> */}
+        <AdsterraSidebar placement="left" />
+        <AdsterraSidebar placement="right" />
       </div>
       {/* Current Episode Display (when player is active) */}
       {showPlayer && resolvedParams.type === 'tv' && (

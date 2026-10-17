@@ -12,12 +12,13 @@ export interface PatchNote {
 
 export const patchNotes: PatchNote[] = [
   {
-    date: 'October 16, 2026',
-    title: 'A more considerate ad experience',
-    status: 'upcoming',
-    summary: 'We are developing optional banner placements designed to stay unobtrusive and never interrupt playback.',
+    date: 'October 17, 2026',
+    title: 'Sidebar banners are live',
+    status: 'released',
+    summary: 'Banner ads are back in the watch page sidebars, separate from playback.',
     changes: [
-      'Tinywatch banners will be designed not to interrupt playback, so an ad blocker should not be needed to avoid interruptions from our banners.',
+      'Banner placements are live in the watch page sidebars on wide screens.',
+      'Ads stay separate from the player and do not interrupt playback.',
       'Third-party playback providers may have their own ads, which are outside Tinywatch’s control.',
     ],
   },
