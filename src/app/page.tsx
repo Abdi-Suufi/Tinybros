@@ -5,6 +5,7 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { fetchTrending, fetchMovies, fetchTVShows, fetchAnime, getImageUrl, TMDBShow } from "@/lib/tmdb";
 import WatchlistToggle from "@/components/WatchlistToggle";
+import Loading from "@/components/Loading";
 
 export default function Home() {
   const moviesRef = useRef<HTMLDivElement>(null);
@@ -19,6 +20,7 @@ export default function Home() {
   const [series, setSeries] = useState<TMDBShow[]>([]);
   const [anime, setAnime] = useState<TMDBShow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showLoadingOverlay, setShowLoadingOverlay] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const isInteractingRef = useRef(false);
   const suppressClickUntilRef = useRef(0);
@@ -147,33 +149,36 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [trendingData, moviesData, seriesData, animeData] = await Promise.all([
+        const [trendingResult, moviesResult, seriesResult, animeResult] = await Promise.allSettled([
           fetchTrending(),
           fetchMovies(),
           fetchTVShows(),
           fetchAnime()
         ]);
-        
-        // Remove duplicates based on ID
-        const uniqueTrending = Array.from(
-          new Map(trendingData.map(item => [item.id, item])).values()
-        );
-        const uniqueMovies = Array.from(
-          new Map(moviesData.map(item => [item.id, item])).values()
-        );
-        const uniqueSeries = Array.from(
-          new Map(seriesData.map(item => [item.id, item])).values()
-        );
-        const uniqueAnime = Array.from(
-          new Map(animeData.map(item => [item.id, item])).values()
-        );
-        
-        setTrending(uniqueTrending);
-        setMovies(uniqueMovies);
-        setSeries(uniqueSeries);
-        setAnime(uniqueAnime);
-      } catch (error) {
-        console.error('Error fetching data:', error);
+
+        if (trendingResult.status === 'fulfilled') {
+          setTrending(Array.from(new Map(trendingResult.value.map(item => [item.id, item])).values()));
+        } else {
+          console.error('Error fetching trending shows:', trendingResult.reason);
+        }
+
+        if (moviesResult.status === 'fulfilled') {
+          setMovies(Array.from(new Map(moviesResult.value.map(item => [item.id, item])).values()));
+        } else {
+          console.error('Error fetching movies:', moviesResult.reason);
+        }
+
+        if (seriesResult.status === 'fulfilled') {
+          setSeries(Array.from(new Map(seriesResult.value.map(item => [item.id, item])).values()));
+        } else {
+          console.error('Error fetching TV shows:', seriesResult.reason);
+        }
+
+        if (animeResult.status === 'fulfilled') {
+          setAnime(Array.from(new Map(animeResult.value.map(item => [item.id, item])).values()));
+        } else {
+          console.error('Error fetching anime:', animeResult.reason);
+        }
       } finally {
         setLoading(false);
       }
@@ -181,6 +186,13 @@ export default function Home() {
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (loading) return;
+
+    const timeout = setTimeout(() => setShowLoadingOverlay(false), 700);
+    return () => clearTimeout(timeout);
+  }, [loading]);
 
   const handleShowClick = (id: number, mediaType: string) => {
     // Don't navigate if user was dragging
@@ -436,7 +448,6 @@ export default function Home() {
 
     return () => clearInterval(interval);
   }, [trending.length]);
-
 
   const showSkeletonArray = Array.from({ length: 8 });
 
@@ -840,6 +851,7 @@ export default function Home() {
           </div>
         </section>
       </div>
+      {(loading || showLoadingOverlay) && <Loading isExiting={!loading} />}
     </div>
   );
 }

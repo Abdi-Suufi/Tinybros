@@ -12,6 +12,19 @@ export interface PatchNote {
 
 export const patchNotes: PatchNote[] = [
   {
+    date: 'October 18, 2026',
+    title: 'A new Tinywatch loading splash',
+    status: 'released',
+    summary: 'The homepage now opens with a black screen and an illuminated Tinywatch wordmark while its content loads.',
+    changes: [
+      'A warm light traces the outline of the Tinywatch wordmark. Pretty cool, right?',
+    ],
+    image: {
+      src: 'https://i.pinimg.com/1200x/7f/bc/7e/7fbc7eb59f2da48745817afe69b204d6.jpg',
+      alt: 'Tinywatch loading splash update',
+    },
+  },
+  {
     date: 'October 17, 2026',
     title: 'Sidebar banners are live',
     status: 'released',

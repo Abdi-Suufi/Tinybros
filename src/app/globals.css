@@ -25,6 +25,53 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+@keyframes tinybros-outline-trace {
+  0% {
+    stroke-dasharray: 0 5000;
+  }
+  82%,
+  100% {
+    stroke-dasharray: 5000 0;
+  }
+}
+
+.tinybros-loader-wordmark {
+  width: min(84vw, 760px);
+  overflow: visible;
+}
+
+.tinybros-loader-wordmark text {
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 900;
+  font-size: 118px;
+  letter-spacing: -7px;
+  paint-order: stroke;
+}
+
+.tinybros-loader-outline {
+  fill: #050505;
+  stroke: #49413a;
+  stroke-width: 1.5px;
+}
+
+.tinybros-loader-trace {
+  fill: none;
+  stroke: url(#tinywatch-trace-gradient);
+  stroke-dasharray: 0 5000;
+  stroke-linecap: round;
+  stroke-width: 3.5px;
+  filter: drop-shadow(0 0 5px rgb(249 115 22 / 0.95))
+    drop-shadow(0 0 14px rgb(250 204 21 / 0.7));
+  animation: tinybros-outline-trace 6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tinybros-loader-trace {
+    animation: none;
+    stroke-dasharray: 5000 0;
+  }
+}
+
 /* Global scrollbar styling */
 ::-webkit-scrollbar {
   width: 12px;

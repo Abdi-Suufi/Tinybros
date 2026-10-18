@@ -24,10 +24,10 @@ export default function PatchNotesPage() {
             <article
               key={`${note.date}-${note.title}`}
               className={`rounded-2xl border border-gray-800 bg-gray-900/70 p-6 sm:p-8 ${
-                note.image ? 'grid gap-6 md:grid-cols-[2fr_1fr] md:items-stretch' : ''
+                note.image ? 'grid gap-x-6 gap-y-4 md:grid-cols-[minmax(0,1fr)_250px]' : ''
               }`}
             >
-              <div>
+              <div className={note.image ? 'md:col-span-2' : ''}>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <time className="text-sm text-gray-400">{note.date}</time>
                   <span
@@ -40,6 +40,8 @@ export default function PatchNotesPage() {
                     {note.status === 'upcoming' ? 'Coming soon' : 'Released'}
                   </span>
                 </div>
+              </div>
+              <div>
                 <h2 className="mt-4 text-2xl font-bold">{note.title}</h2>
                 <p className="mt-3 text-gray-300">{note.summary}</p>
                 <ul className="mt-5 list-disc space-y-2 pl-5 text-gray-300 marker:text-yellow-400">
@@ -49,12 +51,12 @@ export default function PatchNotesPage() {
                 </ul>
               </div>
               {note.image && (
-                <div className="relative min-h-48 overflow-hidden rounded-xl bg-black/40 md:min-h-full">
+                <div className="relative aspect-[4/3] w-full max-w-[250px] justify-self-center overflow-hidden rounded-xl bg-black/40 md:justify-self-end">
                   <Image
                     src={note.image.src}
                     alt={note.image.alt}
                     fill
-                    sizes="(max-width: 768px) 100vw, 250px"
+                    sizes="250px"
                     className="object-cover"
                   />
                 </div>
