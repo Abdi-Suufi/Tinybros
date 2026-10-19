@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
+import Link from 'next/link';
 import { useWatchlist } from '@/components/WatchlistContext';
 
 export default function WatchlistAccount({ mobile = false }: { mobile?: boolean }) {
@@ -261,6 +262,15 @@ export default function WatchlistAccount({ mobile = false }: { mobile?: boolean 
                         ? 'Create account'
                         : 'Send reset link'}
                 </button>
+                {mode === 'signUp' && (
+                  <p className="text-center text-xs leading-relaxed text-gray-400">
+                    By creating an account you agree to our{' '}
+                    <Link href="/privacy" className="text-yellow-300 underline underline-offset-2 hover:text-yellow-200">
+                      Privacy Policy
+                    </Link>
+                    .
+                  </p>
+                )}
                 {mode !== 'resetRequest' && (
                   <>
                     {mode === 'signIn' && (
