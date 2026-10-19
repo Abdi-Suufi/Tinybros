@@ -207,12 +207,17 @@ export async function fetchAnime(): Promise<TMDBShow[]> {
   }
   
   // Filter to keep only Japanese shows with additional criteria
-  const japaneseAnime = allResults.filter((show: TMDBShow) => 
-    (show.original_language === 'ja' || // Japanese language
-    (show.origin_country && show.origin_country.includes('JP'))) && // From Japan
-    show.poster_path && // Has a poster
-    show.backdrop_path // Has a backdrop image
-  );
+  const seenIds = new Set<number>();
+  const japaneseAnime = allResults.filter((show: TMDBShow) => {
+    const isJapanese = show.original_language === 'ja' ||
+      (show.origin_country && show.origin_country.includes('JP'));
+    if (!isJapanese || !show.poster_path || !show.backdrop_path || seenIds.has(show.id)) {
+      return false;
+    }
+
+    seenIds.add(show.id);
+    return true;
+  });
 
   // Sort by popularity
   return japaneseAnime.sort((a, b) => b.vote_average - a.vote_average);

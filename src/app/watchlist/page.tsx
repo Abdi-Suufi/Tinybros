@@ -8,7 +8,7 @@ import { getImageUrl } from '@/lib/tmdb';
 import WatchlistToggle from '@/components/WatchlistToggle';
 
 export default function WatchlistPage() {
-  const { items } = useWatchlist();
+  const { items, syncMessage } = useWatchlist();
 
   useEffect(() => {
     document.title = 'Watchlist | Tinywatch';
@@ -27,6 +27,15 @@ export default function WatchlistPage() {
             </p>
           )}
         </div>
+
+        {syncMessage && (
+          <p
+            role="status"
+            className="mb-6 rounded-lg border border-orange-500/30 bg-orange-500/10 px-4 py-3 text-sm text-orange-200"
+          >
+            {syncMessage}
+          </p>
+        )}
 
         {items.length === 0 ? (
           <div className="mt-16 text-center text-gray-400">
@@ -76,4 +85,3 @@ export default function WatchlistPage() {
     </div>
   );
 }
-

@@ -12,14 +12,15 @@ export interface PatchNote {
 
 export const patchNotes: PatchNote[] = [
   {
-    date: 'TBD',
-    title: 'Cross-saving watchlist is coming',
-    status: 'upcoming',
-    summary: 'A future update will make your watchlist follow you across devices, so your saved titles stay synced wherever you keep watching.',
+    date: 'October 19, 2026',
+    title: 'Your watchlist now syncs across devices',
+    status: 'released',
+    summary: 'Sign in to keep your Tinywatch watchlist in sync between the website and desktop app.',
     changes: [
-      'Your watchlist will stay in sync across the Tinywatch app and browser experience.',
-      'Pick up where you left off without losing the titles you planned to watch next.',
-      'Switch devices and keep your queue intact as you continue browsing.',
+      'Create an account or sign in with your email and password to sync saved movies and shows.',
+      'Your existing device watchlist is merged into your account the first time you sign in.',
+      'Forgot your password? Request a reset link by email and set a new password securely.',
+      'Keep using a local-only watchlist when you are signed out.',
     ],
     image: {
       src: '/patch-notes/watchlist-sync.png',

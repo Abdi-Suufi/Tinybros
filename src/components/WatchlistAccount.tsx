@@ -1,0 +1,226 @@
+'use client';
+
+import { useEffect, useState, type FormEvent } from 'react';
+import { useWatchlist } from '@/components/WatchlistContext';
+
+export default function WatchlistAccount({ mobile = false }: { mobile?: boolean }) {
+  const { user, authReady, authAvailable, signIn, signUp, requestPasswordReset, signOut } = useWatchlist();
+  const [isOpen, setIsOpen] = useState(false);
+  const [mode, setMode] = useState<'signIn' | 'signUp' | 'resetRequest'>('signIn');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [message, setMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resetCooldown, setResetCooldown] = useState(0);
+
+  useEffect(() => {
+    if (resetCooldown <= 0) return;
+    const timeout = window.setTimeout(() => setResetCooldown((seconds) => seconds - 1), 1000);
+    return () => window.clearTimeout(timeout);
+  }, [resetCooldown]);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setMessage(null);
+    setIsSubmitting(true);
+
+    if (mode === 'resetRequest') {
+      const error = await requestPasswordReset(email);
+      if (error) console.error('Failed to request password reset', error);
+      setMessage("If an account exists, we've sent a reset link");
+      setResetCooldown(30);
+    } else if (mode === 'signIn') {
+      const error = await signIn(email, password);
+      setMessage(error ?? 'Signed in. Your watchlist is syncing.');
+    } else {
+      const result = await signUp(email, password);
+      if (result.error) {
+        setMessage(result.error);
+      } else if (result.confirmationRequired) {
+        setMessage('Account created. Check your email to confirm it, then sign in here with your email and password.');
+      } else {
+        setMessage('Account created and signed in. Your watchlist is syncing.');
+      }
+    }
+
+    setIsSubmitting(false);
+  };
+
+  const handleSignOut = async () => {
+    setMessage(null);
+    setIsSubmitting(true);
+    const error = await signOut();
+    setMessage(error ?? 'Signed out. This device is now using its local watchlist.');
+    setIsSubmitting(false);
+    if (!error) setIsOpen(false);
+  };
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => {
+          setMessage(null);
+          setIsOpen(true);
+        }}
+        className={
+          mobile
+            ? 'block w-full rounded-lg px-4 py-2 text-left text-gray-300 transition-colors hover:bg-gray-800/50 hover:text-yellow-400'
+            : 'whitespace-nowrap rounded-lg border border-yellow-500/40 px-3 py-2 text-sm text-yellow-300 transition-colors hover:bg-yellow-500/10'
+        }
+      >
+        {user ? 'Account' : 'Sign in'}
+      </button>
+
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 px-4 py-8"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setIsOpen(false);
+          }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="watchlist-account-title"
+            className="w-full max-w-md rounded-2xl border border-yellow-500/30 bg-gray-950 p-6 text-white shadow-2xl"
+          >
+            <div className="mb-5 flex items-center justify-between">
+              <h2 id="watchlist-account-title" className="text-xl font-semibold text-yellow-300">
+                {user
+                  ? 'Watchlist account'
+                  : mode === 'signIn'
+                    ? 'Sign in to sync'
+                    : mode === 'signUp'
+                      ? 'Create an account'
+                      : 'Reset your password'}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                aria-label="Close account dialog"
+                className="rounded px-2 py-1 text-gray-400 hover:text-white"
+              >
+                ×
+              </button>
+            </div>
+
+            {user ? (
+              <div className="space-y-4">
+                <p className="text-sm text-gray-300">
+                  Signed in as <span className="text-white">{user.email}</span>
+                </p>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  disabled={isSubmitting}
+                  className="w-full rounded-lg bg-gradient-to-r from-orange-500 to-yellow-500 px-4 py-2 font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
+                >
+                  {isSubmitting ? 'Signing out…' : 'Sign out'}
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {!authAvailable && (
+                  <p className="rounded-lg border border-orange-500/30 bg-orange-500/10 p-3 text-sm text-orange-200">
+                    Account sync is not configured. You can keep using your device-only watchlist.
+                  </p>
+                )}
+                <label className="block space-y-1.5 text-sm text-gray-300">
+                  Email
+                  <input
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    className="w-full rounded-lg border border-gray-700 bg-black px-3 py-2 text-white outline-none focus:border-yellow-500"
+                  />
+                </label>
+                {(mode === 'signUp' || mode === 'signIn') && (
+                  <label className="block space-y-1.5 text-sm text-gray-300">
+                    Password
+                    <input
+                      type="password"
+                      autoComplete={mode === 'signIn' ? 'current-password' : 'new-password'}
+                      minLength={6}
+                      required
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      className="w-full rounded-lg border border-gray-700 bg-black px-3 py-2 text-white outline-none focus:border-yellow-500"
+                    />
+                  </label>
+                )}
+                <button
+                  type="submit"
+                  disabled={
+                    isSubmitting ||
+                    !authAvailable ||
+                    !authReady ||
+                    (mode === 'resetRequest' && resetCooldown > 0)
+                  }
+                  className="w-full rounded-lg bg-gradient-to-r from-orange-500 to-yellow-500 px-4 py-2 font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
+                >
+                  {mode === 'resetRequest' && resetCooldown > 0
+                    ? `Try again in ${resetCooldown}s`
+                    : isSubmitting
+                    ? 'Please wait…'
+                    : mode === 'signIn'
+                      ? 'Sign in'
+                      : mode === 'signUp'
+                        ? 'Create account'
+                        : 'Send reset link'}
+                </button>
+                {mode !== 'resetRequest' && (
+                  <>
+                    {mode === 'signIn' && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMode('resetRequest');
+                          setMessage(null);
+                        }}
+                        className="w-full text-sm text-gray-300 transition-colors hover:text-yellow-300"
+                      >
+                        Forgot password?
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMode(mode === 'signIn' ? 'signUp' : 'signIn');
+                        setMessage(null);
+                      }}
+                      className="w-full text-sm text-gray-300 transition-colors hover:text-yellow-300"
+                    >
+                      {mode === 'signIn' ? 'New here? Create an account' : 'Already have an account? Sign in'}
+                    </button>
+                  </>
+                )}
+                {mode === 'resetRequest' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode('signIn');
+                      setMessage(null);
+                    }}
+                    className="w-full text-sm text-gray-300 transition-colors hover:text-yellow-300"
+                  >
+                    Back to sign in
+                  </button>
+                )}
+              </form>
+            )}
+
+            {message && (
+              <p role="status" className="mt-4 rounded-lg border border-gray-700 bg-black/60 p-3 text-sm text-gray-200">
+                {message}
+              </p>
+            )}
+          </section>
+        </div>
+      )}
+    </>
+  );
+}

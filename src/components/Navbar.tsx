@@ -8,13 +8,14 @@ import { useWatchlist } from "@/components/WatchlistContext";
 import { getImageUrl } from "@/lib/tmdb";
 import MaintenanceBanner from "@/components/MaintenanceBanner";
 import SearchAutocomplete from "@/components/SearchAutocomplete";
+import WatchlistAccount from "@/components/WatchlistAccount";
 
 const WATCHLIST_PREVIEW_INITIAL = 8;
 const WATCHLIST_PREVIEW_CHUNK = 8;
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { items } = useWatchlist();
+  const { items, syncMessage } = useWatchlist();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [watchlistPreviewCount, setWatchlistPreviewCount] = useState(WATCHLIST_PREVIEW_INITIAL);
@@ -242,6 +243,7 @@ export default function Navbar() {
               Patch Notes
             </span>
           </div>
+          <WatchlistAccount />
         </div>
 
         {/* Mobile Menu Button and Search */}
@@ -353,12 +355,22 @@ export default function Navbar() {
             >
               Patch Notes
             </Link>
+            <WatchlistAccount mobile />
           </div>
         </div>
       )}
       </nav>
 
       <MaintenanceBanner />
+
+      {syncMessage && pathname !== '/watchlist' && (
+        <p
+          role="status"
+          className="fixed bottom-4 left-4 right-4 z-[90] mx-auto max-w-xl rounded-lg border border-orange-500/30 bg-gray-950/95 px-4 py-3 text-sm text-orange-200 shadow-xl"
+        >
+          {syncMessage}
+        </p>
+      )}
       
       {/* Video Player Alert Banner - Commented out, ready to reuse if needed */}
       {/* <div className="fixed top-[60px] left-0 right-0 z-50 bg-red-600 text-white py-1.5 overflow-hidden">
