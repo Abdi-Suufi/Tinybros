@@ -12,6 +12,13 @@ export default function WatchlistAccount({ mobile = false }: { mobile?: boolean 
   const [message, setMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resetCooldown, setResetCooldown] = useState(0);
+  const [isResetAnimating, setIsResetAnimating] = useState(false);
+
+  useEffect(() => {
+    if (!isResetAnimating) return;
+    const timeout = window.setTimeout(() => setIsResetAnimating(false), 1000);
+    return () => window.clearTimeout(timeout);
+  }, [isResetAnimating]);
 
   useEffect(() => {
     if (resetCooldown <= 0) return;
@@ -22,14 +29,34 @@ export default function WatchlistAccount({ mobile = false }: { mobile?: boolean 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setMessage(null);
-    setIsSubmitting(true);
 
     if (mode === 'resetRequest') {
-      const error = await requestPasswordReset(email);
-      if (error) console.error('Failed to request password reset', error);
-      setMessage("If an account exists, we've sent a reset link");
+      setMessage("If an account exists, we've sent a reset link. Check your inbox and spam folder.");
       setResetCooldown(30);
-    } else if (mode === 'signIn') {
+      setIsResetAnimating(true);
+      void (async () => {
+        try {
+          const error = await requestPasswordReset(email);
+          if (error) {
+            console.error('Failed to request password reset', error);
+            setResetCooldown(0);
+            setIsResetAnimating(false);
+            setMessage("Couldn't send the email, please try again in a moment");
+          }
+        } catch (error) {
+          console.error('Failed to request password reset', error);
+          setResetCooldown(0);
+          setIsResetAnimating(false);
+          setMessage("Couldn't send the email, please try again in a moment");
+        } finally {
+          setIsSubmitting(false);
+        }
+      })();
+      return;
+    }
+
+    setIsSubmitting(true);
+    if (mode === 'signIn') {
       const error = await signIn(email, password);
       setMessage(error ?? 'Signed in. Your watchlist is syncing.');
     } else {
@@ -162,7 +189,17 @@ export default function WatchlistAccount({ mobile = false }: { mobile?: boolean 
                   }
                   className="w-full rounded-lg bg-gradient-to-r from-orange-500 to-yellow-500 px-4 py-2 font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
                 >
-                  {mode === 'resetRequest' && resetCooldown > 0
+                  {mode === 'resetRequest' && isResetAnimating
+                    ? (
+                      <span className="inline-flex items-center justify-center gap-2">
+                        <span
+                          aria-hidden="true"
+                          className="h-4 w-4 animate-spin rounded-full border-2 border-black/30 border-t-black"
+                        />
+                        Sending…
+                      </span>
+                    )
+                    : mode === 'resetRequest' && resetCooldown > 0
                     ? `Try again in ${resetCooldown}s`
                     : isSubmitting
                     ? 'Please wait…'
