@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
+import { createPortal } from 'react-dom';
 import { useWatchlist } from '@/components/WatchlistContext';
 
 export default function WatchlistAccount({ mobile = false }: { mobile?: boolean }) {
@@ -13,6 +14,55 @@ export default function WatchlistAccount({ mobile = false }: { mobile?: boolean 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resetCooldown, setResetCooldown] = useState(0);
   const [isResetAnimating, setIsResetAnimating] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState<{ top: number; right: number } | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const dropdownRef = useRef<HTMLElement | null>(null);
+
+  const updateDropdownPosition = useCallback(() => {
+    const trigger = triggerRef.current;
+    if (!trigger) return;
+
+    const triggerRect = trigger.getBoundingClientRect();
+    const navHeader = trigger.closest('nav')?.firstElementChild;
+    const top = (navHeader instanceof HTMLElement ? navHeader.getBoundingClientRect().bottom : triggerRect.bottom) + 8;
+    const dropdownWidth = Math.min(448, window.innerWidth - 32);
+    const right = Math.max(
+      16,
+      Math.min(window.innerWidth - dropdownWidth - 16, window.innerWidth - triggerRect.right)
+    );
+    setDropdownPosition({ top, right });
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleOutsideMouseDown = (event: MouseEvent) => {
+      const target = event.target;
+      if (
+        target instanceof Node &&
+        !triggerRef.current?.contains(target) &&
+        !dropdownRef.current?.contains(target)
+      ) {
+        setIsOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsOpen(false);
+    };
+
+    updateDropdownPosition();
+    document.addEventListener('mousedown', handleOutsideMouseDown);
+    document.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('resize', updateDropdownPosition);
+    window.addEventListener('scroll', updateDropdownPosition, true);
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideMouseDown);
+      document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('resize', updateDropdownPosition);
+      window.removeEventListener('scroll', updateDropdownPosition, true);
+    };
+  }, [isOpen, updateDropdownPosition]);
 
   useEffect(() => {
     if (!isResetAnimating) return;
@@ -86,8 +136,10 @@ export default function WatchlistAccount({ mobile = false }: { mobile?: boolean 
     <>
       <button
         type="button"
+        ref={triggerRef}
         onClick={() => {
           setMessage(null);
+          updateDropdownPosition();
           setIsOpen(true);
         }}
         className={
@@ -99,19 +151,19 @@ export default function WatchlistAccount({ mobile = false }: { mobile?: boolean 
         {user ? 'Account' : 'Sign in'}
       </button>
 
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 px-4 py-8"
-          role="presentation"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setIsOpen(false);
-          }}
-        >
+      {isOpen && dropdownPosition && typeof document !== 'undefined'
+        ? createPortal(
           <section
+            ref={dropdownRef}
             role="dialog"
-            aria-modal="true"
+            aria-modal="false"
             aria-labelledby="watchlist-account-title"
-            className="w-full max-w-md rounded-2xl border border-yellow-500/30 bg-gray-950 p-6 text-white shadow-2xl"
+            className={`account-dropdown fixed z-[70] w-[min(28rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-yellow-500/30 bg-gray-950 p-6 text-white shadow-2xl${mobile ? ' mobile-menu-container' : ''}`}
+            style={{
+              top: dropdownPosition.top,
+              right: dropdownPosition.right,
+              maxHeight: `calc(100vh - ${dropdownPosition.top}px - 16px)`,
+            }}
           >
             <div className="mb-5 flex items-center justify-between">
               <h2 id="watchlist-account-title" className="text-xl font-semibold text-yellow-300">
@@ -255,9 +307,10 @@ export default function WatchlistAccount({ mobile = false }: { mobile?: boolean 
                 {message}
               </p>
             )}
-          </section>
-        </div>
-      )}
+          </section>,
+          document.body
+        )
+        : null}
     </>
   );
 }
