@@ -12,6 +12,31 @@ export interface PatchNote {
 
 export const patchNotes: PatchNote[] = [
   {
+    date: 'TBD',
+    title: 'Cross-saving watchlist is coming',
+    status: 'upcoming',
+    summary: 'A future update will make your watchlist follow you across devices, so your saved titles stay synced wherever you keep watching.',
+    changes: [
+      'Your watchlist will stay in sync across the Tinywatch app and browser experience.',
+      'Pick up where you left off without losing the titles you planned to watch next.',
+      'Switch devices and keep your queue intact as you continue browsing.',
+    ],
+    image: {
+      src: '/patch-notes/watchlist-sync.png',
+      alt: 'Tinywatch cross-device watchlist update preview',
+    },
+  },
+  {
+    date: 'October 19, 2026',
+    title: 'The new Tinywatch app is here',
+    status: 'released',
+    summary: 'Tinywatch is now available as a dedicated app experience, bringing a faster, more native way to browse and watch your favorite content on the go.',
+    changes: [
+      'Browse titles, jump back into your watchlist, and keep streaming with a more app-like interface.',
+      'The web experience is still available for anyone who prefers using the browser version.',
+    ],
+  },
+  {
     date: 'October 18, 2026',
     title: 'A new Tinywatch loading splash',
     status: 'released',
