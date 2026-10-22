@@ -361,7 +361,7 @@ export default function Navbar() {
       )}
       </nav>
 
-      <MaintenanceBanner />
+      {/* <MaintenanceBanner /> */}
 
       {syncMessage && pathname !== '/watchlist' && (
         <p
