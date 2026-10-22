@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import { useWatchlist } from '@/components/WatchlistContext';
 import { getImageUrl } from '@/lib/tmdb';
 import WatchlistToggle from '@/components/WatchlistToggle';
+import ContinueWatchingRow from '@/components/ContinueWatchingRow';
 
 export default function WatchlistPage() {
   const { items, syncMessage } = useWatchlist();
@@ -36,6 +37,10 @@ export default function WatchlistPage() {
             {syncMessage}
           </p>
         )}
+
+        <div className="mb-10">
+          <ContinueWatchingRow />
+        </div>
 
         {items.length === 0 ? (
           <div className="mt-16 text-center text-gray-400">

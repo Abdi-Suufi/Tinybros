@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { fetchTrending, fetchMovies, fetchTVShows, fetchAnime, getImageUrl, TMDBShow } from "@/lib/tmdb";
 import WatchlistToggle from "@/components/WatchlistToggle";
 import Loading from "@/components/Loading";
+import ContinueWatchingRow from "@/components/ContinueWatchingRow";
 
 export default function Home() {
   const moviesRef = useRef<HTMLDivElement>(null);
@@ -599,6 +600,8 @@ export default function Home() {
 
       {/* Content Library */}
       <div className="space-y-12 pb-12">
+        <ContinueWatchingRow />
+
         {/* Trending Now */}
         <section className="px-4">
           <h2 className="text-2xl font-bold mb-6">Trending Now</h2>

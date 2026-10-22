@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, use, type IframeHTMLAttributes } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState, use, type IframeHTMLAttributes } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { getImageUrl, TMDBCast } from '@/lib/tmdb';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -9,6 +9,7 @@ import { DiscussionEmbed } from 'disqus-react';
 import WatchlistToggle from '@/components/WatchlistToggle';
 import CastView from '@/components/CastView';
 import { AdsterraSidebar } from '@/components/AdsterraAds';
+import { useWatchProgress, type WatchProgress } from '@/components/WatchProgressContext';
 
 interface ShowDetails {
   id: number;
@@ -48,8 +49,15 @@ interface PlaybackSource {
 
 const PLAYER_SANDBOX = 'allow-scripts allow-same-origin allow-forms allow-presentation';
 
+function logWatchPlayer(event: string, details: Record<string, unknown>) {
+  if (process.env.NODE_ENV === 'development') {
+    console.debug(`[watch-player] ${event}`, details);
+  }
+}
+
 export default function WatchPage({ params }: { params: Promise<{ type: string; id: string }> }) {
   const resolvedParams = use(params);
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [show, setShow] = useState<ShowDetails | null>(null);
   const [episodes, setEpisodes] = useState<Episode[]>([]);
@@ -59,6 +67,33 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
   const [loading, setLoading] = useState(true);
   const [selectedSource, setSelectedSource] = useState<string>('cinesrc');
   const [showPlayer, setShowPlayer] = useState(true);
+  const [resumeStart, setResumeStart] = useState<{ key: string; seconds: number } | null>(null);
+  const [playerReload, setPlayerReload] = useState(0);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const latestPlaybackRef = useRef<{
+    currentTime: number;
+    duration: number;
+    progress: WatchProgress;
+  } | null>(null);
+  const lastProgressSaveAtRef = useRef(0);
+  const finishedProgressKeyRef = useRef<string | null>(null);
+  const stoppedUpdateTimerRef = useRef<number | null>(null);
+  const { records: watchProgress, ready: progressReady, saveProgress, removeProgress } = useWatchProgress();
+  const mediaType = resolvedParams.type === 'movie' ? 'movie' : 'tv';
+  const currentSeason = Number(searchParams.get('season')) || 1;
+  const currentEpisode = Number(searchParams.get('episode')) || 1;
+  const progressSeason = mediaType === 'tv' ? currentSeason : null;
+  const progressEpisode = mediaType === 'tv' ? currentEpisode : null;
+  const progressKey = `${mediaType}:${resolvedParams.id}:${progressSeason ?? 0}:${progressEpisode ?? 0}`;
+  const savedProgress = watchProgress.find((entry) =>
+    entry.tmdb_id === Number(resolvedParams.id) &&
+    entry.media_type === mediaType &&
+    entry.season === progressSeason &&
+    entry.episode === progressEpisode
+  );
+  const savedProgressRef = useRef(savedProgress);
+  savedProgressRef.current = savedProgress;
+  const startSeconds = resumeStart?.key === progressKey ? resumeStart.seconds : null;
   const fullscreenIframeProps = {
     allowFullScreen: true,
     webkitallowfullscreen: "true",
@@ -98,6 +133,264 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
       url: `https://vidlink.pro/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}` 
     }
   ];
+
+  useEffect(() => {
+    if (!progressReady || resumeStart?.key === progressKey) return;
+    const progress = watchProgress.find((entry) =>
+      entry.tmdb_id === Number(resolvedParams.id) &&
+      entry.media_type === mediaType &&
+      entry.season === progressSeason &&
+      entry.episode === progressEpisode
+    );
+    if (progress && progress.position_seconds / progress.duration_seconds > 0.9) {
+      removeProgress(progress);
+      setResumeStart({ key: progressKey, seconds: 0 });
+      return;
+    }
+    const hasResumePoint = progress &&
+      progress.position_seconds > 30 &&
+      progress.position_seconds / progress.duration_seconds <= 0.9;
+    setResumeStart({
+      key: progressKey,
+      seconds: hasResumePoint ? Math.max(0, Math.round(progress.position_seconds) - 5) : 0,
+    });
+  }, [progressReady, progressKey, resumeStart?.key, watchProgress, resolvedParams.id, mediaType, progressSeason, progressEpisode, removeProgress]);
+
+  const flushPlaybackProgress = useCallback((reason: string, ended = false) => {
+    const latest = latestPlaybackRef.current;
+    if (!latest) {
+      logWatchPlayer('flush skipped', { reason, result: 'no valid timeupdate received' });
+      return;
+    }
+    if (ended || latest.currentTime > latest.duration * 0.9) {
+      logWatchPlayer('save attempt', {
+        key: `${latest.progress.media_type}:${latest.progress.tmdb_id}:${latest.progress.season ?? 0}:${latest.progress.episode ?? 0}`,
+        position: latest.progress.position_seconds,
+        duration: latest.progress.duration_seconds,
+        destination: 'clear finished progress',
+        reason,
+        result: 'finished',
+      });
+      removeProgress(latest.progress);
+      latestPlaybackRef.current = null;
+      return;
+    }
+    if (latest.currentTime <= 30) {
+      logWatchPlayer('flush skipped', { reason, position: latest.currentTime, result: 'position is at or below 30 seconds' });
+      return;
+    }
+    if (latest.duration > 86_400) {
+      logWatchPlayer('flush skipped', { reason, duration: latest.duration, result: 'duration exceeds storage limit' });
+      return;
+    }
+    logWatchPlayer('save attempt', {
+      key: `${latest.progress.media_type}:${latest.progress.tmdb_id}:${latest.progress.season ?? 0}:${latest.progress.episode ?? 0}`,
+      position: latest.progress.position_seconds,
+      duration: latest.progress.duration_seconds,
+      destination: 'localStorage' + (typeof window !== 'undefined' && window.localStorage ? ' + Supabase when signed in' : ''),
+      reason,
+      result: 'dispatched',
+    });
+    saveProgress(latest.progress);
+    lastProgressSaveAtRef.current = Date.now();
+  }, [removeProgress, saveProgress]);
+
+  useEffect(() => {
+    latestPlaybackRef.current = null;
+    lastProgressSaveAtRef.current = 0;
+    finishedProgressKeyRef.current = null;
+  }, [progressKey]);
+
+  useEffect(() => {
+    if (!progressReady || startSeconds === null) return;
+    const onMessage = (event: MessageEvent) => {
+      const sourceMatches = event.source === iframeRef.current?.contentWindow;
+      let data: unknown = event.data;
+      const initialShape = data && typeof data === 'object' ? Object.keys(data) : null;
+      const initialType = data && typeof data === 'object' && 'type' in data
+        ? (data as { type?: unknown }).type
+        : null;
+      logWatchPlayer('message received', {
+        origin: event.origin,
+        type: initialType,
+        sourceMatches,
+        shape: initialShape,
+      });
+      if (typeof data === 'string') {
+        try {
+          data = JSON.parse(data) as unknown;
+        } catch {
+          logWatchPlayer('message rejected', {
+            origin: event.origin,
+            type: null,
+            reason: 'data is a string but not valid JSON',
+            sourceMatches,
+          });
+          return;
+        }
+      }
+      if (!data || typeof data !== 'object') {
+        logWatchPlayer('message rejected', {
+          origin: event.origin,
+          type: null,
+          reason: 'message data is not an object',
+          sourceMatches,
+        });
+        return;
+      }
+
+      const message = data as Record<string, unknown> & { type?: unknown };
+      const type = typeof message.type === 'string' ? message.type.toLowerCase() : null;
+      const normalizedType = type?.replace(/[_\-\s]/g, '') ?? null;
+      const shape = Object.keys(data);
+      const reject = (reason: string) => logWatchPlayer('message rejected', {
+        origin: event.origin,
+        type,
+        reason,
+        sourceMatches,
+        shape,
+      });
+      if (event.origin !== 'https://cinesrc.st') {
+        reject('origin is not https://cinesrc.st');
+        return;
+      }
+      if (!sourceMatches) {
+        reject('event.source is not the tracked player iframe contentWindow');
+        return;
+      }
+      if (!type) {
+        reject('type is missing or is not a string');
+        return;
+      }
+
+      const isTimeUpdate = normalizedType?.includes('timeupdate') ?? false;
+      const isPause = normalizedType?.includes('pause') ?? false;
+      const isEnded = normalizedType?.includes('ended') ?? false;
+      if (!isTimeUpdate && !isPause && !isEnded) {
+        reject('unknown message type');
+        return;
+      }
+      if (finishedProgressKeyRef.current === progressKey) {
+        reject('this item is already marked finished');
+        return;
+      }
+
+      const nestedData = message.data && typeof message.data === 'object'
+        ? message.data as Record<string, unknown>
+        : {};
+      const currentTimeValue =
+        message.currentTime ??
+        message.current_time ??
+        message.positionSeconds ??
+        message.position ??
+        nestedData.currentTime ??
+        nestedData.current_time ??
+        nestedData.positionSeconds ??
+        nestedData.position;
+      const durationValue =
+        message.duration ??
+        message.durationSeconds ??
+        message.duration_seconds ??
+        message.totalDuration ??
+        nestedData.duration ??
+        nestedData.durationSeconds ??
+        nestedData.duration_seconds ??
+        nestedData.totalDuration;
+      const hasValidTime = typeof currentTimeValue === 'number' &&
+        Number.isFinite(currentTimeValue) &&
+        typeof durationValue === 'number' &&
+        Number.isFinite(durationValue) &&
+        durationValue > 0;
+      if (isTimeUpdate && !hasValidTime) {
+        reject('timeupdate requires finite numeric currentTime and positive duration fields');
+        return;
+      }
+      if (hasValidTime) {
+        const currentTime = currentTimeValue as number;
+        const duration = durationValue as number;
+        latestPlaybackRef.current = {
+          currentTime,
+          duration,
+          progress: {
+            tmdb_id: Number(resolvedParams.id),
+            media_type: mediaType,
+            season: progressSeason,
+            episode: progressEpisode,
+            position_seconds: Math.max(1, Math.min(Math.round(currentTime), Math.round(duration))),
+            duration_seconds: Math.max(1, Math.round(duration)),
+            updated_at: new Date().toISOString(),
+          },
+        };
+      }
+      logWatchPlayer('message accepted', {
+        origin: event.origin,
+        type,
+        sourceMatches,
+        shape,
+        reason: hasValidTime ? 'recognized playback message with valid time fields' : 'recognized pause/ended message; using latest valid timeupdate',
+      });
+
+      if (isTimeUpdate) {
+        if (stoppedUpdateTimerRef.current !== null) {
+          window.clearTimeout(stoppedUpdateTimerRef.current);
+        }
+        stoppedUpdateTimerRef.current = window.setTimeout(() => {
+          stoppedUpdateTimerRef.current = null;
+          flushPlaybackProgress('timeupdates stopped for 2 seconds');
+        }, 2000);
+      }
+      if ((isPause || isEnded) && stoppedUpdateTimerRef.current !== null) {
+        window.clearTimeout(stoppedUpdateTimerRef.current);
+        stoppedUpdateTimerRef.current = null;
+      }
+
+      if (isEnded || (hasValidTime && (currentTimeValue as number) > (durationValue as number) * 0.9)) {
+        finishedProgressKeyRef.current = progressKey;
+        if (isEnded && !latestPlaybackRef.current && savedProgressRef.current) {
+          logWatchPlayer('save attempt', {
+            key: progressKey,
+            position: savedProgressRef.current.position_seconds,
+            duration: savedProgressRef.current.duration_seconds,
+            destination: 'clear finished progress',
+            reason: 'ended message without time fields',
+            result: 'finished',
+          });
+          removeProgress(savedProgressRef.current);
+          return;
+        }
+        flushPlaybackProgress(isEnded ? 'ended message' : 'past 90% duration', isEnded);
+        return;
+      }
+      if (isPause) {
+        flushPlaybackProgress('pause message');
+        return;
+      }
+      if (isTimeUpdate && Date.now() - lastProgressSaveAtRef.current >= 15_000) {
+        flushPlaybackProgress('15-second timeupdate interval');
+      }
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') flushPlaybackProgress('visibilitychange hidden');
+    };
+    const onPageHide = () => flushPlaybackProgress('pagehide');
+    window.addEventListener('message', onMessage);
+    window.addEventListener('pagehide', onPageHide);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => {
+      flushPlaybackProgress('watch page effect cleanup');
+      if (stoppedUpdateTimerRef.current !== null) {
+        window.clearTimeout(stoppedUpdateTimerRef.current);
+        stoppedUpdateTimerRef.current = null;
+      }
+      window.removeEventListener('message', onMessage);
+      window.removeEventListener('pagehide', onPageHide);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, [progressReady, startSeconds, progressKey, selectedSource, playerReload, resolvedParams.id, mediaType, progressSeason, progressEpisode, removeProgress, flushPlaybackProgress]);
+
+  const routeIdentity = `${pathname}?${searchParams.toString()}`;
+  useEffect(() => () => flushPlaybackProgress('client-side route change or unmount'), [routeIdentity, flushPlaybackProgress]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -200,19 +493,39 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
     setShowPlayer(true);
   };
 
+  const handleStartOver = () => {
+    if (savedProgress) removeProgress(savedProgress);
+    latestPlaybackRef.current = null;
+    lastProgressSaveAtRef.current = 0;
+    finishedProgressKeyRef.current = null;
+    setResumeStart({ key: progressKey, seconds: 0 });
+    setPlayerReload((current) => current + 1);
+  };
+
   // Get current source URL
   const getCurrentSource = () => {
     return playbackSources.find(s => s.id === selectedSource) || playbackSources[0];
   };
 
   const getCurrentSourceUrl = () => {
-    return getCurrentSource().url;
+    const source = getCurrentSource();
+    if (source.id !== 'cinesrc' || startSeconds === null || startSeconds <= 0) return source.url;
+    const separator = source.url.includes('?') ? '&' : '?';
+    return `${source.url}${separator}time=${Math.round(startSeconds)}`;
   };
+  const finalIframeSrc = getCurrentSourceUrl();
+
+  useEffect(() => {
+    if (!showPlayer || !progressReady || startSeconds === null) return;
+    logWatchPlayer('final iframe src', {
+      src: finalIframeSrc,
+      source: selectedSource,
+      progressKey,
+      startSeconds,
+    });
+  }, [showPlayer, progressReady, startSeconds, selectedSource, progressKey, playerReload, finalIframeSrc]);
 
   //NAVIGATION LOGIC
-  const currentSeason = Number(searchParams.get('season')) || 1;
-  const currentEpisode = Number(searchParams.get('episode')) || 1;
-  
   // Next Episode Logic
   let nextEpisodeUrl = '';
   if (resolvedParams.type === 'tv' && show) {
@@ -296,19 +609,37 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
       <div className="mx-auto grid w-full max-w-[1408px] grid-cols-1 gap-4 px-4 pt-28 pb-8 lg:grid-cols-[160px_minmax(0,1fr)_160px]">
         <div className="row-start-1 w-full max-w-5xl justify-self-center lg:col-start-2 lg:row-start-1 lg:max-w-none">
         {showPlayer ? (
-          <div className="relative w-full aspect-video bg-gray-900 rounded-lg shadow-2xl">
-            <iframe
-              key={`${selectedSource}-${getCurrentSourceUrl()}`}
-              src={getCurrentSourceUrl()}
-              title={`${show.title || show.name || 'Video'} player`}
-              className="w-full h-full rounded-lg"
-              allow="accelerometer *; autoplay *; clipboard-write *; encrypted-media *; fullscreen *; gyroscope *; picture-in-picture *; web-share *"
-              style={{ border: 'none' }}
-              referrerPolicy="no-referrer-when-downgrade"
-              sandbox={getCurrentSource().sandbox ?? PLAYER_SANDBOX}
-              {...fullscreenIframeProps}
-            />
-          </div>
+          <>
+            <div className="relative w-full aspect-video bg-gray-900 rounded-lg shadow-2xl">
+              {progressReady && startSeconds !== null ? (
+                <iframe
+                  key={`${selectedSource}-${getCurrentSourceUrl()}-${playerReload}`}
+                  ref={iframeRef}
+                  src={getCurrentSourceUrl()}
+                  title={`${show.title || show.name || 'Video'} player`}
+                  className="w-full h-full rounded-lg"
+                  allow="accelerometer *; autoplay *; clipboard-write *; encrypted-media *; fullscreen *; gyroscope *; picture-in-picture *; web-share *"
+                  style={{ border: 'none' }}
+                  referrerPolicy="no-referrer-when-downgrade"
+                  sandbox={getCurrentSource().sandbox ?? PLAYER_SANDBOX}
+                  {...fullscreenIframeProps}
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center text-sm text-gray-400">
+                  Preparing your player…
+                </div>
+              )}
+            </div>
+            {selectedSource === 'cinesrc' && savedProgress && startSeconds !== null && startSeconds > 0 && (
+              <button
+                type="button"
+                onClick={handleStartOver}
+                className="mt-2 text-sm text-gray-400 underline decoration-gray-600 underline-offset-2 transition-colors hover:text-yellow-300"
+              >
+                Start over
+              </button>
+            )}
+          </>
         ) : (
           <div className="relative w-full aspect-video bg-gray-900 rounded-lg overflow-hidden shadow-2xl flex items-center justify-center">
             <div className="text-center">
