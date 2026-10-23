@@ -105,16 +105,6 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
 
   // Define available playback sources
   const playbackSources: PlaybackSource[] = [
-    { 
-      id: 'videasy', 
-      name: 'Videasy', 
-      url: `https://player.videasy.net/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}` 
-    },
-    {
-      id: 'vidcore',
-      name: 'VidCore',
-      url: `https://vidcore.net/${resolvedParams.type === 'movie' ? 'movie' : 'tv'}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}?autoPlay=true&hideServer=true`,
-    },
     {
       id: 'cinesrc',
       name: 'Main player',
@@ -122,16 +112,31 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
         ? `https://cinesrc.st/embed/tv/${resolvedParams.id}?s=${searchParams.get('season') || '1'}&e=${searchParams.get('episode') || '1'}`
         : `https://cinesrc.st/embed/movie/${resolvedParams.id}`
     },
-    { 
-      id: 'vidking',
-      name: 'VidKing.net', 
-      url: `https://www.vidking.net/embed/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}` 
+    {
+      id: 'vidzee',
+      name: 'VidZee',
+      url: `https://player.vidzee.wtf/embed/${resolvedParams.type === 'movie' ? 'movie' : 'tv'}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}`,
     },
-    { 
-      id: 'vidlink', 
-      name: 'VidLink', 
-      url: `https://vidlink.pro/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}` 
-    }
+    {
+      id: 'vidstuck',
+      name: 'VidStuck (ads)',
+      url: `https://vidstuck.cc/embed/${resolvedParams.type === 'movie' ? 'movie' : 'tv'}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}?loading=2&color=FF7575&overlay=true&back=false`,
+    },
+    {
+      id: 'vidy',
+      name: 'Vidy (ads)',
+      url: `https://www.vidy.st/${resolvedParams.type === 'movie' ? 'movie' : 'tv'}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}?color=FF7575&nextEpisode=false&episodeSelector=false&autoplayNextEpisode=false`,
+    },
+    {
+      id: 'videasy',
+      name: 'Videasy (ads)',
+      url: `https://player.videasy.net/${resolvedParams.type}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}`
+    },
+    {
+      id: 'vidcore',
+      name: 'VidCore (ads)',
+      url: `https://vidcore.net/${resolvedParams.type === 'movie' ? 'movie' : 'tv'}/${resolvedParams.id}${resolvedParams.type === 'tv' ? `/${searchParams.get('season') || '1'}/${searchParams.get('episode') || '1'}` : ''}?autoPlay=true&hideServer=true`,
+    },
   ];
 
   useEffect(() => {
@@ -621,7 +626,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
                   allow="accelerometer *; autoplay *; clipboard-write *; encrypted-media *; fullscreen *; gyroscope *; picture-in-picture *; web-share *"
                   style={{ border: 'none' }}
                   referrerPolicy="no-referrer-when-downgrade"
-                  sandbox={getCurrentSource().sandbox ?? PLAYER_SANDBOX}
+                  sandbox={['vidstuck', 'vidy', 'videasy', 'vidcore'].includes(getCurrentSource().id) ? undefined : PLAYER_SANDBOX}
                   {...fullscreenIframeProps}
                 />
               ) : (

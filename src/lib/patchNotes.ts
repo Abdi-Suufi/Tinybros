@@ -12,6 +12,17 @@ export interface PatchNote {
 
 export const patchNotes: PatchNote[] = [
   {
+    date: 'October 23, 2026',
+    title: 'More ways to watch',
+    status: 'released',
+    summary: 'The watch page now offers more playback sources, with the main player and VidZee easy to find at the start of the selector.',
+    changes: [
+      'Choose from Main player, VidZee, VidStuck, Vidy, Videasy, and VidCore.',
+      'Main player and VidZee do not show popup ads.',
+      'Sources marked “(ads)” may show ads from their provider.',
+    ],
+  },
+  {
     date: 'October 19, 2026',
     title: 'Your watchlist now syncs across devices',
     status: 'released',
