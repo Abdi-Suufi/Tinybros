@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { discoverTVShowsPage, fetchTVGenres, getImageUrl, TMDBGenre, TMDBShow, type DiscoverSort } from '@/lib/tmdb';
 import WatchlistToggle from '@/components/WatchlistToggle';
 import DiscoverFilterBar, { DiscoverFilterValues } from '@/components/DiscoverFilterBar';
+import { fetchImdbRatings } from '@/lib/imdbRatings';
 
 const TV_SORTS: Record<string, DiscoverSort> = {
   'popularity.desc': 'popularity.desc',
@@ -159,24 +160,7 @@ export default function SeriesClient() {
 
     const run = async () => {
       if (minRatingParam) setImdbLoading(true);
-      const next: Record<number, number | null> = {};
-      const concurrency = 8;
-      let cursor = 0;
-
-      const worker = async () => {
-        while (cursor < idsToFetch.length && !cancelled) {
-          const id = idsToFetch[cursor++];
-          try {
-            const res = await fetch(`/api/imdb-rating?type=tv&tmdbId=${id}`);
-            const json = await res.json();
-            next[id] = typeof json?.imdbRating === 'number' ? json.imdbRating : null;
-          } catch {
-            next[id] = null;
-          }
-        }
-      };
-
-      await Promise.all(Array.from({ length: Math.min(concurrency, idsToFetch.length) }, () => worker()));
+      const next = await fetchImdbRatings('tv', idsToFetch);
       if (cancelled) return;
       setImdbRatings((prev) => ({ ...prev, ...next }));
       setImdbLoading(false);
