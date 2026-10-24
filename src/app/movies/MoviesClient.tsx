@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { discoverMoviesPage, fetchMovieGenres, getImageUrl, TMDBGenre, TMDBShow, type DiscoverSort } from '@/lib/tmdb';
 import WatchlistToggle from '@/components/WatchlistToggle';
 import DiscoverFilterBar, { DiscoverFilterValues } from '@/components/DiscoverFilterBar';
-import { fetchImdbRatings } from '@/lib/imdbRatings';
+import { fetchImdbRatings, sortByImdbRating } from '@/lib/imdbRatings';
 
 const MOVIE_SORTS: Record<string, DiscoverSort> = {
   'popularity.desc': 'popularity.desc',
@@ -17,11 +17,12 @@ const K_DRAMA_GENRE_ID = -100;
 const K_DRAMA_GENRE_VALUE = String(K_DRAMA_GENRE_ID);
 const DEFAULT_RATING_SOURCE: 'imdb' | 'tmdb' = 'imdb';
 const MIN_MOVIE_VOTES = 100;
+// "Top rated" needs more votes, otherwise obscure titles with a handful of 10/10 votes win
+const TOP_RATED_MIN_MOVIE_VOTES = 1000;
 
 export default function MoviesClient() {
   const [movies, setMovies] = useState<TMDBShow[]>([]);
   const [imdbRatings, setImdbRatings] = useState<Record<number, number | null>>({});
-  const [imdbLoading, setImdbLoading] = useState(false);
   const [genres, setGenres] = useState<TMDBGenre[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -44,6 +45,7 @@ export default function MoviesClient() {
   const apiOriginCountryParam = isKDramaFilter ? 'KR' : undefined;
 
   const safeSort: DiscoverSort = MOVIE_SORTS[sortParam] ?? 'popularity.desc';
+  const minVotes = safeSort === 'vote_average.desc' ? TOP_RATED_MIN_MOVIE_VOTES : MIN_MOVIE_VOTES;
 
   const values: DiscoverFilterValues = {
     genre: genreParam || undefined,
@@ -80,7 +82,7 @@ export default function MoviesClient() {
           with_genres: apiGenreParam || undefined,
           year: yearParam ? Number(yearParam) : undefined,
           'vote_average.gte': ratingSource === 'tmdb' && minRatingParam ? Number(minRatingParam) : undefined,
-          'vote_count.gte': MIN_MOVIE_VOTES,
+          'vote_count.gte': minVotes,
           with_original_language: apiLanguageParam || undefined,
           with_origin_country: apiOriginCountryParam,
           page: 1,
@@ -99,7 +101,7 @@ export default function MoviesClient() {
     };
 
     fetchData();
-  }, [apiGenreParam, apiLanguageParam, apiOriginCountryParam, safeSort, yearParam, minRatingParam, ratingSource]);
+  }, [apiGenreParam, apiLanguageParam, apiOriginCountryParam, safeSort, minVotes, yearParam, minRatingParam, ratingSource]);
 
   useEffect(() => {
     if (!sentinelRef.current || loading || loadingMore || !hasMore) return;
@@ -117,7 +119,7 @@ export default function MoviesClient() {
               with_genres: apiGenreParam || undefined,
               year: yearParam ? Number(yearParam) : undefined,
               'vote_average.gte': ratingSource === 'tmdb' && minRatingParam ? Number(minRatingParam) : undefined,
-              'vote_count.gte': MIN_MOVIE_VOTES,
+              'vote_count.gte': minVotes,
               with_original_language: apiLanguageParam || undefined,
               with_origin_country: apiOriginCountryParam,
               page: nextPage,
@@ -144,7 +146,7 @@ export default function MoviesClient() {
 
     observer.observe(sentinelRef.current);
     return () => observer.disconnect();
-  }, [loading, loadingMore, hasMore, nextPage, safeSort, apiGenreParam, yearParam, minRatingParam, apiLanguageParam, apiOriginCountryParam, ratingSource]);
+  }, [loading, loadingMore, hasMore, nextPage, safeSort, minVotes, apiGenreParam, yearParam, minRatingParam, apiLanguageParam, apiOriginCountryParam, ratingSource]);
 
   useEffect(() => {
     if (ratingSource !== 'imdb') return;
@@ -156,11 +158,9 @@ export default function MoviesClient() {
     if (idsToFetch.length === 0) return;
 
     const run = async () => {
-      if (minRatingParam) setImdbLoading(true);
       const next = await fetchImdbRatings('movie', idsToFetch);
       if (cancelled) return;
       setImdbRatings((prev) => ({ ...prev, ...next }));
-      setImdbLoading(false);
     };
 
     run();
@@ -189,9 +189,14 @@ export default function MoviesClient() {
   const skeletonItems = Array.from({ length: 20 });
   const minImdb = minRatingParam ? Number(minRatingParam) : null;
   const useImdbFilter = ratingSource === 'imdb' && minImdb !== null && Number.isFinite(minImdb);
-  const visibleMovies = useImdbFilter
+  const sortByImdb = ratingSource === 'imdb' && safeSort === 'vote_average.desc';
+  const filteredMovies = useImdbFilter
     ? movies.filter((m) => (imdbRatings[m.id] ?? -1) >= (minImdb as number))
     : movies;
+  const visibleMovies = sortByImdb ? sortByImdbRating(filteredMovies, imdbRatings) : filteredMovies;
+  // When the list depends on IMDb ratings, wait for the first ratings instead of showing an unsorted/unfiltered list
+  const waitingForImdb =
+    (useImdbFilter || sortByImdb) && movies.length > 0 && !movies.some((m) => m.id in imdbRatings);
 
   return (
     <div className="min-h-screen bg-black text-white pt-24 pb-8 px-8">
@@ -212,7 +217,7 @@ export default function MoviesClient() {
         />
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {((loading || (useImdbFilter && imdbLoading)) && movies.length === 0)
+          {((loading && movies.length === 0) || waitingForImdb)
             ? skeletonItems.map((_, idx) => (
                 <div
                   key={`movie-skel-${idx}`}

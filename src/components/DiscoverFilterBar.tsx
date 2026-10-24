@@ -12,11 +12,50 @@ export interface DiscoverFilterValues {
   ratingSource?: 'tmdb' | 'imdb';
 }
 
-function clampRating(value: string) {
+// TMDB expects ISO 639-1 codes; typing a name like "English" would silently return nothing
+const LANGUAGES: { code: string; name: string }[] = [
+  { code: 'ar', name: 'Arabic' },
+  { code: 'zh', name: 'Chinese' },
+  { code: 'da', name: 'Danish' },
+  { code: 'nl', name: 'Dutch' },
+  { code: 'en', name: 'English' },
+  { code: 'fr', name: 'French' },
+  { code: 'de', name: 'German' },
+  { code: 'hi', name: 'Hindi' },
+  { code: 'it', name: 'Italian' },
+  { code: 'ja', name: 'Japanese' },
+  { code: 'ko', name: 'Korean' },
+  { code: 'no', name: 'Norwegian' },
+  { code: 'pl', name: 'Polish' },
+  { code: 'pt', name: 'Portuguese' },
+  { code: 'ru', name: 'Russian' },
+  { code: 'es', name: 'Spanish' },
+  { code: 'sv', name: 'Swedish' },
+  { code: 'ta', name: 'Tamil' },
+  { code: 'te', name: 'Telugu' },
+  { code: 'th', name: 'Thai' },
+  { code: 'tr', name: 'Turkish' },
+];
+
+// Keep digits and a single decimal point while typing; the value is checked on Apply
+function sanitizeRatingInput(value: string) {
+  const cleaned = value.replace(/[^\d.]/g, '');
+  const firstDot = cleaned.indexOf('.');
+  return firstDot === -1 ? cleaned : cleaned.slice(0, firstDot + 1) + cleaned.slice(firstDot + 1).replace(/\./g, '');
+}
+
+function clampRating(value: string | undefined) {
+  if (!value) return undefined;
   const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return '';
+  if (!Number.isFinite(parsed)) return undefined;
   const clamped = Math.max(0, Math.min(10, parsed));
   return String(Math.round(clamped * 10) / 10);
+}
+
+function validYear(value: string | undefined) {
+  if (!value || !/^\d{4}$/.test(value)) return undefined;
+  const year = Number(value);
+  return year >= 1874 && year <= new Date().getFullYear() + 5 ? value : undefined;
 }
 
 export default function DiscoverFilterBar({
@@ -58,6 +97,18 @@ export default function DiscoverFilterBar({
     });
   }, [genre, sort, year, minRating, language, ratingSource]);
 
+  const applyDraft = () =>
+    onApply({
+      ...draft,
+      minRating: clampRating(draft.minRating),
+      year: validYear(draft.year),
+    });
+
+  const languageOptions =
+    draft.language && !LANGUAGES.some((lang) => lang.code === draft.language)
+      ? [...LANGUAGES, { code: draft.language, name: draft.language }]
+      : LANGUAGES;
+
   const activeCount =
     (values.genre ? 1 : 0) +
     (values.year ? 1 : 0) +
@@ -78,7 +129,7 @@ export default function DiscoverFilterBar({
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => onApply(draft)}
+            onClick={applyDraft}
             className="px-3 py-2 rounded-lg bg-yellow-500/15 text-yellow-300 hover:bg-yellow-500/20 border border-yellow-500/25 transition-colors text-sm"
           >
             Apply
@@ -130,7 +181,7 @@ export default function DiscoverFilterBar({
           <input
             inputMode="numeric"
             value={draft.year ?? ''}
-            onChange={(e) => setDraft((prev) => ({ ...prev, year: e.target.value.replace(/[^\d]/g, '') || undefined }))}
+            onChange={(e) => setDraft((prev) => ({ ...prev, year: e.target.value.replace(/[^\d]/g, '').slice(0, 4) || undefined }))}
             placeholder="Any"
             className="rounded-lg bg-black/50 border border-gray-700/60 px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-yellow-500/60"
           />
@@ -144,7 +195,7 @@ export default function DiscoverFilterBar({
             onChange={(e) =>
               setDraft((prev) => ({
                 ...prev,
-                minRating: clampRating(e.target.value) || undefined,
+                minRating: sanitizeRatingInput(e.target.value) || undefined,
               }))
             }
             placeholder="0-10"
@@ -154,12 +205,18 @@ export default function DiscoverFilterBar({
 
         <label className="flex flex-col gap-1">
           <span className="text-xs text-gray-300">Language</span>
-          <input
+          <select
             value={draft.language ?? ''}
-            onChange={(e) => setDraft((prev) => ({ ...prev, language: e.target.value.trim() || undefined }))}
-            placeholder="e.g. en"
-            className="rounded-lg bg-black/50 border border-gray-700/60 px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-yellow-500/60"
-          />
+            onChange={(e) => setDraft((prev) => ({ ...prev, language: e.target.value || undefined }))}
+            className="rounded-lg bg-black/50 border border-gray-700/60 px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-500/60"
+          >
+            <option value="">Any</option>
+            {languageOptions.map((lang) => (
+              <option key={lang.code} value={lang.code}>
+                {lang.name}
+              </option>
+            ))}
+          </select>
         </label>
 
         <label className="flex flex-col gap-1">
