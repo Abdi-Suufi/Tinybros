@@ -238,10 +238,12 @@ export function WatchlistProvider({ children }: { children: React.ReactNode }) {
     return () => window.clearTimeout(timeout);
   }, [syncMessage]);
 
+  const savedKeys = useMemo(() => new Set(items.map(getItemKey)), [items]);
+
   const isSaved = useCallback(
     (id: number, mediaType: WatchlistItem['media_type']) =>
-      items.some((item) => item.id === id && item.media_type === mediaType),
-    [items]
+      savedKeys.has(getItemKey({ id, media_type: mediaType })),
+    [savedKeys]
   );
 
   const toggleItem = useCallback(

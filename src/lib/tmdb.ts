@@ -109,16 +109,32 @@ async function fetchJsonFromTMDB(endpoint: string) {
   }
 }
 
+// Fetch pages 1..pages in parallel, keeping page order. A failed page is logged and skipped.
+async function fetchPages(
+  pages: number,
+  label: string,
+  loadPage: (page: number) => Promise<TMDBShow[]>
+): Promise<TMDBShow[]> {
+  const results = await Promise.all(
+    Array.from({ length: pages }, (_, i) =>
+      loadPage(i + 1).catch((error) => {
+        console.error(`Error fetching ${label} page ${i + 1}:`, error);
+        return [] as TMDBShow[];
+      })
+    )
+  );
+  return results.flatMap((pageResults) => (Array.isArray(pageResults) ? pageResults : []));
+}
+
 export async function fetchTrending(): Promise<TMDBShow[]> {
   return fetchFromTMDB('/trending/all/week');
 }
 
 export async function fetchMovies(): Promise<TMDBShow[]> {
   const pages = 5; // Fetch 5 pages of results
-  let allResults: TMDBShow[] = [];
 
   // Fetch multiple pages of movies
-  for (let page = 1; page <= pages; page++) {
+  const allResults = await fetchPages(pages, 'movies', (page) => {
     const endpoint = '/discover/movie?' + new URLSearchParams({
       sort_by: 'popularity.desc',
       'vote_count.gte': '100',
@@ -127,14 +143,8 @@ export async function fetchMovies(): Promise<TMDBShow[]> {
       with_original_language: 'en', // Focus on English language movies
       'vote_average.gte': '6.0', // Minimum rating of 6
     }).toString();
-    
-    try {
-      const results = await fetchFromTMDB(endpoint);
-      allResults = [...allResults, ...results];
-    } catch (error) {
-      console.error(`Error fetching movies page ${page}:`, error);
-    }
-  }
+    return fetchFromTMDB(endpoint);
+  });
   
   // Filter to ensure we have required images and add media type
   const movies = allResults
@@ -147,10 +157,9 @@ export async function fetchMovies(): Promise<TMDBShow[]> {
 
 export async function fetchTVShows(): Promise<TMDBShow[]> {
   const pages = 5; // Fetch 5 pages of results
-  let allResults: TMDBShow[] = [];
 
   // Fetch multiple pages of TV shows
-  for (let page = 1; page <= pages; page++) {
+  const allResults = await fetchPages(pages, 'TV shows', (page) => {
     const endpoint = '/discover/tv?' + new URLSearchParams({
       sort_by: 'popularity.desc',
       'vote_count.gte': '50',
@@ -160,14 +169,8 @@ export async function fetchTVShows(): Promise<TMDBShow[]> {
       with_status: '0', // Only shows still running
       without_genres: '16', // Exclude animation genre
     }).toString();
-    
-    try {
-      const results = await fetchFromTMDB(endpoint);
-      allResults = [...allResults, ...results];
-    } catch (error) {
-      console.error(`Error fetching TV shows page ${page}:`, error);
-    }
-  }
+    return fetchFromTMDB(endpoint);
+  });
   
   // Filter to ensure we have required images, exclude anime, and add media type
   const tvShows = allResults
@@ -185,10 +188,9 @@ export async function fetchTVShows(): Promise<TMDBShow[]> {
 
 export async function fetchAnime(): Promise<TMDBShow[]> {
   const pages = 5; // Fetch 5 pages of results
-  let allResults: TMDBShow[] = [];
 
   // Fetch multiple pages of animated shows
-  for (let page = 1; page <= pages; page++) {
+  const allResults = await fetchPages(pages, 'anime', (page) => {
     const endpoint = '/discover/tv?' + new URLSearchParams({
       with_genres: '16', // Animation genre
       sort_by: 'popularity.desc',
@@ -197,14 +199,8 @@ export async function fetchAnime(): Promise<TMDBShow[]> {
       include_adult: 'false',
       with_original_language: 'ja', // Include shows with Japanese as original language
     }).toString();
-    
-    try {
-      const results = await fetchFromTMDB(endpoint);
-      allResults = [...allResults, ...results];
-    } catch (error) {
-      console.error(`Error fetching anime page ${page}:`, error);
-    }
-  }
+    return fetchFromTMDB(endpoint);
+  });
   
   // Filter to keep only Japanese shows with additional criteria
   const seenIds = new Set<number>();
@@ -259,24 +255,39 @@ export async function fetchPersonCredits(
     : Array.isArray(data?.cast) ? data.cast : [];
   const seen = new Set<string>();
   const mainCastLimit = 8;
+  // TMDB gives TV roles no cast order, so a recurring role (several episodes) counts as a main role
+  const mainTVEpisodeCount = 5;
+
+  type PersonCredit = TMDBShow & { character?: string; episode_count?: number };
+
+  // Talk shows, award shows etc. list the person as "Self" / "Himself"; those aren't acting roles
+  const isSelfAppearance = (show: PersonCredit) =>
+    show.media_type === 'tv' && /^(self|himself|herself|themselves)\b/i.test(show.character || '');
+
+  const hasMainRole = (show: PersonCredit) => {
+    if (department === 'directing') return false;
+    if (show.media_type === 'tv') return (show.episode_count || 0) >= mainTVEpisodeCount;
+    return typeof show.order === 'number' && show.order <= mainCastLimit;
+  };
 
   return credits
-    .filter((show: TMDBShow) => show.media_type === 'movie' || show.media_type === 'tv')
-    .filter((show: TMDBShow) => show.poster_path)
-    .filter((show: TMDBShow) => (
+    .filter((show: PersonCredit) => show.media_type === 'movie' || show.media_type === 'tv')
+    .filter((show: PersonCredit) => show.poster_path)
+    .filter((show: PersonCredit) => department === 'directing' || !isSelfAppearance(show))
+    .filter((show: PersonCredit) => (
       department === 'directing'
       || typeof show.order !== 'number'
       || show.order <= mainCastLimit
     ))
-    .filter((show: TMDBShow) => {
+    .filter((show: PersonCredit) => {
       const key = `${show.media_type}-${show.id}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
     })
-    .sort((a: TMDBShow, b: TMDBShow) => {
-      const aHasKnownMainRole = typeof a.order === 'number' && a.order <= mainCastLimit;
-      const bHasKnownMainRole = typeof b.order === 'number' && b.order <= mainCastLimit;
+    .sort((a: PersonCredit, b: PersonCredit) => {
+      const aHasKnownMainRole = hasMainRole(a);
+      const bHasKnownMainRole = hasMainRole(b);
 
       if (aHasKnownMainRole !== bHasKnownMainRole) {
         return bHasKnownMainRole ? 1 : -1;
@@ -351,19 +362,13 @@ async function discover(endpoint: '/discover/movie' | '/discover/tv', options: D
 
 export async function discoverMovies(options: Omit<DiscoverOptions, 'first_air_date_year'> & { pages?: number } = {}) {
   const pages = Math.max(1, Math.min(5, options.pages ?? 3));
-  let allResults: TMDBShow[] = [];
-
-  for (let page = 1; page <= pages; page++) {
-    try {
-      const data = await discover('/discover/movie', {
-        ...options,
-        page,
-      });
-      allResults = [...allResults, ...data.results];
-    } catch (error) {
-      console.error(`Error discovering movies page ${page}:`, error);
-    }
-  }
+  const allResults = await fetchPages(pages, 'discover movies', async (page) => {
+    const data = await discover('/discover/movie', {
+      ...options,
+      page,
+    });
+    return data.results;
+  });
 
   const seen = new Set<number>();
   const unique = allResults.filter((movie: TMDBShow) => {
@@ -405,19 +410,13 @@ export async function discoverTVShows(
 ) {
   const pages = Math.max(1, Math.min(5, options.pages ?? 3));
   const excludeAnime = options.excludeAnime ?? true;
-  let allResults: TMDBShow[] = [];
-
-  for (let page = 1; page <= pages; page++) {
-    try {
-      const data = await discover('/discover/tv', {
-        ...options,
-        page,
-      });
-      allResults = [...allResults, ...data.results];
-    } catch (error) {
-      console.error(`Error discovering TV shows page ${page}:`, error);
-    }
-  }
+  const allResults = await fetchPages(pages, 'discover TV shows', async (page) => {
+    const data = await discover('/discover/tv', {
+      ...options,
+      page,
+    });
+    return data.results;
+  });
 
   const seen = new Set<number>();
   const unique = allResults.filter((show: TMDBShow) => {

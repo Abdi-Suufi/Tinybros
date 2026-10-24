@@ -400,11 +400,26 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch show details
-        const showResponse = await fetch(
-          `https://api.themoviedb.org/3/${resolvedParams.type}/${resolvedParams.id}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
-        );
-        
+        const season = searchParams.get('season') || '1';
+        const failed = Promise.resolve(null);
+        // Request everything at once; each response is handled below as before
+        const [showResponse, episodesResponse, recommendationsResponse, creditsResponse] = await Promise.all([
+          fetch(
+            `https://api.themoviedb.org/3/${resolvedParams.type}/${resolvedParams.id}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
+          ),
+          resolvedParams.type === 'tv'
+            ? fetch(
+                `https://api.themoviedb.org/3/tv/${resolvedParams.id}/season/${season}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
+              ).catch(() => failed)
+            : failed,
+          fetch(
+            `https://api.themoviedb.org/3/${resolvedParams.type}/${resolvedParams.id}/recommendations?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
+          ).catch(() => failed),
+          fetch(
+            `https://api.themoviedb.org/3/${resolvedParams.type}/${resolvedParams.id}/credits?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
+          ).catch(() => failed),
+        ]);
+
         if (!showResponse.ok) {
           throw new Error('Failed to fetch show details');
         }
@@ -412,37 +427,20 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
         const showData = await showResponse.json();
         setShow(showData);
 
-        // If it's a TV show, fetch episodes
-        if (resolvedParams.type === 'tv') {
-          const season = searchParams.get('season') || '1';
-          const episodesResponse = await fetch(
-            `https://api.themoviedb.org/3/tv/${resolvedParams.id}/season/${season}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
-          );
-          
-          if (episodesResponse.ok) {
-            const episodesData = await episodesResponse.json();
-            setEpisodes(episodesData.episodes);
-            setSelectedSeason(Number(season));
-          }
+        // If it's a TV show, use the episodes
+        if (episodesResponse?.ok) {
+          const episodesData = await episodesResponse.json();
+          setEpisodes(episodesData.episodes);
+          setSelectedSeason(Number(season));
         }
 
-        // Fetch recommendations
-        const recommendationsResponse = await fetch(
-          `https://api.themoviedb.org/3/${resolvedParams.type}/${resolvedParams.id}/recommendations?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
-        );
-
-        if (recommendationsResponse.ok) {
+        if (recommendationsResponse?.ok) {
           const recommendationsData = await recommendationsResponse.json();
           const results = (recommendationsData.results || []) as RecommendedShow[];
           setRecommendations(results.filter((item) => item.poster_path));
         }
 
-        // Fetch cast
-        const creditsResponse = await fetch(
-          `https://api.themoviedb.org/3/${resolvedParams.type}/${resolvedParams.id}/credits?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
-        );
-
-        if (creditsResponse.ok) {
+        if (creditsResponse?.ok) {
           const creditsData = await creditsResponse.json();
           setCast(creditsData.cast || []);
         }

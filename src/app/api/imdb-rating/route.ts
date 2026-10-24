@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server';
 type MediaType = 'movie' | 'tv';
 
 const TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
+// Let Vercel's CDN share cached ratings across visitors, not just the browser
+const CACHE_HEADER = 'public, max-age=3600, s-maxage=21600, stale-while-revalidate=86400';
 const cache = new Map<
   string,
   { ts: number; value: { imdb_id?: string | null; imdbRating?: number | null; imdbVotes?: string | null } }
@@ -44,7 +46,7 @@ export async function GET(req: Request) {
   const hit = cache.get(key);
   if (hit && Date.now() - hit.ts < TTL_MS) {
     return NextResponse.json(hit.value, {
-      headers: { 'Cache-Control': 'public, max-age=3600' },
+      headers: { 'Cache-Control': CACHE_HEADER },
     });
   }
 
@@ -69,7 +71,7 @@ export async function GET(req: Request) {
       const value = { imdb_id: null, imdbRating: null, imdbVotes: null };
       cache.set(key, { ts: Date.now(), value });
       return NextResponse.json(value, {
-        headers: { 'Cache-Control': 'public, max-age=3600' },
+        headers: { 'Cache-Control': CACHE_HEADER },
       });
     }
 
@@ -84,7 +86,7 @@ export async function GET(req: Request) {
     cache.set(key, { ts: Date.now(), value });
 
     return NextResponse.json(value, {
-      headers: { 'Cache-Control': 'public, max-age=3600' },
+      headers: { 'Cache-Control': CACHE_HEADER },
     });
   } catch {
     return NextResponse.json(

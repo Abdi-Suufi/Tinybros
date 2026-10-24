@@ -52,7 +52,7 @@ export default function ShowGrid({ getShows }: ShowGridProps) {
         : shows.length > 0
         ? shows.map((show) => (
             <div
-              key={show.id}
+              key={`${show.media_type}-${show.id}`}
               className="bg-gray-800/50 rounded-xl overflow-hidden hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 group"
             >
               <Link href={show.media_type === 'movie' ? `/movies/movie/${show.id}` : `/series/series/${show.id}`}>

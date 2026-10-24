@@ -256,7 +256,7 @@ export default function SeriesClient() {
                     <div className="absolute top-3 left-3 z-10">
                       {ratingSource === 'imdb' ? (
                         <span className="text-xs px-2 py-1 rounded-full bg-black/70 border border-yellow-500/30 text-yellow-300">
-                          IMDb {imdbRatings[show.id] ?? '...'}
+                          IMDb {show.id in imdbRatings ? imdbRatings[show.id] ?? 'N/A' : '...'}
                         </span>
                       ) : (
                         <span className="text-xs px-2 py-1 rounded-full bg-black/70 border border-yellow-500/30 text-yellow-300">

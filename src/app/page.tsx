@@ -1,12 +1,14 @@
 'use client';
 
 import Image from "next/image";
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { fetchTrending, fetchMovies, fetchTVShows, fetchAnime, getImageUrl, TMDBShow } from "@/lib/tmdb";
 import WatchlistToggle from "@/components/WatchlistToggle";
 import Loading from "@/components/Loading";
 import ContinueWatchingRow from "@/components/ContinueWatchingRow";
+
+const showSkeletonArray = Array.from({ length: 8 });
 
 export default function Home() {
   const moviesRef = useRef<HTMLDivElement>(null);
@@ -195,7 +197,7 @@ export default function Home() {
     return () => clearTimeout(timeout);
   }, [loading]);
 
-  const handleShowClick = (id: number, mediaType: string) => {
+  const handleShowClick = useCallback((id: number, mediaType: string) => {
     // Don't navigate if user was dragging
     if (Date.now() < suppressClickUntilRef.current) return;
     
@@ -204,7 +206,7 @@ export default function Home() {
     } else {
       router.push(`/series/series/${id}`);
     }
-  };
+  }, [router]);
 
   // Create drag handlers for each section
   const createDragHandlers = useCallback((sectionRef: React.RefObject<HTMLDivElement>, sectionId: string) => {
@@ -450,158 +452,57 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [trending.length]);
 
-  const showSkeletonArray = Array.from({ length: 8 });
-
-  return (
-    <div className="min-h-screen bg-black">
-      <style jsx global>{`
-        /* Custom scrollbar styling */
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-
-        /* Horizontal scrollbar styling for category sections */
-        .category-scrollbar::-webkit-scrollbar {
-          height: 8px;
-        }
-        
-        .category-scrollbar::-webkit-scrollbar-track {
-          background: #1f2937;
-          border-radius: 4px;
-        }
-        
-        .category-scrollbar::-webkit-scrollbar-thumb {
-          background: linear-gradient(to right, #f97316, #eab308);
-          border-radius: 4px;
-        }
-        
-        .category-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(to right, #ea580c, #ca8a04);
-        }
-
-
-        /* Snap scrolling */
-        .snap-x {
-          scroll-snap-type: x mandatory;
-        }
-        
-        .snap-center {
-          scroll-snap-align: center;
-        }
-
-        /* Line clamp */
-        .line-clamp-3 {
-          display: -webkit-box;
-          -webkit-line-clamp: 3;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-      `}</style>
-
-      {/* Trending Shows Hero Carousel */}
-      <section className="relative h-[70vh] bg-black overflow-hidden">
-        {loading ? (
-          <div className="w-full h-full relative">
-            <div className="absolute inset-0 animate-pulse bg-gradient-to-b from-orange-900/40 via-black to-yellow-900/40" />
-            <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4 space-y-4">
-              <div className="h-12 md:h-16 rounded-full w-3/4 max-w-xl bg-gradient-to-r from-orange-500/70 to-yellow-400/70" />
-              <div className="space-y-3 w-full max-w-2xl">
-                <div className="h-4 rounded-full w-full bg-gradient-to-r from-orange-500/60 to-yellow-400/60" />
-                <div className="h-4 rounded-full w-5/6 bg-gradient-to-r from-orange-500/50 to-yellow-400/50" />
-                <div className="h-4 rounded-full w-2/3 bg-gradient-to-r from-orange-500/40 to-yellow-400/40" />
-              </div>
-              <div className="h-12 rounded-full w-40 bg-gradient-to-r from-orange-500/70 to-yellow-400/70" />
+  // Memoized so carousel index changes (autoplay, swipes) only re-render the dots
+  const heroSlides = useMemo(
+    () =>
+      trending.map((show, index) => (
+        <div
+          key={`trending-${show.id}-${index}`}
+          className="relative flex-none w-full h-full snap-center"
+        >
+          <div className="relative w-full h-full">
+            <Image
+              src={getImageUrl(show.backdrop_path, 'original')}
+              alt={show.title || show.name || ''}
+              fill
+              className="object-cover"
+              style={{ objectPosition: 'center 30%' }}
+              quality={100}
+              priority={index === 0}
+              sizes="100vw"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4">
+              <h2 className="text-5xl md:text-7xl font-bold mb-4 text-center max-w-4xl">
+                {show.title || show.name}
+              </h2>
+              <p className="text-lg md:text-xl text-gray-300 mb-8 text-center max-w-3xl line-clamp-3">
+                {show.overview}
+              </p>
+              <button
+                onClick={() => handleShowClick(show.id, show.media_type)}
+                className="bg-gradient-orange-yellow-light bg-gradient-to-r from-orange-500 to-yellow-600 px-10 py-4 rounded-full text-xl font-semibold hover:opacity-90 transition-opacity flex items-center gap-3 shadow-lg"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-7 w-7"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+                Watch Now
+              </button>
             </div>
           </div>
-        ) : (
-          <>
-            <div
-              ref={carouselRef}
-              className="flex h-full overflow-x-scroll snap-x snap-mandatory scrollbar-hide"
-              onPointerDown={handleCarouselPointerDown}
-              onPointerMove={handleCarouselPointerMove}
-              onPointerUp={handleCarouselPointerEnd}
-              onPointerCancel={handleCarouselPointerEnd}
-              onDragStart={(e) => e.preventDefault()}
-              style={{ cursor: 'grab', touchAction: 'pan-y' }}
-            >
-              {trending.map((show, index) => (
-                <div
-                  key={`trending-${show.id}-${index}`}
-                  className="relative flex-none w-full h-full snap-center"
-                >
-                  <div className="relative w-full h-full">
-                    <Image
-                      src={getImageUrl(show.backdrop_path, 'original')}
-                      alt={show.title || show.name || ''}
-                      fill
-                      className="object-cover"
-                      style={{ objectPosition: 'center 30%' }}
-                      quality={100}
-                      priority={index === 0}
-                      sizes="100vw"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
-                    <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4">
-                      <h2 className="text-5xl md:text-7xl font-bold mb-4 text-center max-w-4xl">
-                        {show.title || show.name}
-                      </h2>
-                      <p className="text-lg md:text-xl text-gray-300 mb-8 text-center max-w-3xl line-clamp-3">
-                        {show.overview}
-                      </p>
-                      <button
-                        onClick={() => handleShowClick(show.id, show.media_type)}
-                        className="bg-gradient-orange-yellow-light bg-gradient-to-r from-orange-500 to-yellow-600 px-10 py-4 rounded-full text-xl font-semibold hover:opacity-90 transition-opacity flex items-center gap-3 shadow-lg"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-7 w-7"
-                          fill="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M8 5v14l11-7z" />
-                        </svg>
-                        Watch Now
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            {/* Navigation Dots */}
-            {trending.length > 1 && (
-              <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-20 flex gap-2">
-                {trending.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => goToSlide(index)}
-                    className={`w-3 h-3 rounded-full transition-all ${
-                      index === currentIndex
-                        ? 'bg-gradient-yellow-dot bg-gradient-to-r from-yellow-400 to-yellow-500 w-8'
-                        : 'bg-gray-600 hover:bg-gray-500'
-                    }`}
-                    aria-label={`Go to slide ${index + 1}`}
-                  />
-                ))}
-              </div>
-            )}
-          </>
-        )}
+        </div>
+      )),
+    [trending, handleShowClick]
+  );
 
-        {/* Bottom gradient transition to black */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-b from-transparent via-black/30 to-black z-10 pointer-events-none" />
-      </section>
-
-      {/* Content Library */}
-      <div className="space-y-12 pb-12">
-        <ContinueWatchingRow />
-
+  const libraryRows = useMemo(
+    () => (
+      <>
         {/* Trending Now */}
         <section className="px-4">
           <h2 className="text-2xl font-bold mb-6">Trending Now</h2>
@@ -853,6 +754,122 @@ export default function Home() {
             </div>
           </div>
         </section>
+      </>
+    ),
+    [loading, trending, movies, series, anime, handleShowClick, createDragHandlers]
+  );
+
+
+  return (
+    <div className="min-h-screen bg-black">
+      <style jsx global>{`
+        /* Custom scrollbar styling */
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+
+        /* Horizontal scrollbar styling for category sections */
+        .category-scrollbar::-webkit-scrollbar {
+          height: 8px;
+        }
+        
+        .category-scrollbar::-webkit-scrollbar-track {
+          background: #1f2937;
+          border-radius: 4px;
+        }
+        
+        .category-scrollbar::-webkit-scrollbar-thumb {
+          background: linear-gradient(to right, #f97316, #eab308);
+          border-radius: 4px;
+        }
+        
+        .category-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(to right, #ea580c, #ca8a04);
+        }
+
+
+        /* Snap scrolling */
+        .snap-x {
+          scroll-snap-type: x mandatory;
+        }
+        
+        .snap-center {
+          scroll-snap-align: center;
+        }
+
+        /* Line clamp */
+        .line-clamp-3 {
+          display: -webkit-box;
+          -webkit-line-clamp: 3;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+      `}</style>
+
+      {/* Trending Shows Hero Carousel */}
+      <section className="relative h-[70vh] bg-black overflow-hidden">
+        {loading ? (
+          <div className="w-full h-full relative">
+            <div className="absolute inset-0 animate-pulse bg-gradient-to-b from-orange-900/40 via-black to-yellow-900/40" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4 space-y-4">
+              <div className="h-12 md:h-16 rounded-full w-3/4 max-w-xl bg-gradient-to-r from-orange-500/70 to-yellow-400/70" />
+              <div className="space-y-3 w-full max-w-2xl">
+                <div className="h-4 rounded-full w-full bg-gradient-to-r from-orange-500/60 to-yellow-400/60" />
+                <div className="h-4 rounded-full w-5/6 bg-gradient-to-r from-orange-500/50 to-yellow-400/50" />
+                <div className="h-4 rounded-full w-2/3 bg-gradient-to-r from-orange-500/40 to-yellow-400/40" />
+              </div>
+              <div className="h-12 rounded-full w-40 bg-gradient-to-r from-orange-500/70 to-yellow-400/70" />
+            </div>
+          </div>
+        ) : (
+          <>
+            <div
+              ref={carouselRef}
+              className="flex h-full overflow-x-scroll snap-x snap-mandatory scrollbar-hide"
+              onPointerDown={handleCarouselPointerDown}
+              onPointerMove={handleCarouselPointerMove}
+              onPointerUp={handleCarouselPointerEnd}
+              onPointerCancel={handleCarouselPointerEnd}
+              onDragStart={(e) => e.preventDefault()}
+              style={{ cursor: 'grab', touchAction: 'pan-y' }}
+            >
+              {heroSlides}
+            </div>
+            
+            {/* Navigation Dots */}
+            {trending.length > 1 && (
+              <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-20 flex gap-2">
+                {trending.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => goToSlide(index)}
+                    className={`w-3 h-3 rounded-full transition-all ${
+                      index === currentIndex
+                        ? 'bg-gradient-yellow-dot bg-gradient-to-r from-yellow-400 to-yellow-500 w-8'
+                        : 'bg-gray-600 hover:bg-gray-500'
+                    }`}
+                    aria-label={`Go to slide ${index + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Bottom gradient transition to black */}
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-b from-transparent via-black/30 to-black z-10 pointer-events-none" />
+      </section>
+
+      {/* Content Library */}
+      <div className="space-y-12 pb-12">
+        <ContinueWatchingRow />
+
+        {libraryRows}
       </div>
       {(loading || showLoadingOverlay) && <Loading isExiting={!loading} />}
     </div>

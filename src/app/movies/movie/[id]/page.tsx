@@ -4,6 +4,7 @@ import { use } from 'react';
 import type { Metadata } from 'next';
 import { getImageUrl, TMDBShow, fetchMovieCast, TMDBCredits } from '@/lib/tmdb';
 import CastView from '@/components/CastView';
+import ImdbRating from '@/components/ImdbRating';
 
 async function getShowDetails(id: string): Promise<TMDBShow> {
   const response = await fetch(
@@ -89,7 +90,7 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
                   <span>•</span>
                 </>
               )}
-              <span>{show.vote_average.toFixed(1)} ★</span>
+              <ImdbRating type="movie" tmdbId={resolvedParams.id} fallbackRating={show.vote_average} />
               {show.runtime && (
                 <>
                   <span>•</span>

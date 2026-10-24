@@ -253,7 +253,7 @@ export default function MoviesClient() {
                     <div className="absolute top-3 left-3 z-10">
                       {ratingSource === 'imdb' ? (
                         <span className="text-xs px-2 py-1 rounded-full bg-black/70 border border-yellow-500/30 text-yellow-300">
-                          IMDb {imdbRatings[movie.id] ?? '...'}
+                          IMDb {movie.id in imdbRatings ? imdbRatings[movie.id] ?? 'N/A' : '...'}
                         </span>
                       ) : (
                         <span className="text-xs px-2 py-1 rounded-full bg-black/70 border border-yellow-500/30 text-yellow-300">
