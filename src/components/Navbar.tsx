@@ -1,33 +1,85 @@
 'use client';
 
-import Image from "next/image";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { usePathname } from "next/navigation";
+import { useState, useEffect, type ReactNode } from "react";
 import { useWatchlist } from "@/components/WatchlistContext";
-import { getImageUrl } from "@/lib/tmdb";
-import MaintenanceBanner from "@/components/MaintenanceBanner";
 import SearchAutocomplete from "@/components/SearchAutocomplete";
 import WatchlistAccount from "@/components/WatchlistAccount";
 
-const WATCHLIST_PREVIEW_INITIAL = 8;
-const WATCHLIST_PREVIEW_CHUNK = 8;
+interface NavItem {
+  href: string;
+  label: string;
+  isActive: (pathname: string) => boolean;
+  icon: ReactNode;
+}
+
+const iconProps = {
+  xmlns: "http://www.w3.org/2000/svg",
+  className: "h-5 w-5 flex-shrink-0",
+  fill: "none",
+  viewBox: "0 0 24 24",
+  stroke: "currentColor",
+  strokeWidth: 1.8,
+  "aria-hidden": true,
+} as const;
+
+const NAV_ITEMS: NavItem[] = [
+  {
+    href: "/",
+    label: "Home",
+    isActive: (pathname) => pathname === "/",
+    icon: (
+      <svg {...iconProps}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
+      </svg>
+    ),
+  },
+  {
+    href: "/movies",
+    label: "Movies",
+    isActive: (pathname) => pathname.startsWith("/movies"),
+    icon: (
+      <svg {...iconProps}>
+        <rect x="3" y="4.5" width="18" height="15" rx="2" />
+        <path strokeLinecap="round" d="M7.5 4.5v15M16.5 4.5v15M3 9h4.5M3 15h4.5M16.5 9H21M16.5 15H21" />
+      </svg>
+    ),
+  },
+  {
+    href: "/series",
+    label: "Shows",
+    isActive: (pathname) => pathname.startsWith("/series") || pathname.startsWith("/shows"),
+    icon: (
+      <svg {...iconProps}>
+        <rect x="2.5" y="4" width="19" height="13" rx="2" />
+        <path strokeLinecap="round" d="M8 20.5h8M12 17v3.5" />
+      </svg>
+    ),
+  },
+  {
+    href: "/anime",
+    label: "Anime",
+    isActive: (pathname) => pathname.startsWith("/anime"),
+    icon: (
+      <svg {...iconProps}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.5a.56.56 0 011.04 0l2.13 5.11a.56.56 0 00.47.34l5.52.44c.5.04.7.66.32.99l-4.2 3.6a.56.56 0 00-.18.56l1.28 5.39a.56.56 0 01-.84.61l-4.73-2.89a.56.56 0 00-.58 0l-4.73 2.89a.56.56 0 01-.84-.61l1.28-5.39a.56.56 0 00-.18-.56l-4.2-3.6a.56.56 0 01.32-.99l5.52-.44a.56.56 0 00.47-.34l2.13-5.11z" />
+      </svg>
+    ),
+  },
+];
+
+// Icon buttons inside the pill (search and account) share this look
+const PILL_ICON_BUTTON =
+  "rounded-lg p-2 text-gray-300 transition-colors hover:bg-white/10 hover:text-yellow-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400";
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { items, syncMessage } = useWatchlist();
+  const { syncMessage } = useWatchlist();
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [watchlistPreviewCount, setWatchlistPreviewCount] = useState(WATCHLIST_PREVIEW_INITIAL);
-  const previewItems = items.slice(0, watchlistPreviewCount);
-  const watchlistPreviewScrollRef = useRef<HTMLDivElement | null>(null);
-  const watchlistPreviewWheelHandlerRef = useRef<(e: WheelEvent) => void>(() => {});
 
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      setIsScrolled(scrollPosition > 0);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 0);
 
     // Check initial scroll position
     handleScroll();
@@ -36,329 +88,55 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (isMobileMenuOpen && !target.closest('.mobile-menu-container')) {
-        setIsMobileMenuOpen(false);
-      }
-    };
-
-    if (isMobileMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [isMobileMenuOpen]);
-
-  useEffect(() => {
-    // If the list shrinks, keep the preview count in bounds.
-    setWatchlistPreviewCount((prev) => Math.min(Math.max(WATCHLIST_PREVIEW_INITIAL, prev), items.length || WATCHLIST_PREVIEW_INITIAL));
-  }, [items.length]);
-
-  watchlistPreviewWheelHandlerRef.current = (e: WheelEvent) => {
-    const el = watchlistPreviewScrollRef.current;
-    if (!el) return;
-    if (el.scrollWidth <= el.clientWidth) return;
-
-    const deltaX = e.deltaMode === 1 ? e.deltaX * 16 : e.deltaX;
-    const deltaY = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
-    const primaryDelta = Math.abs(deltaY) >= Math.abs(deltaX) ? deltaY : deltaX;
-
-    // Convert wheel input into horizontal scroll.
-    el.scrollLeft += primaryDelta;
-    e.preventDefault();
-  };
-
-  const setWatchlistPreviewScrollEl = useCallback((node: HTMLDivElement | null) => {
-    const prev = watchlistPreviewScrollRef.current;
-    const handler = watchlistPreviewWheelHandlerRef.current;
-
-    if (prev) {
-      prev.removeEventListener('wheel', handler as EventListener);
-    }
-
-    watchlistPreviewScrollRef.current = node;
-
-    if (node) {
-      node.addEventListener('wheel', handler as EventListener, { passive: false });
-    }
-  }, []);
-
-  const maybeLoadMorePreview = useCallback(() => {
-    const el = watchlistPreviewScrollRef.current;
-    if (!el) return;
-    const nearEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 64;
-    if (!nearEnd) return;
-
-    setWatchlistPreviewCount((prev) => Math.min(items.length, prev + WATCHLIST_PREVIEW_CHUNK));
-  }, [items.length]);
-
   return (
     <>
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,backdrop-filter,border-color] duration-300 ease-in-out ${
-        isScrolled 
-          ? 'bg-black/90 backdrop-blur-sm border-b border-yellow-500/50' 
-          : 'bg-transparent backdrop-blur-none border-b border-transparent'
-      }`} suppressHydrationWarning>
-        <div className="w-full px-4 py-3 flex justify-between items-center" suppressHydrationWarning>
-        <Link href="/" className={`text-xl md:text-2xl font-bold hover:opacity-90 transition-opacity ${
-          !isScrolled
-            ? 'text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]'
-            : 'bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-yellow-600'
-        }`}>
-          Tinywatch
-        </Link>
-        
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-6" suppressHydrationWarning>
-          {/* Search Bar with Autocomplete */}
-          <SearchAutocomplete isScrolled={isScrolled} />
+      <nav
+        className={`fixed top-0 left-0 right-0 z-50 border-b transition-[background-color,border-color] duration-300 ease-in-out ${
+          isScrolled
+            ? 'bg-black/90 backdrop-blur-sm border-yellow-500/20'
+            : 'bg-transparent border-transparent'
+        }`}
+        suppressHydrationWarning
+      >
+        <div className="flex w-full items-center justify-between gap-2 px-3 py-3 sm:px-4" suppressHydrationWarning>
+          <Link
+            href="/"
+            className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-yellow-600 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] transition-opacity hover:opacity-90 sm:text-2xl"
+          >
+            Tinywatch
+          </Link>
+
+          {/* Icon pill: page links, then search and account */}
           <div
-            className="relative group"
-            onMouseEnter={() => setWatchlistPreviewCount(Math.min(items.length, Math.max(WATCHLIST_PREVIEW_INITIAL, watchlistPreviewCount)))}
-            onMouseLeave={() => setWatchlistPreviewCount(WATCHLIST_PREVIEW_INITIAL)}
+            data-nav-pill
+            className="flex items-center gap-0.5 rounded-xl border border-yellow-500/20 bg-black/80 p-1 shadow-[0_4px_24px_rgba(0,0,0,0.5)] backdrop-blur-md"
           >
-            <Link 
-              href="/watchlist" 
-              className={`transition-colors flex items-center gap-1 ${
-                !isScrolled
-                  ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-yellow-400'
-                  : 'text-gray-300 hover:text-yellow-400'
-              }`}
-            >
-              <span>Watchlist</span>
-            </Link>
+            {NAV_ITEMS.map((item) => {
+              const active = item.isActive(pathname);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-label={item.label}
+                  aria-current={active ? 'page' : undefined}
+                  className={`flex items-center gap-2 rounded-lg p-2 text-sm font-semibold transition-colors md:px-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 ${
+                    active
+                      ? 'bg-yellow-500/15 text-yellow-300'
+                      : 'text-gray-300 hover:bg-white/10 hover:text-yellow-300'
+                  }`}
+                >
+                  {item.icon}
+                  <span className="hidden md:inline">{item.label}</span>
+                </Link>
+              );
+            })}
 
-            <div className="absolute right-0 top-full pt-3 opacity-0 pointer-events-none -translate-y-1 group-hover:opacity-100 group-hover:pointer-events-auto group-hover:translate-y-0 transition-all duration-200">
-              <div className="w-[min(92vw,640px)] rounded-xl border border-yellow-500/25 bg-black/95 backdrop-blur-md shadow-2xl p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm font-semibold text-yellow-400">
-                    Watchlist Preview
-                  </p>
-                  <Link
-                    href="/watchlist"
-                    className="text-xs text-gray-300 hover:text-yellow-400 transition-colors"
-                  >
-                    View all
-                  </Link>
-                </div>
+            <span className="mx-1 h-6 w-px bg-white/15" aria-hidden="true" />
 
-                {previewItems.length === 0 ? (
-                  <p className="text-sm text-gray-400">
-                    Your watchlist is empty.
-                  </p>
-                ) : (
-                  <div
-                    ref={setWatchlistPreviewScrollEl}
-                    onScroll={maybeLoadMorePreview}
-                    className="flex gap-3 overflow-x-auto pb-1 overscroll-contain"
-                    aria-label="Watchlist preview scroller"
-                  >
-                    {previewItems.map((item) => (
-                      <Link
-                        key={`${item.media_type}-${item.id}`}
-                        href={
-                          item.media_type === 'movie'
-                            ? `/movies/movie/${item.id}`
-                            : `/series/series/${item.id}`
-                        }
-                        className="group/item flex-shrink-0 w-24"
-                      >
-                        <div className="relative aspect-[2/3] rounded-lg overflow-hidden border border-gray-700/80">
-                          <Image
-                            src={getImageUrl(item.poster_path)}
-                            alt={item.title || item.name || ''}
-                            fill
-                            className="object-cover transition-transform duration-300 group-hover/item:scale-105"
-                            sizes="96px"
-                          />
-                        </div>
-                        <p className="mt-2 text-xs text-gray-200 leading-tight line-clamp-2 group-hover/item:text-yellow-300 transition-colors">
-                          {item.title || item.name}
-                        </p>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-          <Link 
-            href="/movies" 
-            className={`transition-colors ${
-              !isScrolled
-                ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-yellow-400'
-                : 'text-gray-300 hover:text-yellow-400'
-            }`}
-          >
-            Movies
-          </Link>
-          <Link 
-            href="/series" 
-            className={`transition-colors ${
-              !isScrolled
-                ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-yellow-400'
-                : 'text-gray-300 hover:text-yellow-400'
-            }`}
-          >
-            TV Shows
-          </Link>
-          <Link 
-            href="/anime" 
-            className={`transition-colors ${
-              !isScrolled
-                ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-yellow-400'
-                : 'text-gray-300 hover:text-yellow-400'
-            }`}
-          >
-            Anime
-          </Link>
-          <div className="group relative">
-            <Link
-              href="/patch-notes"
-              aria-label="Patch Notes"
-              className={`block rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 ${
-                !isScrolled
-                  ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-yellow-400'
-                  : 'text-gray-300 hover:text-yellow-400'
-              }`}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                aria-hidden="true"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <path strokeLinecap="round" d="M12 11v5m0-8h.01" />
-              </svg>
-            </Link>
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute right-0 top-full z-[60] mt-2 whitespace-nowrap rounded-md border border-gray-700 bg-black px-3 py-1.5 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
-            >
-              Patch Notes
-            </span>
-          </div>
-          <WatchlistAccount />
-        </div>
-
-        {/* Mobile Menu Button and Search */}
-        <div className="flex items-center gap-2 md:hidden flex-1 max-w-xs" suppressHydrationWarning>
-          {/* Search with Autocomplete for Mobile */}
-          <SearchAutocomplete isScrolled={isScrolled} />
-
-          {/* Hamburger Menu Button */}
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className={`mobile-menu-container transition-colors p-2 rounded-full hover:bg-black/30 ${
-              !isScrolled
-                ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-yellow-400'
-                : 'text-gray-300 hover:text-yellow-400'
-            }`}
-            aria-label="Menu"
-          >
-            {isMobileMenuOpen ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Dropdown Menu */}
-      {isMobileMenuOpen && (
-        <div className="mobile-menu-container md:hidden border-t border-gray-800/50 bg-black/95 backdrop-blur-sm">
-          <div className="px-4 py-3 space-y-3">
-            <Link
-              href="/movies"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={`block py-2 px-4 rounded-lg transition-colors ${
-                pathname === '/movies'
-                  ? 'bg-yellow-500/20 text-yellow-400'
-                  : 'text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400'
-              }`}
-            >
-              Movies
-            </Link>
-            <Link
-              href="/series"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={`block py-2 px-4 rounded-lg transition-colors ${
-                pathname === '/series'
-                  ? 'bg-yellow-500/20 text-yellow-400'
-                  : 'text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400'
-              }`}
-            >
-              TV Shows
-            </Link>
-            <Link
-              href="/anime"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={`block py-2 px-4 rounded-lg transition-colors ${
-                pathname === '/anime'
-                  ? 'bg-yellow-500/20 text-yellow-400'
-                  : 'text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400'
-              }`}
-            >
-              Anime
-            </Link>
-            <Link
-              href="/watchlist"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={`block py-2 px-4 rounded-lg transition-colors ${
-                pathname === '/watchlist'
-                  ? 'bg-yellow-500/20 text-yellow-400'
-                  : 'text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400'
-              }`}
-            >
-              Watchlist
-            </Link>
-            <Link
-              href="/patch-notes"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={`block py-2 px-4 rounded-lg transition-colors ${
-                pathname === '/patch-notes'
-                  ? 'bg-yellow-500/20 text-yellow-400'
-                  : 'text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400'
-              }`}
-            >
-              Patch Notes
-            </Link>
-            <WatchlistAccount mobile />
+            <SearchAutocomplete isScrolled={isScrolled} enableShortcut triggerClassName={PILL_ICON_BUTTON} />
+            <WatchlistAccount triggerClassName={PILL_ICON_BUTTON} />
           </div>
         </div>
-      )}
       </nav>
 
       {/* <MaintenanceBanner /> */}
@@ -371,7 +149,7 @@ export default function Navbar() {
           {syncMessage}
         </p>
       )}
-      
+
       {/* Video Player Alert Banner - Commented out, ready to reuse if needed */}
       {/* <div className="fixed top-[60px] left-0 right-0 z-50 bg-red-600 text-white py-1.5 overflow-hidden">
         <style jsx>{`

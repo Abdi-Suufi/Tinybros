@@ -28,6 +28,8 @@ export interface TMDBShow {
   runtime?: number;
   number_of_seasons?: number;
   genres?: { id: number; name: string }[];
+  /** Present on list/search results (detail responses use `genres`). */
+  genre_ids?: number[];
 }
 
 export interface TMDBEpisode {
