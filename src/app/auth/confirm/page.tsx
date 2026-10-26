@@ -48,7 +48,7 @@ export default function ConfirmAuthPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-black px-4 pt-20 text-white">
-      <p role="status" className="max-w-lg rounded-xl border border-yellow-500/30 bg-gray-950 p-6 text-center text-gray-200">
+      <p role="status" className="max-w-lg rounded-xl border border-yellow-500/30 bg-black p-6 text-center text-gray-200">
         {message}
       </p>
     </div>

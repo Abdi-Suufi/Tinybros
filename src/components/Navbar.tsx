@@ -238,7 +238,7 @@ export default function Navbar() {
             </Link>
             <span
               aria-hidden="true"
-              className="pointer-events-none absolute right-0 top-full z-[60] mt-2 whitespace-nowrap rounded-md border border-gray-700 bg-gray-900 px-3 py-1.5 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+              className="pointer-events-none absolute right-0 top-full z-[60] mt-2 whitespace-nowrap rounded-md border border-gray-700 bg-black px-3 py-1.5 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
             >
               Patch Notes
             </span>
@@ -366,7 +366,7 @@ export default function Navbar() {
       {syncMessage && pathname !== '/watchlist' && (
         <p
           role="status"
-          className="fixed bottom-4 left-4 right-4 z-[90] mx-auto max-w-xl rounded-lg border border-orange-500/30 bg-gray-950/95 px-4 py-3 text-sm text-orange-200 shadow-xl"
+          className="fixed bottom-4 left-4 right-4 z-[90] mx-auto max-w-xl rounded-lg border border-yellow-500/30 bg-black/95 px-4 py-3 text-sm text-yellow-200 shadow-xl"
         >
           {syncMessage}
         </p>

@@ -16,7 +16,15 @@ function watchUrl(progress: WatchProgress) {
 export default function ContinueWatchingRow() {
   const { records, ready, removeProgress } = useWatchProgress();
   const [details, setDetails] = useState<Record<string, TMDBShow>>({});
-  const inProgressRecords = records.filter(
+  // Records are newest first; keep only the latest one per title so an older episode never resurfaces
+  const seenTitles = new Set<string>();
+  const latestPerTitle = records.filter((record) => {
+    const title = `${record.media_type}:${record.tmdb_id}`;
+    if (seenTitles.has(title)) return false;
+    seenTitles.add(title);
+    return true;
+  });
+  const inProgressRecords = latestPerTitle.filter(
     (record) => record.position_seconds / record.duration_seconds <= 0.9
   );
 
@@ -66,7 +74,7 @@ export default function ContinueWatchingRow() {
           return (
             <article
               key={`${key}:${progress.season ?? 0}:${progress.episode ?? 0}`}
-              className="group relative w-36 flex-none overflow-hidden rounded-xl bg-gray-900 sm:w-44"
+              className="group relative w-36 flex-none overflow-hidden rounded-xl bg-black border border-yellow-500/20 hover:border-yellow-400/70 hover:shadow-[0_0_16px_rgba(234,179,8,0.35)] transition-all sm:w-44"
             >
               <Link href={watchUrl(progress)} className="block">
                 <div className="relative aspect-[2/3] bg-gray-800">
@@ -95,7 +103,7 @@ export default function ContinueWatchingRow() {
                   aria-valuemin={0}
                   aria-valuemax={100}
                 >
-                  <div className="h-full bg-gradient-to-r from-orange-500 to-yellow-400" style={{ width: `${percent}%` }} />
+                  <div className="h-full bg-gradient-to-r from-yellow-400 to-yellow-600" style={{ width: `${percent}%` }} />
                 </div>
               </Link>
               <button

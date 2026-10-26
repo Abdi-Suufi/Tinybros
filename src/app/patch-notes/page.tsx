@@ -23,7 +23,7 @@ export default function PatchNotesPage() {
           {patchNotes.map((note) => (
             <article
               key={`${note.date}-${note.title}`}
-              className={`rounded-2xl border border-gray-800 bg-gray-900/70 p-6 sm:p-8 ${
+              className={`rounded-2xl border border-yellow-500/20 bg-black p-6 sm:p-8 ${
                 note.image ? 'grid gap-x-6 gap-y-4 md:grid-cols-[minmax(0,1fr)_250px]' : ''
               }`}
             >
@@ -33,7 +33,7 @@ export default function PatchNotesPage() {
                   <span
                     className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${
                       note.status === 'upcoming'
-                        ? 'bg-sky-400/10 text-sky-300'
+                        ? 'bg-yellow-400/10 text-yellow-300'
                         : 'bg-green-400/10 text-green-300'
                     }`}
                   >

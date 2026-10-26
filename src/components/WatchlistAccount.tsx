@@ -159,7 +159,7 @@ export default function WatchlistAccount({ mobile = false }: { mobile?: boolean 
             role="dialog"
             aria-modal="false"
             aria-labelledby="watchlist-account-title"
-            className={`account-dropdown fixed z-[70] w-[min(28rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-yellow-500/30 bg-gray-950 p-6 text-white shadow-2xl${mobile ? ' mobile-menu-container' : ''}`}
+            className={`account-dropdown fixed z-[70] w-[min(28rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-yellow-500/30 bg-black p-6 text-white shadow-2xl${mobile ? ' mobile-menu-container' : ''}`}
             style={{
               top: dropdownPosition.top,
               right: dropdownPosition.right,
@@ -195,7 +195,7 @@ export default function WatchlistAccount({ mobile = false }: { mobile?: boolean 
                   type="button"
                   onClick={handleSignOut}
                   disabled={isSubmitting}
-                  className="w-full rounded-lg bg-gradient-to-r from-orange-500 to-yellow-500 px-4 py-2 font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
+                  className="w-full rounded-lg bg-gradient-to-r from-yellow-400 to-yellow-600 px-4 py-2 font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
                 >
                   {isSubmitting ? 'Signing out…' : 'Sign out'}
                 </button>
@@ -203,7 +203,7 @@ export default function WatchlistAccount({ mobile = false }: { mobile?: boolean 
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 {!authAvailable && (
-                  <p className="rounded-lg border border-orange-500/30 bg-orange-500/10 p-3 text-sm text-orange-200">
+                  <p className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-3 text-sm text-yellow-200">
                     Account sync is not configured. You can keep using your device-only watchlist.
                   </p>
                 )}
@@ -240,7 +240,7 @@ export default function WatchlistAccount({ mobile = false }: { mobile?: boolean 
                     !authReady ||
                     (mode === 'resetRequest' && resetCooldown > 0)
                   }
-                  className="w-full rounded-lg bg-gradient-to-r from-orange-500 to-yellow-500 px-4 py-2 font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
+                  className="w-full rounded-lg bg-gradient-to-r from-yellow-400 to-yellow-600 px-4 py-2 font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
                 >
                   {mode === 'resetRequest' && isResetAnimating
                     ? (

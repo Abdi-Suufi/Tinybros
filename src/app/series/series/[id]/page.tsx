@@ -178,75 +178,82 @@ export default function SeriesPage({ params }: { params: Promise<{ id: string }>
 
             <Link
               href={`/watch/tv/${resolvedParams.id}`}
-              className="inline-block px-8 py-3 bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 rounded-full text-lg font-semibold hover:opacity-90 transition-opacity"
+              className="inline-block px-8 py-3 bg-gradient-orange-yellow bg-gradient-to-r from-yellow-400 to-yellow-600 text-black rounded-full text-lg font-semibold hover:opacity-90 transition-opacity"
             >
               Watch Now
             </Link>
           </div>
         </div>
 
-        {/* Cast Section */}
-        {!loadingCredits && credits && <CastView cast={credits.cast} crew={credits.crew} />}
-
-        {/* Episodes Section */}
-        <div className="mt-16">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-teal-500">
-              Episodes
-            </h2>
-            <select
-              value={selectedSeason}
-              onChange={(e) => setSelectedSeason(Number(e.target.value))}
-              className="bg-gray-800/50 text-white px-4 py-2 rounded-full border border-gray-700 focus:outline-none focus:border-gray-500 transition-colors"
-            >
-              {Array.from({ length: show.number_of_seasons || 1 }, (_, i) => i + 1).map(
-                (season) => (
-                  <option key={season} value={season}>
-                    Season {season}
-                  </option>
-                )
-              )}
-            </select>
-          </div>
-          {loadingEpisodes ? (
-            <div className="text-center py-8 text-gray-400">Loading episodes...</div>
-          ) : episodes.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {episodes.map((episode: TMDBEpisode) => (
-                <div
-                  key={episode.id}
-                  className="bg-gray-800/50 rounded-xl overflow-hidden hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 group"
-                >
-                  <div className="relative h-40">
-                    <Image
-                      src={getImageUrl(episode.still_path)}
-                      alt={episode.name}
-                      fill
-                      className="object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                  <div className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold">Episode {episode.episode_number}</h3>
-                      <span className="text-sm text-gray-400">{episode.air_date}</span>
-                    </div>
-                    <h4 className="text-lg font-bold mb-2">{episode.name}</h4>
-                    <p className="text-gray-300 text-sm mb-4 line-clamp-2">
-                      {episode.overview}
-                    </p>
-                    <Link
-                      href={`/watch/tv/${resolvedParams.id}?season=${selectedSeason}&episode=${episode.episode_number}`}
-                      className="inline-block w-full text-center px-4 py-2 bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 rounded-full font-semibold hover:opacity-90 transition-opacity"
-                    >
-                      Watch Episode
-                    </Link>
-                  </div>
-                </div>
-              ))}
+        {/* Cast & Episodes: side-by-side scrollable panels; cast on the left on desktop, episodes stay on top on mobile */}
+        <div className={`mt-16 grid grid-cols-1 gap-8 ${!loadingCredits && credits ? 'lg:grid-cols-2' : ''}`}>
+          <section className="flex h-[560px] lg:h-[680px] flex-col rounded-2xl border border-yellow-500/20 bg-black p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-yellow-600">
+                Episodes
+              </h2>
+              <select
+                value={selectedSeason}
+                onChange={(e) => setSelectedSeason(Number(e.target.value))}
+                className="bg-black text-white px-4 py-2 rounded-full border border-yellow-500/40 hover:border-yellow-400/70 focus:outline-none focus:border-yellow-400 focus:shadow-[0_0_12px_rgba(234,179,8,0.35)] transition-colors"
+              >
+                {Array.from({ length: show.number_of_seasons || 1 }, (_, i) => i + 1).map(
+                  (season) => (
+                    <option key={season} value={season}>
+                      Season {season}
+                    </option>
+                  )
+                )}
+              </select>
             </div>
-          ) : (
-            <div className="text-center py-8 text-gray-400">No episodes found for this season.</div>
+            <div className="panel-scroll min-h-0 flex-1 overflow-y-auto p-2">
+              {loadingEpisodes ? (
+                <div className="text-center py-8 text-gray-400">Loading episodes...</div>
+              ) : episodes.length > 0 ? (
+                <div className="flex flex-col gap-3">
+                  {episodes.map((episode: TMDBEpisode) => (
+                    <div
+                      key={episode.id}
+                      className="flex rounded-xl overflow-hidden bg-black border border-yellow-500/20 hover:border-yellow-400/70 hover:shadow-[0_0_16px_rgba(234,179,8,0.35)] transition-all duration-300 group"
+                    >
+                      <div className="relative w-28 sm:w-48 flex-shrink-0 self-stretch min-h-[96px]">
+                        <Image
+                          src={getImageUrl(episode.still_path)}
+                          alt={episode.name}
+                          fill
+                          className="object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/60 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                      <div className="flex min-w-0 flex-1 flex-col p-3">
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <h3 className="whitespace-nowrap text-sm font-semibold text-yellow-400">Episode {episode.episode_number}</h3>
+                          <span className="whitespace-nowrap text-xs text-gray-400">{episode.air_date}</span>
+                        </div>
+                        <h4 className="font-bold mb-1 truncate text-white group-hover:text-yellow-300 transition-colors">{episode.name}</h4>
+                        <p className="text-gray-300 text-xs mb-3 line-clamp-2">
+                          {episode.overview}
+                        </p>
+                        <Link
+                          href={`/watch/tv/${resolvedParams.id}?season=${selectedSeason}&episode=${episode.episode_number}`}
+                          className="mt-auto self-start whitespace-nowrap px-4 py-1 bg-gradient-orange-yellow bg-gradient-to-r from-yellow-400 to-yellow-600 text-black rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
+                        >
+                          Watch Episode
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-400">No episodes found for this season.</div>
+              )}
+            </div>
+          </section>
+
+          {!loadingCredits && credits && (
+            <section className="h-[560px] lg:h-[680px] lg:order-first rounded-2xl border border-yellow-500/20 bg-black p-4">
+              <CastView cast={credits.cast} crew={credits.crew} scrollable />
+            </section>
           )}
         </div>
       </div>

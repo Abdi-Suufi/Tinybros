@@ -21,8 +21,8 @@ export default function Loading({ isExiting = false }: LoadingProps) {
       >
         <defs>
           <linearGradient id="tinywatch-trace-gradient">
-            <stop offset="0%" stopColor="#f97316" stopOpacity="0.1" />
-            <stop offset="72%" stopColor="#f97316" stopOpacity="0.35" />
+            <stop offset="0%" stopColor="#facc15" stopOpacity="0.1" />
+            <stop offset="72%" stopColor="#facc15" stopOpacity="0.35" />
             <stop offset="92%" stopColor="#fff7ed" />
             <stop offset="100%" stopColor="#facc15" stopOpacity="0.1" />
           </linearGradient>

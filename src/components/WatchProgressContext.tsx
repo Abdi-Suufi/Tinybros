@@ -393,41 +393,6 @@ export function WatchProgressProvider({ children }: { children: React.ReactNode 
     [records]
   );
 
-  const saveProgress = useCallback((progress: WatchProgress) => {
-    const normalized = {
-      ...progress,
-      season: progress.media_type === 'tv' ? progress.season : null,
-      episode: progress.media_type === 'tv' ? progress.episode : null,
-    };
-    const userId = userIdRef.current;
-    const localRecord = { ...normalized, user_id: userId };
-    const timerKey = userId ? `${userId}:${getProgressKey(normalized)}` : null;
-    if (timerKey) {
-      const timer = retryTimersRef.current.get(timerKey);
-      if (timer) window.clearTimeout(timer);
-      retryTimersRef.current.delete(timerKey);
-    }
-    localStateRef.current.records = [
-      localRecord,
-      ...localStateRef.current.records.filter((entry) =>
-        !(getProgressKey(entry) === getProgressKey(normalized) && entry.user_id === userId)
-      ),
-    ];
-    localStateRef.current.deleted = localStateRef.current.deleted.filter(
-      (entry) => !(entry.user_id === userId && getProgressKey(entry) === getProgressKey(normalized))
-    );
-    const localWriteSucceeded = persistLocal();
-    logProgress('save attempt', {
-      key: getProgressKey(normalized),
-      position: normalized.position_seconds,
-      duration: normalized.duration_seconds,
-      destination: userId ? 'localStorage + Supabase' : 'localStorage',
-      result: localWriteSucceeded ? 'localStorage persisted' : 'localStorage write failed',
-    });
-    updateRecords([normalized, ...recordsRef.current]);
-    if (userId) syncRecord(normalized, userId);
-  }, [persistLocal, syncRecord, updateRecords]);
-
   const removeProgress = useCallback((progress: WatchProgress) => {
     const userId = userIdRef.current;
     updateRecords(recordsRef.current.filter((entry) => getProgressKey(entry) !== getProgressKey(progress)));
@@ -461,6 +426,51 @@ export function WatchProgressProvider({ children }: { children: React.ReactNode 
       if (deleted) syncDelete(deleted);
     }
   }, [persistLocal, syncDelete, updateRecords]);
+
+  const saveProgress = useCallback((progress: WatchProgress) => {
+    const normalized = {
+      ...progress,
+      season: progress.media_type === 'tv' ? progress.season : null,
+      episode: progress.media_type === 'tv' ? progress.episode : null,
+    };
+    const userId = userIdRef.current;
+    const localRecord = { ...normalized, user_id: userId };
+    const timerKey = userId ? `${userId}:${getProgressKey(normalized)}` : null;
+    if (timerKey) {
+      const timer = retryTimersRef.current.get(timerKey);
+      if (timer) window.clearTimeout(timer);
+      retryTimersRef.current.delete(timerKey);
+    }
+    localStateRef.current.records = [
+      localRecord,
+      ...localStateRef.current.records.filter((entry) =>
+        !(getProgressKey(entry) === getProgressKey(normalized) && entry.user_id === userId)
+      ),
+    ];
+    localStateRef.current.deleted = localStateRef.current.deleted.filter(
+      (entry) => !(entry.user_id === userId && getProgressKey(entry) === getProgressKey(normalized))
+    );
+    const localWriteSucceeded = persistLocal();
+    logProgress('save attempt', {
+      key: getProgressKey(normalized),
+      position: normalized.position_seconds,
+      duration: normalized.duration_seconds,
+      destination: userId ? 'localStorage + Supabase' : 'localStorage',
+      result: localWriteSucceeded ? 'localStorage persisted' : 'localStorage write failed',
+    });
+    updateRecords([normalized, ...recordsRef.current]);
+    if (userId) syncRecord(normalized, userId);
+
+    // A series keeps one resume point: the episode watched most recently replaces any other
+    if (normalized.media_type === 'tv') {
+      const olderEpisodes = recordsRef.current.filter((entry) =>
+        entry.media_type === 'tv' &&
+        entry.tmdb_id === normalized.tmdb_id &&
+        getProgressKey(entry) !== getProgressKey(normalized)
+      );
+      for (const entry of olderEpisodes) removeProgress(entry);
+    }
+  }, [persistLocal, syncRecord, updateRecords, removeProgress]);
 
   const value = useMemo(
     () => ({ records, ready, getProgress, saveProgress, removeProgress }),

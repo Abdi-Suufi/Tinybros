@@ -31,8 +31,8 @@ export default function WatchlistToggle({ item, size = 'md' }: WatchlistTogglePr
         baseSize
       } ${
         saved
-          ? 'bg-gradient-to-r from-orange-500 to-yellow-500 text-black border-yellow-400 shadow-lg'
-          : 'bg-black/70 text-yellow-300 border-orange-400/70 hover:bg-black/90'
+          ? 'bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border-yellow-400 shadow-lg'
+          : 'bg-black/70 text-yellow-300 border-yellow-400/70 hover:bg-black/90'
       }`}
     >
       <svg

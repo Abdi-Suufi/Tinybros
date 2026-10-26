@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRef, useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { fetchTrending, fetchMovies, fetchTVShows, fetchAnime, getImageUrl, TMDBShow } from "@/lib/tmdb";
+import PosterCard, { releaseYear, tmdbRating } from "@/components/PosterCard";
 import WatchlistToggle from "@/components/WatchlistToggle";
 import Loading from "@/components/Loading";
 import ContinueWatchingRow from "@/components/ContinueWatchingRow";
@@ -481,7 +482,7 @@ export default function Home() {
               </p>
               <button
                 onClick={() => handleShowClick(show.id, show.media_type)}
-                className="bg-gradient-orange-yellow-light bg-gradient-to-r from-orange-500 to-yellow-600 px-10 py-4 rounded-full text-xl font-semibold hover:opacity-90 transition-opacity flex items-center gap-3 shadow-lg"
+                className="bg-gradient-orange-yellow-light bg-gradient-to-r from-yellow-400 to-yellow-600 text-black px-10 py-4 rounded-full text-xl font-semibold hover:opacity-90 transition-opacity flex items-center gap-3 shadow-lg"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -503,71 +504,102 @@ export default function Home() {
   const libraryRows = useMemo(
     () => (
       <>
-        {/* Trending Now */}
+        {/* Top Trending: wide featured #1 card, then ranked posters */}
         <section className="px-4">
-          <h2 className="text-2xl font-bold mb-6">Trending Now</h2>
+          <h2 className="text-2xl font-bold mb-6">Top Trending</h2>
           <div className="relative">
             <div 
               ref={trendingRef}
-              className="flex overflow-x-auto gap-6 pb-6 category-scrollbar cursor-grab active:cursor-grabbing"
+              className="flex overflow-x-auto gap-4 pb-6 category-scrollbar cursor-grab active:cursor-grabbing"
               style={{ scrollBehavior: 'smooth' }}
               {...createDragHandlers(trendingRef, 'trending')}
             >
               {loading
-                ? showSkeletonArray.map((_, idx) => (
-                    <div
-                      key={`trend-skel-${idx}`}
-                      className="flex-none w-[400px] rounded-xl overflow-hidden animate-pulse bg-gradient-to-br from-orange-900/40 via-gray-900/60 to-yellow-900/40 relative"
-                    >
-                      <div className="absolute top-4 left-4 z-20 w-12 h-12 rounded-full bg-gradient-to-r from-orange-500/80 to-yellow-400/80" />
-                      <div className="relative aspect-[16/9] bg-gradient-to-t from-orange-700/40 via-gray-900 to-yellow-600/40" />
-                      <div className="p-6 space-y-3">
-                        <div className="h-5 rounded-full w-2/3 bg-gradient-to-r from-orange-500/70 to-yellow-400/70" />
-                        <div className="h-4 rounded-full w-full bg-gradient-to-r from-orange-500/60 to-yellow-400/60" />
+                ? showSkeletonArray.slice(0, 7).map((_, idx) => (
+                    <div key={`trend-skel-${idx}`} className={`flex-none ${idx === 0 ? 'w-[min(85vw,600px)]' : 'w-[150px] sm:w-[200px]'}`}>
+                      <div className="h-[225px] sm:h-[300px] rounded-xl animate-pulse bg-gradient-to-br from-yellow-900/40 via-gray-900/60 to-yellow-900/40" />
+                      <div className="mt-3 space-y-2">
+                        <div className="h-4 rounded-full w-2/3 bg-gradient-to-r from-yellow-500/70 to-yellow-400/70" />
+                        <div className="h-3 rounded-full w-1/2 bg-gradient-to-r from-yellow-500/50 to-yellow-400/50" />
                       </div>
                     </div>
                   ))
-                : trending.map((show, index) => (
-                    <div
-                      key={`trending-list-${show.id}-${index}`}
-                      onClick={() => handleShowClick(show.id, show.media_type)}
-                      onDragStart={(e) => e.preventDefault()}
-                      className="flex-none w-[400px] rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group relative select-none"
-                    >
-                      <div className="absolute top-4 left-4 z-20 bg-gradient-to-r from-yellow-500 to-yellow-600 w-12 h-12 rounded-full flex items-center justify-center text-2xl font-bold">
-                        {index + 1}
-                      </div>
-                      <div className="relative aspect-[16/9]">
-                        <Image
-                          src={getImageUrl(show.backdrop_path)}
-                          alt={show.title || show.name || ''}
-                          fill
-                          className="object-cover"
+                : trending.slice(0, 10).map((show, index) => {
+                    const title = show.title || show.name || '';
+                    const year = (show.release_date || show.first_air_date || '').slice(0, 4);
+                    const isFeatured = index === 0;
+                    if (!isFeatured) {
+                      return (
+                        <PosterCard
+                          key={`trending-list-${show.id}-${index}`}
+                          item={show}
+                          onClick={() => handleShowClick(show.id, show.media_type)}
+                          rating={tmdbRating(show.vote_average)}
+                          year={year || undefined}
+                          rank={index + 1}
+                          className="flex-none w-[150px] sm:w-[200px]"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <WatchlistToggle
-                          item={{
-                            id: show.id,
-                            media_type: show.media_type,
-                            title: show.title,
-                            name: show.name,
-                            overview: show.overview,
-                            poster_path: show.poster_path,
-                            backdrop_path: show.backdrop_path,
-                          }}
-                          size="sm"
-                        />
-                        <div className="absolute bottom-0 left-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <h3 className="text-2xl font-bold mb-2">{show.title || show.name}</h3>
-                          <p className="text-lg text-gray-300">{show.overview}</p>
+                      );
+                    }
+                    return (
+                      <div
+                        key={`trending-list-${show.id}-${index}`}
+                        onClick={() => handleShowClick(show.id, show.media_type)}
+                        onDragStart={(e) => e.preventDefault()}
+                        className={`flex-none cursor-pointer group select-none ${isFeatured ? 'w-[min(85vw,600px)]' : 'w-[150px] sm:w-[200px]'}`}
+                      >
+                        <div className="relative h-[225px] sm:h-[300px] rounded-xl overflow-hidden bg-black border border-yellow-500/20 group-hover:border-yellow-400/70 group-hover:shadow-[0_0_16px_rgba(234,179,8,0.35)] transition-all duration-300">
+                          <Image
+                            src={getImageUrl(isFeatured ? show.backdrop_path : show.poster_path)}
+                            alt={title}
+                            fill
+                            className="object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                          {isFeatured && (
+                            <>
+                              <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-transparent" />
+                              <div className="absolute inset-y-0 left-0 flex w-full sm:w-3/4 flex-col justify-end p-4 sm:p-6">
+                                <h3 className="text-2xl sm:text-4xl font-extrabold leading-tight bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-yellow-600 line-clamp-2">
+                                  {title}
+                                </h3>
+                                <p className="mt-2 text-xs sm:text-sm text-gray-300 line-clamp-2 sm:line-clamp-3">{show.overview}</p>
+                                <span className="glass glass-button mt-3 self-start rounded-full px-4 py-1.5 text-sm font-semibold text-white">
+                                  View details
+                                </span>
+                              </div>
+                            </>
+                          )}
+                          {/* Rank badge */}
+                          <div className="absolute top-0 left-3 z-10 flex flex-col items-center rounded-b-md bg-gradient-to-b from-yellow-400 to-yellow-600 px-2 pb-1 pt-0.5 text-black shadow-lg">
+                            <span className="text-[9px] font-extrabold leading-none tracking-wider">TOP</span>
+                            <span className="text-base font-extrabold leading-tight">{index + 1}</span>
+                          </div>
+                          <WatchlistToggle
+                            item={{
+                              id: show.id,
+                              media_type: show.media_type,
+                              title: show.title,
+                              name: show.name,
+                              overview: show.overview,
+                              poster_path: show.poster_path,
+                              backdrop_path: show.backdrop_path,
+                            }}
+                            size="sm"
+                          />
+                        </div>
+                        <div className="mt-3 px-0.5">
+                          <h3 className="truncate font-semibold text-white group-hover:text-yellow-300 transition-colors">{title}</h3>
+                          <p className="mt-0.5 flex items-center gap-1.5 text-xs text-gray-400">
+                            <span className="text-yellow-400">★</span>
+                            <span>{show.vote_average ? show.vote_average.toFixed(1) : 'N/A'}</span>
+                            {year && (<><span>·</span><span>{year}</span></>)}
+                            <span>·</span>
+                            <span>{show.media_type === 'movie' ? 'Movie' : 'Show'}</span>
+                          </p>
                         </div>
                       </div>
-                      <div className="p-6">
-                        <h3 className="text-2xl font-bold truncate">{show.title || show.name}</h3>
-                        <p className="text-lg text-gray-400 truncate">{show.overview}</p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
             </div>
           </div>
         </section>
@@ -578,56 +610,29 @@ export default function Home() {
           <div className="relative">
             <div 
               ref={moviesSectionRef}
-              className="flex overflow-x-auto gap-6 pb-6 category-scrollbar cursor-grab active:cursor-grabbing"
+              className="flex overflow-x-auto gap-4 pb-6 category-scrollbar cursor-grab active:cursor-grabbing"
               style={{ scrollBehavior: 'smooth' }}
               {...createDragHandlers(moviesSectionRef, 'movies')}
             >
               {loading
                 ? showSkeletonArray.map((_, idx) => (
-                    <div
-                      key={`movie-skel-${idx}`}
-                      className="flex-none w-[300px] rounded-xl overflow-hidden animate-pulse bg-gradient-to-br from-orange-900/40 via-gray-900/60 to-yellow-900/40"
-                    >
-                      <div className="relative aspect-[2/3] bg-gradient-to-t from-orange-700/40 via-gray-900 to-yellow-600/40" />
-                      <div className="p-4 space-y-2">
-                        <div className="h-4 rounded-full w-3/4 bg-gradient-to-r from-orange-500/70 to-yellow-400/70" />
-                        <div className="h-3 rounded-full w-full bg-gradient-to-r from-orange-500/60 to-yellow-400/60" />
+                    <div key={`movie-skel-${idx}`} className="flex-none w-[150px] sm:w-[200px]">
+                      <div className="aspect-[2/3] rounded-xl animate-pulse bg-gradient-to-br from-yellow-900/40 via-gray-900/60 to-yellow-900/40" />
+                      <div className="mt-3 space-y-2">
+                        <div className="h-4 rounded-full w-3/4 bg-gradient-to-r from-yellow-500/70 to-yellow-400/70" />
+                        <div className="h-3 rounded-full w-1/2 bg-gradient-to-r from-yellow-500/50 to-yellow-400/50" />
                       </div>
                     </div>
                   ))
                 : movies.map((movie, index) => (
-                    <div
+                    <PosterCard
                       key={`movie-${movie.id}-${index}`}
+                      item={{ ...movie, media_type: 'movie' }}
                       onClick={() => handleShowClick(movie.id, 'movie')}
-                      onDragStart={(e) => e.preventDefault()}
-                      className="flex-none w-[300px] rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group select-none"
-                    >
-                      <div className="relative aspect-[2/3]">
-                        <Image
-                          src={getImageUrl(movie.poster_path)}
-                          alt={movie.title || ''}
-                          fill
-                          className="object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <WatchlistToggle
-                          item={{
-                            id: movie.id,
-                            media_type: 'movie',
-                            title: movie.title,
-                            name: movie.name,
-                            overview: movie.overview,
-                            poster_path: movie.poster_path,
-                            backdrop_path: movie.backdrop_path,
-                          }}
-                          size="sm"
-                        />
-                      </div>
-                      <div className="p-4">
-                        <h3 className="text-xl font-bold truncate">{movie.title}</h3>
-                        <p className="text-sm text-gray-400 truncate">{movie.overview}</p>
-                      </div>
-                    </div>
+                      rating={tmdbRating(movie.vote_average)}
+                      year={releaseYear(movie)}
+                      className="flex-none w-[150px] sm:w-[200px]"
+                    />
                   ))}
             </div>
           </div>
@@ -639,56 +644,29 @@ export default function Home() {
           <div className="relative">
             <div 
               ref={seriesRef}
-              className="flex overflow-x-auto gap-6 pb-6 category-scrollbar cursor-grab active:cursor-grabbing"
+              className="flex overflow-x-auto gap-4 pb-6 category-scrollbar cursor-grab active:cursor-grabbing"
               style={{ scrollBehavior: 'smooth' }}
               {...createDragHandlers(seriesRef, 'series')}
             >
               {loading
                 ? showSkeletonArray.map((_, idx) => (
-                    <div
-                      key={`series-skel-${idx}`}
-                      className="flex-none w-[300px] rounded-xl overflow-hidden animate-pulse bg-gradient-to-br from-orange-900/40 via-gray-900/60 to-yellow-900/40"
-                    >
-                      <div className="relative aspect-[2/3] bg-gradient-to-t from-orange-700/40 via-gray-900 to-yellow-600/40" />
-                      <div className="p-4 space-y-2">
-                        <div className="h-4 rounded-full w-3/4 bg-gradient-to-r from-orange-500/70 to-yellow-400/70" />
-                        <div className="h-3 rounded-full w-full bg-gradient-to-r from-orange-500/60 to-yellow-400/60" />
+                    <div key={`series-skel-${idx}`} className="flex-none w-[150px] sm:w-[200px]">
+                      <div className="aspect-[2/3] rounded-xl animate-pulse bg-gradient-to-br from-yellow-900/40 via-gray-900/60 to-yellow-900/40" />
+                      <div className="mt-3 space-y-2">
+                        <div className="h-4 rounded-full w-3/4 bg-gradient-to-r from-yellow-500/70 to-yellow-400/70" />
+                        <div className="h-3 rounded-full w-1/2 bg-gradient-to-r from-yellow-500/50 to-yellow-400/50" />
                       </div>
                     </div>
                   ))
                 : series.map((show, index) => (
-                    <div
+                    <PosterCard
                       key={`series-${show.id}-${index}`}
+                      item={{ ...show, media_type: 'tv' }}
                       onClick={() => handleShowClick(show.id, 'tv')}
-                      onDragStart={(e) => e.preventDefault()}
-                      className="flex-none w-[300px] rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group select-none"
-                    >
-                      <div className="relative aspect-[2/3]">
-                        <Image
-                          src={getImageUrl(show.poster_path)}
-                          alt={show.name || ''}
-                          fill
-                          className="object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <WatchlistToggle
-                          item={{
-                            id: show.id,
-                            media_type: 'tv',
-                            title: show.title,
-                            name: show.name,
-                            overview: show.overview,
-                            poster_path: show.poster_path,
-                            backdrop_path: show.backdrop_path,
-                          }}
-                          size="sm"
-                        />
-                      </div>
-                      <div className="p-4">
-                        <h3 className="text-xl font-bold truncate">{show.name}</h3>
-                        <p className="text-sm text-gray-400 truncate">{show.overview}</p>
-                      </div>
-                    </div>
+                      rating={tmdbRating(show.vote_average)}
+                      year={releaseYear(show)}
+                      className="flex-none w-[150px] sm:w-[200px]"
+                    />
                   ))}
             </div>
           </div>
@@ -700,56 +678,29 @@ export default function Home() {
           <div className="relative">
             <div 
               ref={animeRef}
-              className="flex overflow-x-auto gap-6 pb-6 category-scrollbar cursor-grab active:cursor-grabbing"
+              className="flex overflow-x-auto gap-4 pb-6 category-scrollbar cursor-grab active:cursor-grabbing"
               style={{ scrollBehavior: 'smooth' }}
               {...createDragHandlers(animeRef, 'anime')}
             >
               {loading
                 ? showSkeletonArray.map((_, idx) => (
-                    <div
-                      key={`anime-skel-${idx}`}
-                      className="flex-none w-[300px] rounded-xl overflow-hidden animate-pulse bg-gradient-to-br from-orange-900/40 via-gray-900/60 to-yellow-900/40"
-                    >
-                      <div className="relative aspect-[2/3] bg-gradient-to-t from-orange-700/40 via-gray-900 to-yellow-600/40" />
-                      <div className="p-4 space-y-2">
-                        <div className="h-4 rounded-full w-3/4 bg-gradient-to-r from-orange-500/70 to-yellow-400/70" />
-                        <div className="h-3 rounded-full w-full bg-gradient-to-r from-orange-500/60 to-yellow-400/60" />
+                    <div key={`anime-skel-${idx}`} className="flex-none w-[150px] sm:w-[200px]">
+                      <div className="aspect-[2/3] rounded-xl animate-pulse bg-gradient-to-br from-yellow-900/40 via-gray-900/60 to-yellow-900/40" />
+                      <div className="mt-3 space-y-2">
+                        <div className="h-4 rounded-full w-3/4 bg-gradient-to-r from-yellow-500/70 to-yellow-400/70" />
+                        <div className="h-3 rounded-full w-1/2 bg-gradient-to-r from-yellow-500/50 to-yellow-400/50" />
                       </div>
                     </div>
                   ))
                 : anime.map((show, index) => (
-                    <div
+                    <PosterCard
                       key={`anime-${show.id}-${index}`}
+                      item={{ ...show, media_type: 'tv' }}
                       onClick={() => handleShowClick(show.id, 'tv')}
-                      onDragStart={(e) => e.preventDefault()}
-                      className="flex-none w-[300px] rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group select-none"
-                    >
-                      <div className="relative aspect-[2/3]">
-                        <Image
-                          src={getImageUrl(show.poster_path)}
-                          alt={show.name || ''}
-                          fill
-                          className="object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <WatchlistToggle
-                          item={{
-                            id: show.id,
-                            media_type: 'tv',
-                            title: show.title,
-                            name: show.name,
-                            overview: show.overview,
-                            poster_path: show.poster_path,
-                            backdrop_path: show.backdrop_path,
-                          }}
-                          size="sm"
-                        />
-                      </div>
-                      <div className="p-4">
-                        <h3 className="text-xl font-bold truncate">{show.name}</h3>
-                        <p className="text-sm text-gray-400 truncate">{show.overview}</p>
-                      </div>
-                    </div>
+                      rating={tmdbRating(show.vote_average)}
+                      year={releaseYear(show)}
+                      className="flex-none w-[150px] sm:w-[200px]"
+                    />
                   ))}
             </div>
           </div>
@@ -779,17 +730,17 @@ export default function Home() {
         }
         
         .category-scrollbar::-webkit-scrollbar-track {
-          background: #1f2937;
+          background: #000000;
           border-radius: 4px;
         }
         
         .category-scrollbar::-webkit-scrollbar-thumb {
-          background: linear-gradient(to right, #f97316, #eab308);
+          background: linear-gradient(to right, #facc15, #eab308);
           border-radius: 4px;
         }
         
         .category-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(to right, #ea580c, #ca8a04);
+          background: linear-gradient(to right, #eab308, #ca8a04);
         }
 
 
@@ -815,15 +766,15 @@ export default function Home() {
       <section className="relative h-[70vh] bg-black overflow-hidden">
         {loading ? (
           <div className="w-full h-full relative">
-            <div className="absolute inset-0 animate-pulse bg-gradient-to-b from-orange-900/40 via-black to-yellow-900/40" />
+            <div className="absolute inset-0 animate-pulse bg-gradient-to-b from-yellow-900/40 via-black to-yellow-900/40" />
             <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4 space-y-4">
-              <div className="h-12 md:h-16 rounded-full w-3/4 max-w-xl bg-gradient-to-r from-orange-500/70 to-yellow-400/70" />
+              <div className="h-12 md:h-16 rounded-full w-3/4 max-w-xl bg-gradient-to-r from-yellow-500/70 to-yellow-400/70" />
               <div className="space-y-3 w-full max-w-2xl">
-                <div className="h-4 rounded-full w-full bg-gradient-to-r from-orange-500/60 to-yellow-400/60" />
-                <div className="h-4 rounded-full w-5/6 bg-gradient-to-r from-orange-500/50 to-yellow-400/50" />
-                <div className="h-4 rounded-full w-2/3 bg-gradient-to-r from-orange-500/40 to-yellow-400/40" />
+                <div className="h-4 rounded-full w-full bg-gradient-to-r from-yellow-500/60 to-yellow-400/60" />
+                <div className="h-4 rounded-full w-5/6 bg-gradient-to-r from-yellow-500/50 to-yellow-400/50" />
+                <div className="h-4 rounded-full w-2/3 bg-gradient-to-r from-yellow-500/40 to-yellow-400/40" />
               </div>
-              <div className="h-12 rounded-full w-40 bg-gradient-to-r from-orange-500/70 to-yellow-400/70" />
+              <div className="h-12 rounded-full w-40 bg-gradient-to-r from-yellow-500/70 to-yellow-400/70" />
             </div>
           </div>
         ) : (
@@ -850,7 +801,7 @@ export default function Home() {
                     onClick={() => goToSlide(index)}
                     className={`w-3 h-3 rounded-full transition-all ${
                       index === currentIndex
-                        ? 'bg-gradient-yellow-dot bg-gradient-to-r from-yellow-400 to-yellow-500 w-8'
+                        ? 'bg-gradient-yellow-dot bg-gradient-to-r from-yellow-400 to-yellow-600 w-8'
                         : 'bg-gray-600 hover:bg-gray-500'
                     }`}
                     aria-label={`Go to slide ${index + 1}`}

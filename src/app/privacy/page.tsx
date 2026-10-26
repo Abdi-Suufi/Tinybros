@@ -9,7 +9,7 @@ export default function PrivacyPage() {
   return (
     <article className="mx-auto max-w-3xl px-4 pb-16 pt-28 text-gray-200 sm:px-6">
       <header className="mb-10 border-b border-yellow-500/20 pb-6">
-        <h1 className="bg-gradient-to-r from-yellow-300 to-orange-400 bg-clip-text text-3xl font-bold text-transparent sm:text-4xl">
+        <h1 className="bg-gradient-to-r from-yellow-300 to-yellow-400 bg-clip-text text-3xl font-bold text-transparent sm:text-4xl">
           Privacy Policy
         </h1>
         <p className="mt-3 text-sm text-gray-400">Last updated: 19/10/2026</p>

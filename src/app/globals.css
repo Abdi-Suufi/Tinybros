@@ -12,6 +12,21 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Tailwind's default gray is blue-tinted; use pure neutral greys site-wide */
+@theme {
+  --color-gray-50: oklch(98.5% 0 0);
+  --color-gray-100: oklch(97% 0 0);
+  --color-gray-200: oklch(92.2% 0 0);
+  --color-gray-300: oklch(87% 0 0);
+  --color-gray-400: oklch(70.8% 0 0);
+  --color-gray-500: oklch(55.6% 0 0);
+  --color-gray-600: oklch(43.9% 0 0);
+  --color-gray-700: oklch(37.1% 0 0);
+  --color-gray-800: oklch(26.9% 0 0);
+  --color-gray-900: oklch(20.5% 0 0);
+  --color-gray-950: oklch(14.5% 0 0);
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -99,19 +114,19 @@ body {
 
 /* Android WebView gradient fallback */
 .bg-gradient-orange-yellow {
-  background-color: #ea580c; /* orange-600 fallback */
-  background-image: linear-gradient(to right, #ea580c, #ca8a04);
-  -webkit-background-image: linear-gradient(to right, #ea580c, #ca8a04);
-  -moz-background-image: linear-gradient(to right, #ea580c, #ca8a04);
-  -o-background-image: linear-gradient(to right, #ea580c, #ca8a04);
+  background-color: #eab308; /* yellow-600 fallback */
+  background-image: linear-gradient(to right, #eab308, #ca8a04);
+  -webkit-background-image: linear-gradient(to right, #eab308, #ca8a04);
+  -moz-background-image: linear-gradient(to right, #eab308, #ca8a04);
+  -o-background-image: linear-gradient(to right, #eab308, #ca8a04);
 }
 
 .bg-gradient-orange-yellow-light {
-  background-color: #f97316; /* orange-500 fallback */
-  background-image: linear-gradient(to right, #f97316, #ca8a04);
-  -webkit-background-image: linear-gradient(to right, #f97316, #ca8a04);
-  -moz-background-image: linear-gradient(to right, #f97316, #ca8a04);
-  -o-background-image: linear-gradient(to right, #f97316, #ca8a04);
+  background-color: #facc15; /* yellow-500 fallback */
+  background-image: linear-gradient(to right, #facc15, #ca8a04);
+  -webkit-background-image: linear-gradient(to right, #facc15, #ca8a04);
+  -moz-background-image: linear-gradient(to right, #facc15, #ca8a04);
+  -o-background-image: linear-gradient(to right, #facc15, #ca8a04);
 }
 
 .bg-gradient-yellow-dot {
@@ -120,4 +135,34 @@ body {
   -webkit-background-image: linear-gradient(to right, #facc15, #eab308);
   -moz-background-image: linear-gradient(to right, #facc15, #eab308);
   -o-background-image: linear-gradient(to right, #facc15, #eab308);
+}
+
+/* Glass surfaces (source dropdown, featured buttons) */
+.glass {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04));
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.05),
+    0 4px 18px rgba(0, 0, 0, 0.4);
+}
+
+.glass-button {
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.glass-button:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.08));
+  border-color: rgba(255, 255, 255, 0.55);
+}
+
+/* Scrollable cast / episode panels (scroll without a visible scrollbar) */
+.panel-scroll {
+  scrollbar-width: none;
+}
+
+.panel-scroll::-webkit-scrollbar {
+  display: none;
 }

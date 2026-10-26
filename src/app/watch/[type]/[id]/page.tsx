@@ -63,13 +63,14 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [recommendations, setRecommendations] = useState<RecommendedShow[]>([]);
   const [cast, setCast] = useState<TMDBCast[]>([]);
-  const [selectedSeason, setSelectedSeason] = useState(1);
+  const [selectedSeason, setSelectedSeason] = useState(() => Number(searchParams.get('season')) || 1);
   const [loading, setLoading] = useState(true);
   const [selectedSource, setSelectedSource] = useState<string>('cinesrc');
   const [showPlayer, setShowPlayer] = useState(true);
   const [resumeStart, setResumeStart] = useState<{ key: string; seconds: number } | null>(null);
   const [playerReload, setPlayerReload] = useState(0);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const episodeListRef = useRef<HTMLDivElement | null>(null);
   const latestPlaybackRef = useRef<{
     currentTime: number;
     duration: number;
@@ -457,6 +458,8 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
   // Fetch episodes when season changes
   useEffect(() => {
     if (resolvedParams.type === 'tv' && show) {
+      // Ignore responses for a season the user has already switched away from
+      let cancelled = false;
       const fetchEpisodes = async () => {
         try {
           const episodesResponse = await fetch(
@@ -465,7 +468,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
           
           if (episodesResponse.ok) {
             const episodesData = await episodesResponse.json();
-            setEpisodes(episodesData.episodes || []);
+            if (!cancelled) setEpisodes(episodesData.episodes || []);
           }
         } catch (error) {
           console.error('Error fetching episodes:', error);
@@ -473,6 +476,9 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
       };
 
       fetchEpisodes();
+      return () => {
+        cancelled = true;
+      };
     }
   }, [selectedSeason, resolvedParams.id, resolvedParams.type, show]);
 
@@ -528,6 +534,23 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
     });
   }, [showPlayer, progressReady, startSeconds, selectedSource, progressKey, playerReload, finalIframeSrc]);
 
+  // Scroll the episode panel (not the page) so the current episode is visible
+  useEffect(() => {
+    const list = episodeListRef.current;
+    const current = list?.querySelector<HTMLElement>('[data-current-episode="true"]');
+    if (!list || !current) return;
+    // Wait a frame so row heights have settled before measuring
+    const frame = requestAnimationFrame(() => {
+      list.scrollTop = current.offsetTop - 8;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [loading, episodes, currentEpisode, selectedSeason]);
+
+  // The episode list follows the season dropdown, so only use it when it shows the playing season
+  const currentEpisodeName = selectedSeason === currentSeason
+    ? episodes.find(ep => ep.episode_number === currentEpisode)?.name
+    : undefined;
+
   //NAVIGATION LOGIC
   // Next Episode Logic
   let nextEpisodeUrl = '';
@@ -555,20 +578,20 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
     return (
       <div className="min-h-screen bg-black">
         <div className="w-full max-w-5xl mx-auto pt-28 pb-8 px-4">
-          <div className="relative w-full aspect-video rounded-lg overflow-hidden animate-pulse bg-gradient-to-br from-orange-900/40 via-gray-900/60 to-yellow-900/40">
-            <div className="absolute inset-0 bg-gradient-to-t from-orange-700/40 via-black to-yellow-600/40" />
+          <div className="relative w-full aspect-video rounded-lg overflow-hidden animate-pulse bg-gradient-to-br from-yellow-900/40 via-gray-900/60 to-yellow-900/40">
+            <div className="absolute inset-0 bg-gradient-to-t from-yellow-700/40 via-black to-yellow-600/40" />
           </div>
         </div>
 
         <div className="w-full max-w-5xl mx-auto px-4 pb-2">
           <div className="flex flex-col md:flex-row gap-8 animate-pulse">
-            <div className="w-48 h-72 rounded-xl flex-shrink-0 bg-gradient-to-b from-orange-700/50 via-gray-900 to-yellow-600/50" />
+            <div className="w-48 h-72 rounded-xl flex-shrink-0 bg-gradient-to-b from-yellow-700/50 via-gray-900 to-yellow-600/50" />
             <div className="flex-1 space-y-4 mt-2">
-              <div className="h-8 rounded-full w-2/3 bg-gradient-to-r from-orange-500/70 to-yellow-400/70" />
+              <div className="h-8 rounded-full w-2/3 bg-gradient-to-r from-yellow-500/70 to-yellow-400/70" />
               <div className="space-y-2">
-                <div className="h-3 rounded-full w-full bg-gradient-to-r from-orange-500/60 to-yellow-400/60" />
-                <div className="h-3 rounded-full w-5/6 bg-gradient-to-r from-orange-500/50 to-yellow-400/50" />
-                <div className="h-3 rounded-full w-4/6 bg-gradient-to-r from-orange-500/40 to-yellow-400/40" />
+                <div className="h-3 rounded-full w-full bg-gradient-to-r from-yellow-500/60 to-yellow-400/60" />
+                <div className="h-3 rounded-full w-5/6 bg-gradient-to-r from-yellow-500/50 to-yellow-400/50" />
+                <div className="h-3 rounded-full w-4/6 bg-gradient-to-r from-yellow-500/40 to-yellow-400/40" />
               </div>
             </div>
           </div>
@@ -599,13 +622,16 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
         }
         
         .scrollbar-hide::-webkit-scrollbar-thumb {
-          background: linear-gradient(to right, #0ea5e9, #14b8a6);
+          background: linear-gradient(to right, #facc15, #eab308);
           border-radius: 4px;
         }
         
         .scrollbar-hide::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(to right, #0284c7, #0d9488);
+          background: linear-gradient(to right, #eab308, #ca8a04);
         }
+
+
+
       `}</style>
 
       {/* Video Player */}
@@ -613,7 +639,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
         <div className="row-start-1 w-full max-w-5xl justify-self-center lg:col-start-2 lg:row-start-1 lg:max-w-none">
         {showPlayer ? (
           <>
-            <div className="relative w-full aspect-video bg-gray-900 rounded-lg shadow-2xl">
+            <div className="relative w-full aspect-video bg-black rounded-lg shadow-2xl">
               {progressReady && startSeconds !== null ? (
                 <iframe
                   key={`${selectedSource}-${getCurrentSourceUrl()}-${playerReload}`}
@@ -644,7 +670,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
             )}
           </>
         ) : (
-          <div className="relative w-full aspect-video bg-gray-900 rounded-lg overflow-hidden shadow-2xl flex items-center justify-center">
+          <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden shadow-2xl flex items-center justify-center">
             <div className="text-center">
               <h1 className="text-4xl font-bold mb-4">{show.title || show.name}</h1>
               {searchParams.get('episode') && (
@@ -663,17 +689,17 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
                         key={source.id}
                         onClick={() => handleSourceChange(source.id)}
                         disabled={source.disabled}
-                        className={`px-4 py-2 rounded-full text-white font-semibold transition-opacity ${
+                        className={`px-4 py-2 rounded-full text-black font-semibold transition-opacity ${
                           source.disabled
                             ? 'bg-gray-700/50 cursor-not-allowed opacity-50'
                             : source.id === 'cinesrc'
-                              ? 'bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 ring-2 ring-orange-400 ring-offset-2 ring-offset-black hover:opacity-90' 
-                              : 'bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 hover:opacity-90'
+                              ? 'bg-gradient-orange-yellow bg-gradient-to-r from-yellow-400 to-yellow-600 text-black ring-2 ring-yellow-400 ring-offset-2 ring-offset-black hover:opacity-90' 
+                              : 'bg-gradient-orange-yellow bg-gradient-to-r from-yellow-400 to-yellow-600 text-black hover:opacity-90'
                         }`}
                       >
                         {source.name}
                         {source.id === 'cinesrc' && (
-                          <span className="ml-1 text-xs bg-orange-400 text-black px-1.5 py-0.5 rounded-full">★</span>
+                          <span className="ml-1 text-xs bg-yellow-400 text-black px-1.5 py-0.5 rounded-full">★</span>
                         )}
                       </button>
                     ))}
@@ -684,7 +710,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
                     {prevEpisodeUrl && (
                       <Link
                         href={prevEpisodeUrl}
-                        className="inline-flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-orange-600 to-yellow-600 hover:opacity-90 text-white rounded-full font-semibold transition-opacity"
+                        className="inline-flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-yellow-400 to-yellow-600 hover:opacity-90 text-black rounded-full font-semibold transition-opacity"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
@@ -695,7 +721,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
                     {nextEpisodeUrl && (
                       <Link
                         href={nextEpisodeUrl}
-                        className="inline-flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-orange-600 to-yellow-600 hover:opacity-90 text-white rounded-full font-semibold transition-opacity"
+                        className="inline-flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-yellow-400 to-yellow-600 hover:opacity-90 text-black rounded-full font-semibold transition-opacity"
                       >
                         <span>Next</span>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
@@ -714,99 +740,83 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
         <AdsterraSidebar placement="left" />
         <AdsterraSidebar placement="right" />
       </div>
-      {/* Current Episode Display (when player is active) */}
+      {/* Current Episode Display (when player is active) - plain text, abbreviated on mobile */}
       {showPlayer && resolvedParams.type === 'tv' && (
-        <div className="w-full max-w-5xl mx-auto px-4 pb-2">
-          <div className="text-center">
-            <div className="inline-flex items-center gap-3 px-6 py-3 bg-gray-900/80 backdrop-blur-sm rounded-full border border-gray-700/50">
-              <span className="text-white font-semibold text-lg">
-                {show.title || show.name}
-              </span>
-              <span className="text-gray-400">•</span>
-              <span className="text-orange-400 font-bold text-lg">
-                Season {currentSeason} • Episode {currentEpisode}
-              </span>
-              {episodes.find(ep => ep.episode_number === currentEpisode) && (
-                <>
-                  <span className="text-gray-400">•</span>
-                  <span className="text-gray-300 text-sm">
-                    {episodes.find(ep => ep.episode_number === currentEpisode)?.name}
-                  </span>
-                </>
-              )}
-            </div>
+        <div className="w-full max-w-5xl mx-auto px-4 pb-1">
+          <div className="flex min-w-0 items-center justify-center gap-2 sm:gap-3 whitespace-nowrap">
+            <span className="truncate text-white font-semibold sm:text-lg">
+              {show.title || show.name}
+            </span>
+            <span className="text-gray-500">•</span>
+            <span className="text-yellow-400 font-bold sm:text-lg">
+              <span className="sm:hidden">S{currentSeason} E{currentEpisode}</span>
+              <span className="hidden sm:inline">Season {currentSeason} • Episode {currentEpisode}</span>
+            </span>
+            {currentEpisodeName && (
+              <>
+                <span className="text-gray-500">•</span>
+                <span className="truncate text-gray-300 text-sm">{currentEpisodeName}</span>
+              </>
+            )}
           </div>
         </div>
       )}
 
       {/* Source Selector & Navigation (when player is active) */}
       {showPlayer && (
-        <div className="bg-gray-900 p-4">
-          <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4 max-w-5xl">
-            
+        <div className="bg-black px-4 py-3">
+          <div className="mx-auto grid max-w-5xl grid-cols-[1fr_auto_1fr] items-center gap-3">
             {/* Previous Episode Button (Left Side) */}
-            <div className="flex-shrink-0 w-full md:w-auto flex justify-center md:justify-start">
-              {prevEpisodeUrl ? (
+            <div className="justify-self-start">
+              {prevEpisodeUrl && (
                 <Link
                   href={prevEpisodeUrl}
-                  className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-orange-600 to-yellow-600 hover:opacity-90 text-white rounded-full font-semibold transition-opacity group"
+                  aria-label="Previous episode"
+                  className="flex items-center gap-2 px-3 sm:px-5 py-2 bg-gradient-to-r from-yellow-400 to-yellow-600 hover:opacity-90 text-black rounded-full font-semibold transition-opacity group"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 group-hover:-translate-x-1 transition-transform">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
                   </svg>
-                  <span>Prev</span>
+                  <span className="hidden sm:inline">Prev</span>
                 </Link>
-              ) : (
-                // Invisible spacer to maintain center alignment of sources when Prev is missing
-                <div className="hidden md:block w-[100px]" />
               )}
             </div>
 
-            {/* Source Buttons (Center) */}
-            <div className="flex flex-wrap gap-3 justify-center flex-1">
-              {playbackSources.map((source) => (
-                <button
-                  key={source.id}
-                  onClick={() => handleSourceChange(source.id)}
-                  disabled={source.disabled}
-                  className={`px-4 py-2 rounded-full text-white font-semibold transition-all ${
-                    source.disabled
-                      ? 'bg-gray-700/50 cursor-not-allowed opacity-50'
-                      : selectedSource === source.id
-                        ? source.id === 'cinesrc'
-                          ? 'bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 ring-2 ring-orange-400 ring-offset-2 ring-offset-black'
-                          : 'bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600'
-                        : source.id === 'cinesrc'
-                          ? 'bg-gray-800 hover:bg-gray-700 ring-1 ring-orange-400/50'
-                          : 'bg-gray-800 hover:bg-gray-700'
-                  }`}
-                >
-                  {source.name}
-                  {source.id === 'cinesrc' && (
-                    <span className="ml-1 text-xs bg-orange-400 text-black px-1.5 py-0.5 rounded-full">★</span>
-                  )}
-                </button>
-              ))}
+            {/* Source Dropdown (Center) */}
+            <div className="relative">
+              <label htmlFor="playback-source" className="sr-only">Playback source</label>
+              <select
+                id="playback-source"
+                value={selectedSource}
+                onChange={(e) => handleSourceChange(e.target.value)}
+                className="glass glass-button appearance-none cursor-pointer rounded-full py-2 pl-4 pr-9 sm:pl-5 sm:pr-10 font-semibold text-white focus:outline-none focus:border-yellow-400"
+              >
+                {playbackSources.map((source) => (
+                  <option key={source.id} value={source.id} disabled={source.disabled} className="bg-black text-white">
+                    {source.name}{source.id === 'cinesrc' ? ' ★' : ''}
+                  </option>
+                ))}
+              </select>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-yellow-400">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+              </svg>
             </div>
 
             {/* Next Episode Button (Right Side) */}
-            <div className="flex-shrink-0 w-full md:w-auto flex justify-center md:justify-end">
-              {nextEpisodeUrl ? (
+            <div className="justify-self-end">
+              {nextEpisodeUrl && (
                 <Link
                   href={nextEpisodeUrl}
-                  className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-orange-600 to-yellow-600 hover:opacity-90 text-white rounded-full font-semibold transition-opacity group"
+                  aria-label="Next episode"
+                  className="flex items-center gap-2 px-3 sm:px-5 py-2 bg-gradient-to-r from-yellow-400 to-yellow-600 hover:opacity-90 text-black rounded-full font-semibold transition-opacity group"
                 >
-                  <span>Next</span>
+                  <span className="hidden sm:inline">Next</span>
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 group-hover:translate-x-1 transition-transform">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                   </svg>
                 </Link>
-              ) : (
-                // Invisible spacer
-                <div className="hidden md:block w-[100px]" />
               )}
             </div>
-
           </div>
         </div>
       )}
@@ -839,105 +849,12 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
 
           {/* Info */}
           <div className="flex-1">
-            <h1 className="text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-yellow-500">
+            <h1 className="text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-yellow-600">
               {show.title || show.name}
             </h1>
             <p className="text-gray-300">{show.overview}</p>
           </div>
         </div>
-
-        {/* Cast Section */}
-        {cast.length > 0 && (
-          <CastView cast={cast} />
-        )}
-
-        {/* Episodes (for TV shows) */}
-        {resolvedParams.type === 'tv' && episodes.length > 0 && (
-          <div className="mt-16">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-yellow-500">
-                Episodes
-              </h2>
-              <select
-                value={selectedSeason}
-                onChange={(e) => {
-                  const newSeason = Number(e.target.value);
-                  setSelectedSeason(newSeason);
-                  // Update URL without reloading
-                  const url = new URL(window.location.href);
-                  url.searchParams.set('season', newSeason.toString());
-                  window.history.pushState({}, '', url.toString());
-                }}
-                className="bg-gray-800/50 text-white px-4 py-2 rounded-full border border-gray-700 focus:outline-none focus:border-gray-500 transition-colors"
-              >
-                {Array.from({ length: show.number_of_seasons || 1 }, (_, i) => i + 1).map(
-                  (season) => (
-                    <option key={season} value={season}>
-                      Season {season}
-                    </option>
-                  )
-                )}
-              </select>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {episodes.map((episode) => {
-                const isCurrentEpisode = episode.episode_number === currentEpisode && selectedSeason === currentSeason;
-                return (
-                  <div
-                    key={episode.id}
-                    className={`rounded-xl overflow-hidden transition-all duration-300 transform ${
-                      isCurrentEpisode
-                        ? 'bg-gradient-to-br from-orange-900/40 to-yellow-900/40 border-2 border-orange-500/50'
-                        : 'bg-gray-800/50 hover:bg-gray-800/80 hover:scale-105 group'
-                    }`}
-                  >
-                    <div className="relative h-40">
-                      <Image
-                        src={getImageUrl(episode.still_path)}
-                        alt={episode.name}
-                        fill
-                        className="object-cover"
-                      />
-                      <div className={`absolute inset-0 bg-gradient-to-t from-black/80 to-transparent ${
-                        isCurrentEpisode ? 'opacity-50' : 'opacity-0 group-hover:opacity-100'
-                      } transition-opacity`} />
-                      {isCurrentEpisode && (
-                        <div className="absolute top-2 right-2 bg-gradient-to-r from-orange-600 to-yellow-600 text-white px-3 py-1 rounded-full text-xs font-bold">
-                          Currently Watching
-                        </div>
-                      )}
-                    </div>
-                    <div className="p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-semibold">Episode {episode.episode_number}</h3>
-                        <span className="text-sm text-gray-400">{episode.air_date}</span>
-                      </div>
-                      <h4 className="text-lg font-bold mb-2">{episode.name}</h4>
-                      <p className="text-gray-300 text-sm mb-4 line-clamp-2">
-                        {episode.overview}
-                      </p>
-                      {isCurrentEpisode ? (
-                        <button
-                          disabled
-                          className="inline-block w-full text-center px-4 py-2 bg-gray-700/50 text-gray-400 rounded-full font-semibold cursor-not-allowed"
-                        >
-                          Currently Watching
-                        </button>
-                      ) : (
-                        <Link
-                          href={`/watch/${resolvedParams.type}/${resolvedParams.id}?season=${selectedSeason}&episode=${episode.episode_number}`}
-                          className="inline-block w-full text-center px-4 py-2 bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 rounded-full font-semibold hover:opacity-90 transition-opacity"
-                        >
-                          Watch Episode
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
 
         {/* Disqus Comments */}
         <div className="mt-16">
@@ -953,17 +870,110 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
           />
         </div>
 
+        {/* Episodes & Cast: side-by-side scrollable panels for TV (episodes first, so on top on mobile), plain cast grid for movies */}
+        {resolvedParams.type === 'tv' && episodes.length > 0 ? (
+          <div className={`mt-16 grid grid-cols-1 gap-8 ${cast.length > 0 ? 'lg:grid-cols-2' : ''}`}>
+          <section className="flex h-[560px] lg:h-[680px] flex-col rounded-2xl border border-yellow-500/20 bg-black p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-yellow-600">
+                Episodes
+              </h2>
+              <select
+                value={selectedSeason}
+                onChange={(e) => {
+                  const newSeason = Number(e.target.value);
+                  setSelectedSeason(newSeason);
+                  // Update URL without reloading
+                  const url = new URL(window.location.href);
+                  url.searchParams.set('season', newSeason.toString());
+                  window.history.pushState({}, '', url.toString());
+                }}
+                className="bg-black text-white px-4 py-2 rounded-full border border-yellow-500/40 hover:border-yellow-400/70 focus:outline-none focus:border-yellow-400 focus:shadow-[0_0_12px_rgba(234,179,8,0.35)] transition-colors"
+              >
+                {Array.from({ length: show.number_of_seasons || 1 }, (_, i) => i + 1).map(
+                  (season) => (
+                    <option key={season} value={season}>
+                      Season {season}
+                    </option>
+                  )
+                )}
+              </select>
+            </div>
+            <div ref={episodeListRef} className="panel-scroll relative min-h-0 flex-1 overflow-y-auto p-2">
+            <div className="flex flex-col gap-3">
+              {episodes.map((episode) => {
+                const isCurrentEpisode = episode.episode_number === currentEpisode && selectedSeason === currentSeason;
+                return (
+                  <div
+                    key={episode.id}
+                    data-current-episode={isCurrentEpisode}
+                    className={`flex rounded-xl overflow-hidden bg-black transition-all duration-300 ${
+                      isCurrentEpisode
+                        ? 'border-2 border-yellow-500/70 shadow-[0_0_18px_rgba(234,179,8,0.3)]'
+                        : 'border border-yellow-500/20 hover:border-yellow-400/70 hover:shadow-[0_0_16px_rgba(234,179,8,0.35)] group'
+                    }`}
+                  >
+                    <div className="relative w-28 sm:w-48 flex-shrink-0 self-stretch min-h-[96px]">
+                      <Image
+                        src={getImageUrl(episode.still_path)}
+                        alt={episode.name}
+                        fill
+                        className="object-cover"
+                      />
+                      <div className={`absolute inset-0 bg-gradient-to-r from-transparent to-black/60 ${
+                        isCurrentEpisode ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                      } transition-opacity`} />
+                    </div>
+                    <div className="flex min-w-0 flex-1 flex-col p-3">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <h3 className="whitespace-nowrap text-sm font-semibold text-yellow-400">Episode {episode.episode_number}</h3>
+                        <span className="whitespace-nowrap text-xs text-gray-400">{episode.air_date}</span>
+                      </div>
+                      <h4 className="font-bold mb-1 truncate text-white group-hover:text-yellow-300 transition-colors">{episode.name}</h4>
+                      <p className="text-gray-300 text-xs mb-3 line-clamp-2">
+                        {episode.overview}
+                      </p>
+                      {isCurrentEpisode ? (
+                        <span className="mt-auto self-start whitespace-nowrap px-3 py-1 bg-yellow-500/10 border border-yellow-500/40 text-yellow-300 rounded-full text-xs font-semibold">
+                          Currently Watching
+                        </span>
+                      ) : (
+                        <Link
+                          href={`/watch/${resolvedParams.type}/${resolvedParams.id}?season=${selectedSeason}&episode=${episode.episode_number}`}
+                          className="mt-auto self-start whitespace-nowrap px-4 py-1 bg-gradient-orange-yellow bg-gradient-to-r from-yellow-400 to-yellow-600 text-black rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
+                        >
+                          Watch Episode
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            </div>
+          </section>
+
+            {cast.length > 0 && (
+              <section className="h-[560px] lg:h-[680px] rounded-2xl border border-yellow-500/20 bg-black p-4">
+                <CastView cast={cast} scrollable />
+              </section>
+            )}
+          </div>
+        ) : (
+          cast.length > 0 && <CastView cast={cast} />
+        )}
+
         {/* Recommended Section */}
         {recommendations.length > 0 && (
           <div className="mt-16">
-            <h2 className="text-2xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-yellow-500">
+            <h2 className="text-2xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-yellow-600">
               Recommended
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
               {recommendations.map((rec) => (
                 <div
                   key={rec.id}
-                  className="bg-gray-800/50 rounded-xl overflow-hidden hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 group"
+                  className="rounded-xl overflow-hidden bg-black border border-yellow-500/20 hover:border-yellow-400/70 hover:shadow-[0_0_16px_rgba(234,179,8,0.35)] transition-all duration-300 transform hover:scale-105 group"
                 >
                   <Link href={`/watch/${resolvedParams.type}/${rec.id}`}>
                     <div className="relative aspect-[2/3]">

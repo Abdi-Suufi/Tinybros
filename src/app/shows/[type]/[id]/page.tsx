@@ -104,7 +104,7 @@ export default function ShowPage({ params }: { params: Promise<{ type: string; i
 
             <Link
               href={`/watch/${resolvedParams.type}/${resolvedParams.id}`}
-              className="inline-block px-8 py-3 bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 rounded-full text-lg font-semibold hover:opacity-90 transition-opacity"
+              className="inline-block px-8 py-3 bg-gradient-orange-yellow bg-gradient-to-r from-yellow-400 to-yellow-600 text-black rounded-full text-lg font-semibold hover:opacity-90 transition-opacity"
             >
               Watch Now
             </Link>
@@ -114,14 +114,14 @@ export default function ShowPage({ params }: { params: Promise<{ type: string; i
         {/* Episodes Section */}
         {resolvedParams.type === 'tv' && episodes && episodes.episodes && (
           <div className="mt-16">
-            <h2 className="text-2xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-teal-500">
+            <h2 className="text-2xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-yellow-600">
               Episodes
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {episodes.episodes.map((episode: TMDBEpisode) => (
                 <div
                   key={episode.id}
-                  className="bg-gray-800/50 rounded-xl overflow-hidden hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 group"
+                  className="rounded-xl overflow-hidden bg-black border border-yellow-500/20 hover:border-yellow-400/70 hover:shadow-[0_0_16px_rgba(234,179,8,0.35)] transition-all duration-300 transform hover:scale-105 group"
                 >
                   <div className="relative h-40">
                     <Image
@@ -143,7 +143,7 @@ export default function ShowPage({ params }: { params: Promise<{ type: string; i
                     </p>
                     <Link
                       href={`/watch/${resolvedParams.type}/${resolvedParams.id}?season=1&episode=${episode.episode_number}`}
-                      className="inline-block w-full text-center px-4 py-2 bg-gradient-to-r from-sky-600 to-teal-600 rounded-full font-semibold hover:opacity-90 transition-opacity"
+                      className="inline-block w-full text-center px-4 py-2 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full font-semibold hover:opacity-90 transition-opacity text-black"
                     >
                       Watch Episode
                     </Link>

@@ -1,10 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { discoverMoviesPage, fetchMovieGenres, getImageUrl, TMDBGenre, TMDBShow, type DiscoverSort } from '@/lib/tmdb';
-import WatchlistToggle from '@/components/WatchlistToggle';
+import { discoverMoviesPage, fetchMovieGenres, TMDBGenre, TMDBShow, type DiscoverSort } from '@/lib/tmdb';
+import PosterCard, { releaseYear, tmdbRating } from '@/components/PosterCard';
 import DiscoverFilterBar, { DiscoverFilterValues } from '@/components/DiscoverFilterBar';
 import { fetchImdbRatings, sortByImdbRating } from '@/lib/imdbRatings';
 
@@ -216,62 +215,27 @@ export default function MoviesClient() {
           onReset={resetFilters}
         />
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-6">
           {((loading && movies.length === 0) || waitingForImdb)
             ? skeletonItems.map((_, idx) => (
-                <div
-                  key={`movie-skel-${idx}`}
-                  className="rounded-xl overflow-hidden animate-pulse bg-gradient-to-br from-orange-900/40 via-gray-900/60 to-yellow-900/40"
-                >
-                  <div className="relative aspect-[2/3] bg-gradient-to-t from-orange-700/40 via-gray-900 to-yellow-600/40" />
-                  <div className="p-4 space-y-2">
-                    <div className="h-4 rounded-full w-3/4 bg-gradient-to-r from-orange-500/70 to-yellow-400/70" />
-                    <div className="h-3 rounded-full w-full bg-gradient-to-r from-orange-500/60 to-yellow-400/60" />
+                <div key={`movie-skel-${idx}`}>
+                  <div className="aspect-[2/3] rounded-xl animate-pulse bg-gradient-to-br from-yellow-900/40 via-gray-900/60 to-yellow-900/40" />
+                  <div className="mt-3 space-y-2">
+                    <div className="h-4 rounded-full w-3/4 bg-gradient-to-r from-yellow-500/70 to-yellow-400/70" />
+                    <div className="h-3 rounded-full w-1/2 bg-gradient-to-r from-yellow-500/50 to-yellow-400/50" />
                   </div>
                 </div>
               ))
             : visibleMovies.map((movie) => (
-                <div
+                <PosterCard
                   key={`movie-${movie.id}`}
+                  item={{ ...movie, name: movie.title, media_type: 'movie' }}
                   onClick={() => router.push(`/movies/movie/${movie.id}`)}
-                  className="rounded-xl overflow-hidden bg-gray-800/50 hover:bg-gray-800/80 transition-all duration-300 transform hover:scale-105 cursor-pointer group"
-                >
-                  <div className="relative aspect-[2/3]">
-                    <Image src={getImageUrl(movie.poster_path)} alt={movie.title || ''} fill className="object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="absolute top-3 left-3 z-10">
-                      {ratingSource === 'imdb' ? (
-                        <span className="text-xs px-2 py-1 rounded-full bg-black/70 border border-yellow-500/30 text-yellow-300">
-                          IMDb {movie.id in imdbRatings ? imdbRatings[movie.id] ?? 'N/A' : '...'}
-                        </span>
-                      ) : (
-                        <span className="text-xs px-2 py-1 rounded-full bg-black/70 border border-yellow-500/30 text-yellow-300">
-                          TMDB {Math.round((movie.vote_average ?? 0) * 10) / 10}
-                        </span>
-                      )}
-                    </div>
-                    <WatchlistToggle
-                      item={{
-                        id: movie.id,
-                        media_type: 'movie',
-                        title: movie.title,
-                        name: movie.title,
-                        overview: movie.overview,
-                        poster_path: movie.poster_path,
-                        backdrop_path: movie.backdrop_path,
-                      }}
-                      size="sm"
-                    />
-                    <div className="absolute bottom-0 left-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <h3 className="text-lg font-semibold">{movie.title}</h3>
-                      <p className="text-sm text-gray-300 line-clamp-3">{movie.overview}</p>
-                    </div>
-                  </div>
-                  <div className="p-4">
-                    <h3 className="text-lg font-semibold truncate">{movie.title}</h3>
-                    <p className="text-sm text-gray-400 truncate">{movie.overview}</p>
-                  </div>
-                </div>
+                  rating={ratingSource === 'imdb'
+                    ? `IMDb ${movie.id in imdbRatings ? imdbRatings[movie.id] ?? 'N/A' : '...'}`
+                    : tmdbRating(movie.vote_average)}
+                  year={releaseYear(movie)}
+                />
               ))}
         </div>
         {loadingMore && (

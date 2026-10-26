@@ -114,7 +114,7 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
 
             <Link
               href={`/watch/movie/${resolvedParams.id}`}
-              className="inline-block px-8 py-3 bg-gradient-orange-yellow bg-gradient-to-r from-orange-600 to-yellow-600 rounded-full text-lg font-semibold hover:opacity-90 transition-opacity"
+              className="inline-block px-8 py-3 bg-gradient-orange-yellow bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full text-lg font-semibold hover:opacity-90 transition-opacity text-black"
             >
               Watch Now
             </Link>

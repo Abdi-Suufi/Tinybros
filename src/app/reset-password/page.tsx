@@ -96,7 +96,7 @@ export default function ResetPasswordPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-black px-4 pb-8 pt-24 text-white">
-      <section className="w-full max-w-md rounded-2xl border border-yellow-500/30 bg-gray-950 p-6 shadow-2xl">
+      <section className="w-full max-w-md rounded-2xl border border-yellow-500/30 bg-black p-6 shadow-2xl">
         <h1 className="mb-5 text-2xl font-semibold text-yellow-300">Reset your password</h1>
 
         {recoveryState === 'checking' && (
@@ -133,7 +133,7 @@ export default function ResetPasswordPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full rounded-lg bg-gradient-to-r from-orange-500 to-yellow-500 px-4 py-2 font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
+              className="w-full rounded-lg bg-gradient-to-r from-yellow-400 to-yellow-600 px-4 py-2 font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               {isSubmitting ? 'Updating password…' : 'Set new password'}
             </button>

@@ -1,6 +1,6 @@
 export default function MaintenanceBanner() {
   return (
-    <div className="maintenance-banner fixed top-[60px] left-0 right-0 z-40 overflow-hidden bg-orange-600 py-2 text-sm font-semibold text-white">
+    <div className="maintenance-banner fixed top-[60px] left-0 right-0 z-40 overflow-hidden bg-yellow-600 py-2 text-sm font-semibold text-white">
       <style jsx>{`
         @keyframes maintenance-marquee {
           from { transform: translateX(-100%); }

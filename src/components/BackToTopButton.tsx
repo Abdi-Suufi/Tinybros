@@ -33,7 +33,7 @@ export default function BackToTopButton() {
       type="button"
       onClick={handleClick}
       aria-label="Back to top"
-      className="fixed bottom-6 right-6 z-40 rounded-full bg-gradient-to-r from-orange-500 to-yellow-500 text-black shadow-lg hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 focus:ring-offset-black flex items-center justify-center w-12 h-12 md:w-14 md:h-14"
+      className="fixed bottom-6 right-6 z-40 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 text-black shadow-lg hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 focus:ring-offset-black flex items-center justify-center w-12 h-12 md:w-14 md:h-14"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
