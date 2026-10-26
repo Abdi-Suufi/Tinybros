@@ -12,6 +12,21 @@ export interface PatchNote {
 
 export const patchNotes: PatchNote[] = [
   {
+    date: 'October 26, 2026',
+    title: 'A fresh coat of gold',
+    status: 'released',
+    summary: 'Tinywatch has a semi-new look: a cleaner black-and-gold design across the site, a new navigation bar, and a much faster way to search.',
+    changes: [
+      'A new floating navigation bar with Home, Movies, Shows, and Anime, plus quick access to search and your account.',
+      'Search grows right out of the navigation bar and shows results as you type, with All, Movies, Shows, and Anime tabs. Press “/” or Ctrl+K to open it.',
+      'The homepage now has a Top Trending row, and posters everywhere show the rating, year, and type at a glance.',
+      'Episodes and cast now sit side by side in their own scrollable panels, so long seasons no longer stretch the page.',
+      'Playback sources are now a single dropdown under the player, and comments have moved up so they are easier to find.',
+      'Continue watching now only shows the latest episode you watched for each series.',
+      'Fixed a bug where the episode list could show the wrong season.',
+    ],
+  },
+  {
     date: 'October 23, 2026',
     title: 'More ways to watch',
     status: 'released',
