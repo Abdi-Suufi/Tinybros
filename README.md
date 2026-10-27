@@ -1,5 +1,5 @@
 # Tinywatch🎬
-<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/68edeabf-bd46-4565-b1b6-fa16ab3eb4ee" />
+<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/f2ff4966-3ad5-478e-a33d-c186c8f9e92a" />
 A modern, clean streaming platform that provides access to movies, TV shows, and anime with an intuitive user interface and seamless viewing experience.
 
 ## 🌟 Purpose
