@@ -1,5 +1,5 @@
 # Tinywatch🎬
-<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/68edeabf-bd46-4565-b1b6-fa16ab3eb4ee" />
+<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/f2ff4966-3ad5-478e-a33d-c186c8f9e92a" />
 A modern, clean streaming platform that provides access to movies, TV shows, and anime with an intuitive user interface and seamless viewing experience.
 
 ## 🌟 Purpose
@@ -7,7 +7,7 @@ A modern, clean streaming platform that provides access to movies, TV shows, and
 Tinywatch is designed to be your gateway to the future of entertainment. It's a comprehensive streaming platform that aggregates content from various sources, providing users with a unified interface to discover, browse, and watch their favorite movies, TV series, and anime.
 
 ## ✨ Features
-<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/af93996a-7346-4fa4-9314-d7b8c384fab5" />
+<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/c0e687fc-1d0b-419a-83c0-a1a3c961ebb5" />
 
 ### 🎯 Content Discovery
 - **Trending Content**: Curated trending movies and shows updated weekly
@@ -16,7 +16,6 @@ Tinywatch is designed to be your gateway to the future of entertainment. It's a 
 - **Smart Filtering**: Content filtered by quality ratings and popularity
 
 ### 🎬 Streaming Experience
-- **Multiple Playback Sources**: Choose from VidSrc, VidSrc.to, and SuperEmbed
 - **High-Quality Streaming**: Support for various video qualities and formats
 - **Episode Management**: Full season and episode browsing for TV shows
 - **Responsive Design**: Optimized for desktop, tablet, and mobile viewing
