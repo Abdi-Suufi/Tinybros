@@ -12,6 +12,9 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Tinywatch - Modern Streaming Platform",
   description: "A clean and futuristic streaming service",
+  appleWebApp: {
+    title: "Tinywatch",
+  },
 };
 
 export default function RootLayout({

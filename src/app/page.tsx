@@ -214,7 +214,8 @@ export default function Home() {
     const onPointerDown = (e: React.PointerEvent) => {
       const el = sectionRef.current;
       if (!el) return;
-      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      // Touch/pen use native scrolling (smoother + native momentum); drag emulation is mouse-only
+      if (e.pointerType !== 'mouse' || e.button !== 0) return;
 
       cancelMomentum('category');
 
@@ -309,7 +310,7 @@ export default function Home() {
       onPointerUp: end,
       onPointerCancel: end,
       onDragStart: (e: React.DragEvent) => e.preventDefault(),
-      style: { touchAction: 'pan-y' as const, scrollBehavior: 'auto' as const },
+      style: { scrollBehavior: 'auto' as const },
       "data-drag-section": sectionId,
     };
   }, [cancelMomentum, startMomentum]);
@@ -318,7 +319,7 @@ export default function Home() {
   const handleCarouselPointerDown = (e: React.PointerEvent) => {
     const el = carouselRef.current;
     if (!el) return;
-    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    if (e.pointerType !== 'mouse' || e.button !== 0) return;
 
     cancelMomentum('hero');
 
@@ -787,7 +788,7 @@ export default function Home() {
               onPointerUp={handleCarouselPointerEnd}
               onPointerCancel={handleCarouselPointerEnd}
               onDragStart={(e) => e.preventDefault()}
-              style={{ cursor: 'grab', touchAction: 'pan-y' }}
+              style={{ cursor: 'grab' }}
             >
               {heroSlides}
             </div>
