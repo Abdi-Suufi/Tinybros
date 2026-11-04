@@ -28,6 +28,8 @@ export default function Home() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const isInteractingRef = useRef(false);
   const suppressClickUntilRef = useRef(0);
+  const autoplayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const resetAutoplayRef = useRef<() => void>(() => {});
 
   type DragState = {
     active: boolean;
@@ -423,6 +425,9 @@ export default function Home() {
     const slideWidth = carouselRef.current.offsetWidth;
     const newIndex = Math.round(scrollPosition / slideWidth);
     setCurrentIndex(newIndex);
+    // Any movement (swipe, drag, dot click, autoplay) restarts the countdown,
+    // so the next auto-advance is always a full interval after the carousel settles
+    resetAutoplayRef.current();
   }, []);
 
   useEffect(() => {
@@ -437,21 +442,29 @@ export default function Home() {
   useEffect(() => {
     if (trending.length <= 1) return;
 
-    const interval = setInterval(() => {
-      if (isInteractingRef.current) return;
-      setCurrentIndex((prevIndex) => {
-        const nextIndex = (prevIndex + 1) % trending.length;
-        if (carouselRef.current) {
-          carouselRef.current.scrollTo({
-            left: nextIndex * carouselRef.current.offsetWidth,
-            behavior: 'smooth'
-          });
-        }
-        return nextIndex;
-      });
-    }, 5000); // Change slide every 5 seconds
+    const advance = () => {
+      const el = carouselRef.current;
+      if (isInteractingRef.current || !el) {
+        resetAutoplayRef.current();
+        return;
+      }
+      const prevIndex = Math.round(el.scrollLeft / el.offsetWidth);
+      const nextIndex = (prevIndex + 1) % trending.length;
+      setCurrentIndex(nextIndex);
+      el.scrollTo({ left: nextIndex * el.offsetWidth, behavior: 'smooth' });
+      resetAutoplayRef.current();
+    };
 
-    return () => clearInterval(interval);
+    resetAutoplayRef.current = () => {
+      if (autoplayTimerRef.current) clearTimeout(autoplayTimerRef.current);
+      autoplayTimerRef.current = setTimeout(advance, 5000); // Change slide every 5 seconds
+    };
+    resetAutoplayRef.current();
+
+    return () => {
+      if (autoplayTimerRef.current) clearTimeout(autoplayTimerRef.current);
+      resetAutoplayRef.current = () => {};
+    };
   }, [trending.length]);
 
   // Memoized so carousel index changes (autoplay, swipes) only re-render the dots
