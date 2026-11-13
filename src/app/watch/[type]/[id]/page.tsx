@@ -154,7 +154,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
       return;
     }
     const hasResumePoint = progress &&
-      progress.position_seconds > 30 &&
+      progress.position_seconds > 0 &&
       progress.position_seconds / progress.duration_seconds <= 0.9;
     setResumeStart({
       key: progressKey,
@@ -179,10 +179,6 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
       });
       removeProgress(latest.progress);
       latestPlaybackRef.current = null;
-      return;
-    }
-    if (latest.currentTime <= 30) {
-      logWatchPlayer('flush skipped', { reason, position: latest.currentTime, result: 'position is at or below 30 seconds' });
       return;
     }
     if (latest.duration > 86_400) {
