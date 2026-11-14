@@ -475,18 +475,18 @@ export default function Home() {
           key={`trending-${show.id}-${index}`}
           className="relative flex-none w-full h-full snap-center"
         >
-          <div className="relative w-full h-full">
+          <div className="keep-dark relative w-full h-full">
             <Image
               src={getImageUrl(show.backdrop_path, 'original')}
               alt={show.title || show.name || ''}
               fill
               className="object-cover"
-              style={{ objectPosition: 'center 30%' }}
+              style={{ objectPosition: 'center 20%' }}
               quality={100}
               priority={index === 0}
               sizes="100vw"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+            <div className="hero-scrim absolute inset-0" />
             <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4">
               <h2 className="text-5xl md:text-7xl font-bold mb-4 text-center max-w-4xl">
                 {show.title || show.name}
@@ -562,7 +562,7 @@ export default function Home() {
                         onDragStart={(e) => e.preventDefault()}
                         className={`flex-none cursor-pointer group select-none ${isFeatured ? 'w-[min(85vw,600px)]' : 'w-[150px] sm:w-[200px]'}`}
                       >
-                        <div className="relative h-[225px] sm:h-[300px] rounded-xl overflow-hidden bg-black border border-yellow-500/20 group-hover:border-yellow-400/70 group-hover:shadow-[0_0_16px_rgba(234,179,8,0.35)] transition-all duration-300">
+                        <div className="relative h-[225px] sm:h-[300px] rounded-xl overflow-hidden bg-black border border-yellow-500/20 group-hover:border-yellow-400/70 group-hover:shadow-[0_0_16px_color-mix(in_oklab,var(--color-yellow-500)_35%,transparent)] transition-all duration-300">
                           <Image
                             src={getImageUrl(isFeatured ? show.backdrop_path : show.poster_path)}
                             alt={title}
@@ -571,8 +571,8 @@ export default function Home() {
                           />
                           {isFeatured && (
                             <>
-                              <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-transparent" />
-                              <div className="absolute inset-y-0 left-0 flex w-full sm:w-3/4 flex-col justify-end p-4 sm:p-6">
+                              <div className="keep-dark absolute inset-0 bg-gradient-to-r from-black via-black/70 to-transparent" />
+                              <div className="keep-dark absolute inset-y-0 left-0 flex w-full sm:w-3/4 flex-col justify-end p-4 sm:p-6">
                                 <h3 className="text-2xl sm:text-4xl font-extrabold leading-tight bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-yellow-600 line-clamp-2">
                                   {title}
                                 </h3>
@@ -744,17 +744,17 @@ export default function Home() {
         }
         
         .category-scrollbar::-webkit-scrollbar-track {
-          background: #000000;
+          background: var(--color-black);
           border-radius: 4px;
         }
         
         .category-scrollbar::-webkit-scrollbar-thumb {
-          background: linear-gradient(to right, #facc15, #eab308);
+          background: linear-gradient(to right, var(--color-yellow-400), var(--color-yellow-500));
           border-radius: 4px;
         }
         
         .category-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(to right, #eab308, #ca8a04);
+          background: linear-gradient(to right, var(--color-yellow-500), var(--color-yellow-600));
         }
 
 
@@ -777,7 +777,7 @@ export default function Home() {
       `}</style>
 
       {/* Trending Shows Hero Carousel */}
-      <section className="relative h-[70vh] bg-black overflow-hidden">
+      <section className="relative h-[max(calc(70vh+20px),calc((70vh+20px+56.25vw)/2))] bg-black overflow-hidden">
         {loading ? (
           <div className="w-full h-full relative">
             <div className="absolute inset-0 animate-pulse bg-gradient-to-b from-yellow-900/40 via-black to-yellow-900/40" />
@@ -826,8 +826,8 @@ export default function Home() {
           </>
         )}
 
-        {/* Bottom gradient transition to black */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-b from-transparent via-black/30 to-black z-10 pointer-events-none" />
+        {/* Bottom gradient transition into the page background */}
+        <div className="hero-fade absolute bottom-0 left-0 right-0 h-36 z-10 pointer-events-none" />
       </section>
 
       {/* Content Library */}

@@ -296,7 +296,7 @@ export default function SearchAutocomplete({ isScrolled, enableShortcut = false,
       >
         {/* Search field */}
         <div
-          className="flex items-center gap-3 rounded-xl border border-yellow-500/30 bg-black/95 px-4 shadow-2xl backdrop-blur-md focus-within:border-yellow-400/70 focus-within:shadow-[0_0_16px_rgba(234,179,8,0.25)] transition-[border-color,box-shadow]"
+          className="flex items-center gap-3 rounded-xl border border-yellow-500/30 bg-black/95 px-4 shadow-2xl backdrop-blur-md focus-within:border-yellow-400/70 focus-within:shadow-[0_0_16px_color-mix(in_oklab,var(--color-yellow-500)_25%,transparent)] transition-[border-color,box-shadow]"
           style={{ height: anchor?.height ?? 48 }}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

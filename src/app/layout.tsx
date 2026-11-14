@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import BackToTopButton from "@/components/BackToTopButton";
 import Link from "next/link";
 import { Providers } from "./Providers";
+import { THEME_INIT_SCRIPT } from "@/lib/themes";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -23,7 +24,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="bg-black text-white">
+    <html lang="en" className="bg-black text-white" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className={`${inter.className} min-h-screen`} suppressHydrationWarning>
         <Providers>
           <Navbar />

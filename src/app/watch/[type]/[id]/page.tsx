@@ -613,17 +613,17 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
         }
         
         .scrollbar-hide::-webkit-scrollbar-track {
-          background: #000;
+          background: var(--color-black);
           border-radius: 4px;
         }
         
         .scrollbar-hide::-webkit-scrollbar-thumb {
-          background: linear-gradient(to right, #facc15, #eab308);
+          background: linear-gradient(to right, var(--color-yellow-400), var(--color-yellow-500));
           border-radius: 4px;
         }
         
         .scrollbar-hide::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(to right, #eab308, #ca8a04);
+          background: linear-gradient(to right, var(--color-yellow-500), var(--color-yellow-600));
         }
 
 
@@ -884,7 +884,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
                   url.searchParams.set('season', newSeason.toString());
                   window.history.pushState({}, '', url.toString());
                 }}
-                className="bg-black text-white px-4 py-2 rounded-full border border-yellow-500/40 hover:border-yellow-400/70 focus:outline-none focus:border-yellow-400 focus:shadow-[0_0_12px_rgba(234,179,8,0.35)] transition-colors"
+                className="bg-black text-white px-4 py-2 rounded-full border border-yellow-500/40 hover:border-yellow-400/70 focus:outline-none focus:border-yellow-400 focus:shadow-[0_0_12px_color-mix(in_oklab,var(--color-yellow-500)_35%,transparent)] transition-colors"
               >
                 {Array.from({ length: show.number_of_seasons || 1 }, (_, i) => i + 1).map(
                   (season) => (
@@ -905,8 +905,8 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
                     data-current-episode={isCurrentEpisode}
                     className={`flex rounded-xl overflow-hidden bg-black transition-all duration-300 ${
                       isCurrentEpisode
-                        ? 'border-2 border-yellow-500/70 shadow-[0_0_18px_rgba(234,179,8,0.3)]'
-                        : 'border border-yellow-500/20 hover:border-yellow-400/70 hover:shadow-[0_0_16px_rgba(234,179,8,0.35)] group'
+                        ? 'border-2 border-yellow-500/70 shadow-[0_0_18px_color-mix(in_oklab,var(--color-yellow-500)_30%,transparent)]'
+                        : 'border border-yellow-500/20 hover:border-yellow-400/70 hover:shadow-[0_0_16px_color-mix(in_oklab,var(--color-yellow-500)_35%,transparent)] group'
                     }`}
                   >
                     <div className="relative w-28 sm:w-48 flex-shrink-0 self-stretch min-h-[96px]">
@@ -969,7 +969,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
               {recommendations.map((rec) => (
                 <div
                   key={rec.id}
-                  className="rounded-xl overflow-hidden bg-black border border-yellow-500/20 hover:border-yellow-400/70 hover:shadow-[0_0_16px_rgba(234,179,8,0.35)] transition-all duration-300 transform hover:scale-105 group"
+                  className="rounded-xl overflow-hidden bg-black border border-yellow-500/20 hover:border-yellow-400/70 hover:shadow-[0_0_16px_color-mix(in_oklab,var(--color-yellow-500)_35%,transparent)] transition-all duration-300 transform hover:scale-105 group"
                 >
                   <Link href={`/watch/${resolvedParams.type}/${rec.id}`}>
                     <div className="relative aspect-[2/3]">

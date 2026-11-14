@@ -21,6 +21,11 @@ const nextConfig: NextConfig = {
         hostname: 'i.pinimg.com',
         pathname: '/originals/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'static2.klipy.com',
+        pathname: '/ii/**',
+      },
     ],
     minimumCacheTTL: 60,
     formats: ['image/avif', 'image/webp'],

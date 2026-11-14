@@ -3,6 +3,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --logo-shadow: rgb(0 0 0 / 0.8);
 }
 
 @theme inline {
@@ -27,6 +28,229 @@
   --color-gray-950: oklch(14.5% 0 0);
 }
 
+/*
+ * Site themes. The whole UI is built on Tailwind's yellow/orange/black/white/gray
+ * utilities, so themes re-point those palette variables instead of touching classes.
+ *   data-theme = accent colour (gold is the untouched default)
+ *   data-mode  = "light" swaps black for cream; dark is the default
+ */
+html[data-mode="light"] {
+  /* Swap the dark and light ends of the palette */
+  --color-black: #fff8e7;
+  --color-white: #1f1606;
+  --foreground: #1f1606;
+  --color-gray-50: oklch(20% 0.012 75);
+  --color-gray-100: oklch(24% 0.012 75);
+  --color-gray-200: oklch(30% 0.014 75);
+  --color-gray-300: oklch(37% 0.016 75);
+  --color-gray-400: oklch(46% 0.018 75);
+  --color-gray-500: oklch(58% 0.018 75);
+  --color-gray-600: oklch(72% 0.018 80);
+  --color-gray-700: oklch(84% 0.02 82);
+  --color-gray-800: oklch(90% 0.024 84);
+  --color-gray-900: oklch(94% 0.026 85);
+  --color-gray-950: oklch(96.5% 0.024 86);
+  --logo-shadow: transparent;
+  color-scheme: light;
+}
+
+/* Bright accents are too light for text on cream; dark text on accent buttons must stay dark */
+html[data-mode="light"] .text-yellow-400,
+html[data-mode="light"] .text-yellow-500 {
+  color: var(--accent-text);
+}
+
+html[data-mode="light"] .text-black {
+  color: #1f1606;
+}
+
+/* Text laid over photos (hero slides, featured cards) needs a real dark overlay in either mode */
+html[data-mode="light"] .keep-dark {
+  --color-black: #000000;
+  --color-white: #ffffff;
+  --color-gray-200: oklch(92.2% 0 0);
+  --color-gray-300: oklch(87% 0 0);
+  --color-gray-400: oklch(70.8% 0 0);
+  color: #ffffff;
+  color-scheme: dark;
+}
+
+html[data-mode="light"] .keep-dark .text-black {
+  color: #1f1606;
+}
+
+html[data-theme="crimson"] {
+  --color-yellow-50: #fff1f2;
+  --color-yellow-100: #ffe4e6;
+  --color-yellow-200: #fecdd3;
+  --color-yellow-300: #fda4af;
+  --color-yellow-400: #fb7185;
+  --color-yellow-500: #f43f5e;
+  --color-yellow-600: #e11d48;
+  --color-yellow-700: #be123c;
+  --color-yellow-800: #9f1239;
+  --color-yellow-900: #881337;
+  --color-yellow-950: #4c0519;
+  --color-orange-400: #f87171;
+  --color-orange-500: #ef4444;
+  --color-orange-600: #dc2626;
+  --theme-trace-glow: rgb(244 63 94 / 0.95);
+}
+
+html[data-theme="ocean"] {
+  --color-yellow-50: #f0f9ff;
+  --color-yellow-100: #e0f2fe;
+  --color-yellow-200: #bae6fd;
+  --color-yellow-300: #7dd3fc;
+  --color-yellow-400: #38bdf8;
+  --color-yellow-500: #0ea5e9;
+  --color-yellow-600: #0284c7;
+  --color-yellow-700: #0369a1;
+  --color-yellow-800: #075985;
+  --color-yellow-900: #0c4a6e;
+  --color-yellow-950: #082f49;
+  --color-orange-400: #22d3ee;
+  --color-orange-500: #06b6d4;
+  --color-orange-600: #0891b2;
+  --theme-trace-glow: rgb(14 165 233 / 0.95);
+}
+
+html[data-theme="emerald"] {
+  --color-yellow-50: #f0fdf4;
+  --color-yellow-100: #dcfce7;
+  --color-yellow-200: #bbf7d0;
+  --color-yellow-300: #86efac;
+  --color-yellow-400: #4ade80;
+  --color-yellow-500: #22c55e;
+  --color-yellow-600: #16a34a;
+  --color-yellow-700: #15803d;
+  --color-yellow-800: #166534;
+  --color-yellow-900: #14532d;
+  --color-yellow-950: #052e16;
+  --color-orange-400: #34d399;
+  --color-orange-500: #10b981;
+  --color-orange-600: #059669;
+  --theme-trace-glow: rgb(34 197 94 / 0.95);
+}
+
+/* Light mode: light shades are used for text and dark shades for tinted surfaces, so flip each accent scale */
+html[data-mode="light"],
+html[data-mode="light"][data-theme="gold"] {
+  --color-yellow-50: #422006;
+  --color-yellow-100: #713f12;
+  --color-yellow-200: #854d0e;
+  --color-yellow-300: #a16207;
+  --color-yellow-400: #facc15;
+  --color-yellow-500: #eab308;
+  --color-yellow-600: #ca8a04;
+  --color-yellow-700: #fde047;
+  --color-yellow-800: #fef08a;
+  --color-yellow-900: #fef9c3;
+  --color-yellow-950: #fefce8;
+  --accent-text: #a16207;
+}
+
+html[data-mode="light"][data-theme="crimson"] {
+  --color-yellow-50: #4c0519;
+  --color-yellow-100: #881337;
+  --color-yellow-200: #9f1239;
+  --color-yellow-300: #be123c;
+  --color-yellow-400: #fb7185;
+  --color-yellow-500: #f43f5e;
+  --color-yellow-600: #e11d48;
+  --color-yellow-700: #fda4af;
+  --color-yellow-800: #fecdd3;
+  --color-yellow-900: #ffe4e6;
+  --color-yellow-950: #fff1f2;
+  --color-orange-400: #f87171;
+  --color-orange-500: #ef4444;
+  --color-orange-600: #dc2626;
+  --accent-text: #be123c;
+  --theme-trace-glow: rgb(244 63 94 / 0.95);
+}
+
+html[data-mode="light"][data-theme="ocean"] {
+  --color-yellow-50: #082f49;
+  --color-yellow-100: #0c4a6e;
+  --color-yellow-200: #075985;
+  --color-yellow-300: #0369a1;
+  --color-yellow-400: #38bdf8;
+  --color-yellow-500: #0ea5e9;
+  --color-yellow-600: #0284c7;
+  --color-yellow-700: #7dd3fc;
+  --color-yellow-800: #bae6fd;
+  --color-yellow-900: #e0f2fe;
+  --color-yellow-950: #f0f9ff;
+  --color-orange-400: #22d3ee;
+  --color-orange-500: #06b6d4;
+  --color-orange-600: #0891b2;
+  --accent-text: #0369a1;
+  --theme-trace-glow: rgb(14 165 233 / 0.95);
+}
+
+html[data-mode="light"][data-theme="emerald"] {
+  --color-yellow-50: #052e16;
+  --color-yellow-100: #14532d;
+  --color-yellow-200: #166534;
+  --color-yellow-300: #15803d;
+  --color-yellow-400: #4ade80;
+  --color-yellow-500: #22c55e;
+  --color-yellow-600: #16a34a;
+  --color-yellow-700: #86efac;
+  --color-yellow-800: #bbf7d0;
+  --color-yellow-900: #dcfce7;
+  --color-yellow-950: #f0fdf4;
+  --color-orange-400: #34d399;
+  --color-orange-500: #10b981;
+  --color-orange-600: #059669;
+  --accent-text: #15803d;
+  --theme-trace-glow: rgb(34 197 94 / 0.95);
+}
+
+/* Set briefly while the theme changes, so hundreds of colour transitions don't all restart at once */
+html.theme-changing,
+html.theme-changing *,
+html.theme-changing *::before,
+html.theme-changing *::after {
+  transition: none !important;
+}
+
+/* Custom theme: the --custom-* values are built from the viewer's picks and set inline on <html> */
+html[data-theme="custom"] {
+  --color-yellow-50: var(--custom-50);
+  --color-yellow-100: var(--custom-100);
+  --color-yellow-200: var(--custom-200);
+  --color-yellow-300: var(--custom-300);
+  --color-yellow-400: var(--custom-400);
+  --color-yellow-500: var(--custom-500);
+  --color-yellow-600: var(--custom-600);
+  --color-yellow-700: var(--custom-700);
+  --color-yellow-800: var(--custom-800);
+  --color-yellow-900: var(--custom-900);
+  --color-yellow-950: var(--custom-950);
+  --color-orange-400: var(--custom-400);
+  --color-orange-500: var(--custom-500);
+  --color-orange-600: var(--custom-600);
+  --color-black: var(--custom-bg-dark);
+  --theme-trace-glow: var(--custom-glow);
+}
+
+html[data-mode="light"][data-theme="custom"] {
+  --color-yellow-50: var(--custom-950);
+  --color-yellow-100: var(--custom-900);
+  --color-yellow-200: var(--custom-800);
+  --color-yellow-300: var(--custom-700);
+  --color-yellow-400: var(--custom-400);
+  --color-yellow-500: var(--custom-500);
+  --color-yellow-600: var(--custom-600);
+  --color-yellow-700: var(--custom-300);
+  --color-yellow-800: var(--custom-200);
+  --color-yellow-900: var(--custom-100);
+  --color-yellow-950: var(--custom-50);
+  --color-black: var(--custom-bg-light);
+  --accent-text: var(--custom-700);
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -35,7 +259,7 @@
 }
 
 body {
-  background: #000000;
+  background: var(--color-black);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
@@ -64,7 +288,7 @@ body {
 }
 
 .tinybros-loader-outline {
-  fill: #050505;
+  fill: var(--color-black);
   stroke: #49413a;
   stroke-width: 1.5px;
 }
@@ -75,8 +299,8 @@ body {
   stroke-dasharray: 0 5000;
   stroke-linecap: round;
   stroke-width: 3.5px;
-  filter: drop-shadow(0 0 5px rgb(249 115 22 / 0.95))
-    drop-shadow(0 0 14px rgb(250 204 21 / 0.7));
+  filter: drop-shadow(0 0 5px var(--theme-trace-glow, rgb(249 115 22 / 0.95)))
+    drop-shadow(0 0 14px color-mix(in oklab, var(--color-yellow-400) 70%, transparent));
   animation: tinybros-outline-trace 6s ease-in-out infinite;
 }
 
@@ -87,54 +311,90 @@ body {
   }
 }
 
+/*
+ * Home hero shading. Eased (many-stop) gradients avoid the visible banding a
+ * plain two-stop fade gives. In light mode the scrim darkens the text area but
+ * clears before the bottom, so the photo fades straight into cream, not via black.
+ */
+.hero-scrim {
+  background: linear-gradient(
+    to top,
+    rgb(0 0 0 / 0.9) 0%,
+    rgb(0 0 0 / 0.78) 15%,
+    rgb(0 0 0 / 0.6) 32%,
+    rgb(0 0 0 / 0.42) 50%,
+    rgb(0 0 0 / 0.22) 70%,
+    rgb(0 0 0 / 0.08) 86%,
+    rgb(0 0 0 / 0) 100%
+  );
+}
+
+html[data-mode="light"] .hero-scrim {
+  background: linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 0.12) 0%,
+    rgb(0 0 0 / 0.3) 25%,
+    rgb(0 0 0 / 0.42) 45%,
+    rgb(0 0 0 / 0.38) 60%,
+    rgb(0 0 0 / 0.2) 78%,
+    rgb(0 0 0 / 0.06) 92%,
+    rgb(0 0 0 / 0) 100%
+  );
+}
+
+.hero-fade {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--color-black) 0%, transparent) 0%,
+    color-mix(in srgb, var(--color-black) 4%, transparent) 14%,
+    color-mix(in srgb, var(--color-black) 12%, transparent) 28%,
+    color-mix(in srgb, var(--color-black) 26%, transparent) 42%,
+    color-mix(in srgb, var(--color-black) 45%, transparent) 56%,
+    color-mix(in srgb, var(--color-black) 66%, transparent) 70%,
+    color-mix(in srgb, var(--color-black) 85%, transparent) 84%,
+    var(--color-black) 100%
+  );
+}
+
 /* Global scrollbar styling */
 ::-webkit-scrollbar {
   width: 12px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #000000;
+  background: var(--color-black);
   border-radius: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #fbbf24, #f59e0b);
+  background: linear-gradient(to bottom, var(--color-yellow-400), var(--color-yellow-500));
   border-radius: 6px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #f59e0b, #d97706);
+  background: linear-gradient(to bottom, var(--color-yellow-500), var(--color-yellow-600));
 }
 
 /* Firefox scrollbar */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #fbbf24 #000000;
+  scrollbar-color: var(--color-yellow-400) var(--color-black);
 }
 
 /* Android WebView gradient fallback */
 .bg-gradient-orange-yellow {
-  background-color: #eab308; /* yellow-600 fallback */
-  background-image: linear-gradient(to right, #eab308, #ca8a04);
-  -webkit-background-image: linear-gradient(to right, #eab308, #ca8a04);
-  -moz-background-image: linear-gradient(to right, #eab308, #ca8a04);
-  -o-background-image: linear-gradient(to right, #eab308, #ca8a04);
+  background-color: var(--color-yellow-500); /* yellow-600 fallback */
+  background-image: linear-gradient(to right, var(--color-yellow-500), var(--color-yellow-600));
 }
 
 .bg-gradient-orange-yellow-light {
-  background-color: #facc15; /* yellow-500 fallback */
-  background-image: linear-gradient(to right, #facc15, #ca8a04);
-  -webkit-background-image: linear-gradient(to right, #facc15, #ca8a04);
-  -moz-background-image: linear-gradient(to right, #facc15, #ca8a04);
-  -o-background-image: linear-gradient(to right, #facc15, #ca8a04);
+  background-color: var(--color-yellow-400); /* yellow-500 fallback */
+  background-image: linear-gradient(to right, var(--color-yellow-400), var(--color-yellow-600));
 }
 
 .bg-gradient-yellow-dot {
-  background-color: #facc15; /* yellow-400 fallback */
-  background-image: linear-gradient(to right, #facc15, #eab308);
-  -webkit-background-image: linear-gradient(to right, #facc15, #eab308);
-  -moz-background-image: linear-gradient(to right, #facc15, #eab308);
-  -o-background-image: linear-gradient(to right, #facc15, #eab308);
+  background-color: var(--color-yellow-400); /* yellow-400 fallback */
+  background-image: linear-gradient(to right, var(--color-yellow-400), var(--color-yellow-500));
 }
 
 /* Glass surfaces (source dropdown, featured buttons) */

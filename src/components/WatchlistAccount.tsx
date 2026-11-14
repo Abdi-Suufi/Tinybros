@@ -4,6 +4,15 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useWatchlist } from '@/components/WatchlistContext';
+import { useTheme } from '@/components/ThemeContext';
+import {
+  DEFAULT_CUSTOM_THEME,
+  MODE_BACKGROUNDS,
+  THEMES,
+  clampDarkBackground,
+  clampLightBackground,
+  type CustomTheme,
+} from '@/lib/themes';
 
 interface WatchlistAccountProps {
   /** Classes for the round icon trigger, so it matches the navbar it sits in. */
@@ -12,6 +21,15 @@ interface WatchlistAccountProps {
 
 export default function WatchlistAccount({ triggerClassName = '' }: WatchlistAccountProps) {
   const { user, authReady, authAvailable, signIn, signUp, requestPasswordReset, signOut } = useWatchlist();
+  const {
+    theme,
+    setTheme,
+    mode: colorMode,
+    setMode: setColorMode,
+    customTheme,
+    setCustomTheme,
+  } = useTheme();
+  const isDarkMode = colorMode === 'dark';
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState<'signIn' | 'signUp' | 'resetRequest'>('signIn');
   const [view, setView] = useState<'menu' | 'auth'>('menu');
@@ -206,6 +224,128 @@ export default function WatchlistAccount({ triggerClassName = '' }: WatchlistAcc
                     Patch Notes
                   </Link>
                 </nav>
+                <div className="my-2 border-t border-white/10" />
+                <div className="px-3 pb-1 pt-0.5">
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={isDarkMode}
+                    onClick={() => setColorMode(isDarkMode ? 'light' : 'dark')}
+                    className="mb-3 flex w-full items-center justify-between rounded-lg text-sm font-medium text-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
+                  >
+                    <span className="flex items-center gap-3">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+                      </svg>
+                      Dark mode
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      className={`relative h-5 w-9 flex-shrink-0 rounded-full transition-colors ${isDarkMode ? 'bg-yellow-500' : 'bg-gray-600'}`}
+                    >
+                      <span
+                        className={`absolute top-0.5 h-4 w-4 rounded-full bg-[#ffffff] shadow transition-[left] ${isDarkMode ? 'left-[18px]' : 'left-0.5'}`}
+                      />
+                    </span>
+                  </button>
+                  <p id="theme-picker-label" className="mb-2 text-xs font-medium text-gray-400">
+                    Theme
+                  </p>
+                  <div role="radiogroup" aria-labelledby="theme-picker-label" className="grid grid-cols-5 gap-2">
+                    {THEMES.map((option) => {
+                      const selected = option.id === theme;
+                      return (
+                        <button
+                          key={option.id}
+                          type="button"
+                          role="radio"
+                          aria-checked={selected}
+                          aria-label={option.label}
+                          title={option.label}
+                          onClick={() => setTheme(option.id)}
+                          className={`aspect-square w-full rounded-lg transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
+                            selected ? 'ring-2 ring-white ring-offset-2 ring-offset-black' : 'ring-1 ring-white/25'
+                          }`}
+                          // Diagonal split: accent colour top-left, current background bottom-right
+                          style={{ backgroundImage: `linear-gradient(135deg, ${option.accent} 50%, ${MODE_BACKGROUNDS[colorMode]} 50%)` }}
+                        />
+                      );
+                    })}
+                    <button
+                      type="button"
+                      role="radio"
+                      aria-checked={theme === 'custom'}
+                      aria-label="Custom"
+                      title="Custom"
+                      onClick={() => setTheme('custom')}
+                      className={`relative flex aspect-square w-full items-center justify-center rounded-lg transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
+                        theme === 'custom' ? 'ring-2 ring-white ring-offset-2 ring-offset-black' : 'ring-1 ring-white/25'
+                      }`}
+                      style={{
+                        backgroundImage: `linear-gradient(135deg, ${customTheme.accent} 50%, ${
+                          colorMode === 'dark' ? customTheme.dark : customTheme.light
+                        } 50%)`,
+                      }}
+                    >
+                      {/* Pencil marks this square as the editable one */}
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 drop-shadow" fill="none" viewBox="0 0 24 24" stroke="#ffffff" strokeWidth={2.2} aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z" />
+                      </svg>
+                    </button>
+                  </div>
+                  {theme === 'custom' && (
+                    <div className="mt-3 grid grid-cols-4 gap-2">
+                      {(
+                        [
+                          { key: 'accent', label: 'Accent', clamp: (hex: string) => hex },
+                          { key: 'dark', label: 'Dark bg', clamp: clampDarkBackground },
+                          { key: 'light', label: 'Light bg', clamp: clampLightBackground },
+                        ] as const
+                      ).map(({ key, label, clamp }) => (
+                        <label key={key} className="flex cursor-pointer flex-col items-center gap-1 text-[11px] text-gray-400">
+                          <span
+                            className="relative h-7 w-full overflow-hidden rounded-md ring-1 ring-white/25 transition-transform hover:scale-105 focus-within:ring-2 focus-within:ring-white"
+                            style={{ backgroundColor: customTheme[key] }}
+                          >
+                            <input
+                              type="color"
+                              aria-label={`Custom ${label.toLowerCase()} colour`}
+                              value={customTheme[key]}
+                              onChange={(event) =>
+                                setCustomTheme({ ...customTheme, [key]: clamp(event.target.value) } as CustomTheme)
+                              }
+                              className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                            />
+                          </span>
+                          {label}
+                        </label>
+                      ))}
+                      {(() => {
+                        const isDefault =
+                          customTheme.accent === DEFAULT_CUSTOM_THEME.accent &&
+                          customTheme.dark === DEFAULT_CUSTOM_THEME.dark &&
+                          customTheme.light === DEFAULT_CUSTOM_THEME.light;
+                        return (
+                          <button
+                            type="button"
+                            onClick={() => setCustomTheme(DEFAULT_CUSTOM_THEME)}
+                            disabled={isDefault}
+                            aria-label="Reset custom colours"
+                            title="Reset custom colours"
+                            className="group flex flex-col items-center gap-1 text-[11px] text-gray-400 transition-colors hover:text-yellow-300 disabled:cursor-default disabled:opacity-40 disabled:hover:text-gray-400 focus-visible:outline-none"
+                          >
+                            <span className="flex h-7 w-full items-center justify-center rounded-md ring-1 ring-white/25 transition-colors group-hover:bg-white/10 group-focus-visible:ring-2 group-focus-visible:ring-white group-disabled:group-hover:bg-transparent">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                              </svg>
+                            </span>
+                            Reset
+                          </button>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
                 <div className="my-2 border-t border-white/10" />
                 {user ? (
                   <button

@@ -101,7 +101,7 @@ export default function Navbar() {
         <div className="flex w-full items-center justify-between gap-2 px-3 py-3 sm:px-4" suppressHydrationWarning>
           <Link
             href="/"
-            className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-yellow-600 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] transition-opacity hover:opacity-90 sm:text-2xl"
+            className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-yellow-600 drop-shadow-[0_2px_4px_var(--logo-shadow)] transition-opacity hover:opacity-90 sm:text-2xl"
           >
             Tinywatch
           </Link>

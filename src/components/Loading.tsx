@@ -21,10 +21,10 @@ export default function Loading({ isExiting = false }: LoadingProps) {
       >
         <defs>
           <linearGradient id="tinywatch-trace-gradient">
-            <stop offset="0%" stopColor="#facc15" stopOpacity="0.1" />
-            <stop offset="72%" stopColor="#facc15" stopOpacity="0.35" />
+            <stop offset="0%" stopColor="var(--color-yellow-400)" stopOpacity="0.1" />
+            <stop offset="72%" stopColor="var(--color-yellow-400)" stopOpacity="0.35" />
             <stop offset="92%" stopColor="#fff7ed" />
-            <stop offset="100%" stopColor="#facc15" stopOpacity="0.1" />
+            <stop offset="100%" stopColor="var(--color-yellow-400)" stopOpacity="0.1" />
           </linearGradient>
         </defs>
         <text className="tinybros-loader-outline" x="400" y="124" textAnchor="middle">

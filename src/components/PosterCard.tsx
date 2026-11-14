@@ -26,7 +26,7 @@ export default function PosterCard({ item, href, onClick, rating, year, rank, cl
   const title = item.title || item.name || '';
 
   const poster = (
-    <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-black border border-yellow-500/20 group-hover:border-yellow-400/70 group-hover:shadow-[0_0_16px_rgba(234,179,8,0.35)] transition-all duration-300">
+    <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-black border border-yellow-500/20 group-hover:border-yellow-400/70 group-hover:shadow-[0_0_16px_color-mix(in_oklab,var(--color-yellow-500)_35%,transparent)] transition-all duration-300">
       <Image
         src={getImageUrl(item.poster_path)}
         alt={title}

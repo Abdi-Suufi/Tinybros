@@ -74,7 +74,7 @@ export default function ContinueWatchingRow() {
           return (
             <article
               key={`${key}:${progress.season ?? 0}:${progress.episode ?? 0}`}
-              className="group relative w-36 flex-none overflow-hidden rounded-xl bg-black border border-yellow-500/20 hover:border-yellow-400/70 hover:shadow-[0_0_16px_rgba(234,179,8,0.35)] transition-all sm:w-44"
+              className="group relative w-36 flex-none overflow-hidden rounded-xl bg-black border border-yellow-500/20 hover:border-yellow-400/70 hover:shadow-[0_0_16px_color-mix(in_oklab,var(--color-yellow-500)_35%,transparent)] transition-all sm:w-44"
             >
               <Link href={watchUrl(progress)} className="block">
                 <div className="relative aspect-[2/3] bg-gray-800">

@@ -121,7 +121,7 @@ export default function ShowPage({ params }: { params: Promise<{ type: string; i
               {episodes.episodes.map((episode: TMDBEpisode) => (
                 <div
                   key={episode.id}
-                  className="rounded-xl overflow-hidden bg-black border border-yellow-500/20 hover:border-yellow-400/70 hover:shadow-[0_0_16px_rgba(234,179,8,0.35)] transition-all duration-300 transform hover:scale-105 group"
+                  className="rounded-xl overflow-hidden bg-black border border-yellow-500/20 hover:border-yellow-400/70 hover:shadow-[0_0_16px_color-mix(in_oklab,var(--color-yellow-500)_35%,transparent)] transition-all duration-300 transform hover:scale-105 group"
                 >
                   <div className="relative h-40">
                     <Image

@@ -51,7 +51,10 @@ export default function PatchNotesPage() {
                 </ul>
               </div>
               {note.image && (
-                <div className="relative aspect-[4/3] w-full max-w-[250px] justify-self-center overflow-hidden rounded-xl bg-black/40 md:justify-self-end">
+                <div
+                  className="relative w-full max-w-[250px] justify-self-center overflow-hidden rounded-xl bg-black/40 md:justify-self-end"
+                  style={{ aspectRatio: note.image.aspectRatio ?? '4 / 3' }}
+                >
                   <Image
                     src={note.image.src}
                     alt={note.image.alt}

@@ -50,7 +50,7 @@ export default function CastView({ cast, crew = [], scrollable = false }: CastVi
               <Link
                 key={actor.id}
                 href={`/search?person=${actor.id}&name=${encodeURIComponent(actor.name)}`}
-                className="group block bg-black border border-yellow-500/20 rounded-xl overflow-hidden hover:border-yellow-400/70 hover:shadow-[0_0_16px_rgba(234,179,8,0.35)] transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                className="group block bg-black border border-yellow-500/20 rounded-xl overflow-hidden hover:border-yellow-400/70 hover:shadow-[0_0_16px_color-mix(in_oklab,var(--color-yellow-500)_35%,transparent)] transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-400"
                 aria-label={`View movies and series with ${actor.name}`}
               >
                 <div className="relative w-full aspect-[2/3] bg-neutral-900 flex items-center justify-center overflow-hidden">
@@ -86,7 +86,7 @@ export default function CastView({ cast, crew = [], scrollable = false }: CastVi
               <Link
                 key={director.id}
                 href={`/search?person=${director.id}&name=${encodeURIComponent(director.name)}&department=directing`}
-                className="group block bg-black border border-yellow-500/20 rounded-xl overflow-hidden hover:border-yellow-400/70 hover:shadow-[0_0_16px_rgba(234,179,8,0.35)] transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                className="group block bg-black border border-yellow-500/20 rounded-xl overflow-hidden hover:border-yellow-400/70 hover:shadow-[0_0_16px_color-mix(in_oklab,var(--color-yellow-500)_35%,transparent)] transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-400"
                 aria-label={`View movies and series directed by ${director.name}`}
               >
                 <div className="relative w-full aspect-[2/3] bg-neutral-900 flex items-center justify-center overflow-hidden">

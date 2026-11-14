@@ -7,10 +7,30 @@ export interface PatchNote {
   image?: {
     src: string;
     alt: string;
+    /** Width / height of the image box; defaults to 4 / 3. Use the image's own ratio to show it uncropped. */
+    aspectRatio?: string;
   };
 }
 
 export const patchNotes: PatchNote[] = [
+  {
+    date: 'November 14, 2026',
+    title: 'Make Tinywatch yours with themes',
+    status: 'released',
+    summary: 'Pick your own colours: choose a theme, switch between dark and light mode, or build a custom theme from scratch. Find it in the account menu.',
+    changes: [
+      'Four themes to choose from: Gold, Crimson, Ocean, and Emerald.',
+      'A new Dark mode switch: keep the classic black look, or turn it off for a light cream background.',
+      'Create a Custom theme by picking your own accent colour plus dark and light backgrounds, with a reset button to start over.',
+      'Your theme is saved to your account and follows you to every device you sign in on. Signed out? It is remembered on this device.',
+      'The homepage slider is taller on wide screens, so less of each image gets cropped, and it now fades smoothly into the page.',
+    ],
+    image: {
+      src: 'https://static2.klipy.com/ii/f87f46a2c5aeaeed4c68910815f73eaf/c5/d6/R5PFzIyN.gif',
+      alt: 'Zesty man eating',
+      aspectRatio: '399 / 498',
+    },
+  },
   {
     date: 'October 26, 2026',
     title: 'A fresh coat of gold',
