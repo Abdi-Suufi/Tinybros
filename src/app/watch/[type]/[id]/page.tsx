@@ -10,6 +10,8 @@ import WatchlistToggle from '@/components/WatchlistToggle';
 import CastView from '@/components/CastView';
 import { AdsterraSidebar } from '@/components/AdsterraAds';
 import { useWatchProgress, type WatchProgress } from '@/components/WatchProgressContext';
+import { useWatchedEpisodes } from '@/components/WatchedEpisodesContext';
+import EpisodeCard from '@/components/EpisodeCard';
 
 interface ShowDetails {
   id: number;
@@ -80,6 +82,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
   const finishedProgressKeyRef = useRef<string | null>(null);
   const stoppedUpdateTimerRef = useRef<number | null>(null);
   const { records: watchProgress, ready: progressReady, saveProgress, removeProgress } = useWatchProgress();
+  const { setWatched } = useWatchedEpisodes();
   const mediaType = resolvedParams.type === 'movie' ? 'movie' : 'tv';
   const currentSeason = Number(searchParams.get('season')) || 1;
   const currentEpisode = Number(searchParams.get('episode')) || 1;
@@ -348,6 +351,9 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
 
       if (isEnded || (hasValidTime && (currentTimeValue as number) > (durationValue as number) * 0.9)) {
         finishedProgressKeyRef.current = progressKey;
+        if (mediaType === 'tv' && progressSeason !== null && progressEpisode !== null) {
+          setWatched(Number(resolvedParams.id), progressSeason, progressEpisode, true);
+        }
         if (isEnded && !latestPlaybackRef.current && savedProgressRef.current) {
           logWatchPlayer('save attempt', {
             key: progressKey,
@@ -389,7 +395,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
       window.removeEventListener('pagehide', onPageHide);
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
-  }, [progressReady, startSeconds, progressKey, selectedSource, playerReload, resolvedParams.id, mediaType, progressSeason, progressEpisode, removeProgress, flushPlaybackProgress]);
+  }, [progressReady, startSeconds, progressKey, selectedSource, playerReload, resolvedParams.id, mediaType, progressSeason, progressEpisode, removeProgress, flushPlaybackProgress, setWatched]);
 
   const routeIdentity = `${pathname}?${searchParams.toString()}`;
   useEffect(() => () => flushPlaybackProgress('client-side route change or unmount'), [routeIdentity, flushPlaybackProgress]);
@@ -897,54 +903,16 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
             </div>
             <div ref={episodeListRef} className="panel-scroll relative min-h-0 flex-1 overflow-y-auto p-2">
             <div className="flex flex-col gap-3">
-              {episodes.map((episode) => {
-                const isCurrentEpisode = episode.episode_number === currentEpisode && selectedSeason === currentSeason;
-                return (
-                  <div
-                    key={episode.id}
-                    data-current-episode={isCurrentEpisode}
-                    className={`flex rounded-xl overflow-hidden bg-black transition-all duration-300 ${
-                      isCurrentEpisode
-                        ? 'border-2 border-yellow-500/70 shadow-[0_0_18px_color-mix(in_oklab,var(--color-yellow-500)_30%,transparent)]'
-                        : 'border border-yellow-500/20 hover:border-yellow-400/70 hover:shadow-[0_0_16px_color-mix(in_oklab,var(--color-yellow-500)_35%,transparent)] group'
-                    }`}
-                  >
-                    <div className="relative w-28 sm:w-48 flex-shrink-0 self-stretch min-h-[96px]">
-                      <Image
-                        src={getImageUrl(episode.still_path)}
-                        alt={episode.name}
-                        fill
-                        className="object-cover"
-                      />
-                      <div className={`absolute inset-0 bg-gradient-to-r from-transparent to-black/60 ${
-                        isCurrentEpisode ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-                      } transition-opacity`} />
-                    </div>
-                    <div className="flex min-w-0 flex-1 flex-col p-3">
-                      <div className="flex items-center justify-between gap-2 mb-1">
-                        <h3 className="whitespace-nowrap text-sm font-semibold text-yellow-400">Episode {episode.episode_number}</h3>
-                        <span className="whitespace-nowrap text-xs text-gray-400">{episode.air_date}</span>
-                      </div>
-                      <h4 className="font-bold mb-1 truncate text-white group-hover:text-yellow-300 transition-colors">{episode.name}</h4>
-                      <p className="text-gray-300 text-xs mb-3 line-clamp-2">
-                        {episode.overview}
-                      </p>
-                      {isCurrentEpisode ? (
-                        <span className="mt-auto self-start whitespace-nowrap px-3 py-1 bg-yellow-500/10 border border-yellow-500/40 text-yellow-300 rounded-full text-xs font-semibold">
-                          Currently Watching
-                        </span>
-                      ) : (
-                        <Link
-                          href={`/watch/${resolvedParams.type}/${resolvedParams.id}?season=${selectedSeason}&episode=${episode.episode_number}`}
-                          className="mt-auto self-start whitespace-nowrap px-4 py-1 bg-gradient-orange-yellow bg-gradient-to-r from-yellow-400 to-yellow-600 text-black rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
-                        >
-                          Watch Episode
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+              {episodes.map((episode) => (
+                <EpisodeCard
+                  key={episode.id}
+                  tmdbId={Number(resolvedParams.id)}
+                  season={selectedSeason}
+                  episode={episode}
+                  href={`/watch/${resolvedParams.type}/${resolvedParams.id}?season=${selectedSeason}&episode=${episode.episode_number}`}
+                  isCurrent={episode.episode_number === currentEpisode && selectedSeason === currentSeason}
+                />
+              ))}
             </div>
             </div>
           </section>

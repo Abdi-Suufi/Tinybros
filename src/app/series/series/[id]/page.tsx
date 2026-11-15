@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { use, useEffect, useState } from 'react';
 import { getImageUrl, TMDBShow, TMDBSeason, TMDBEpisode, fetchTVCast, TMDBCredits } from '@/lib/tmdb';
 import CastView from '@/components/CastView';
+import EpisodeCard from '@/components/EpisodeCard';
 import ImdbRating from '@/components/ImdbRating';
 
 async function getShowDetails(id: string): Promise<TMDBShow> {
@@ -212,36 +213,13 @@ export default function SeriesPage({ params }: { params: Promise<{ id: string }>
               ) : episodes.length > 0 ? (
                 <div className="flex flex-col gap-3">
                   {episodes.map((episode: TMDBEpisode) => (
-                    <div
+                    <EpisodeCard
                       key={episode.id}
-                      className="flex rounded-xl overflow-hidden bg-black border border-yellow-500/20 hover:border-yellow-400/70 hover:shadow-[0_0_16px_color-mix(in_oklab,var(--color-yellow-500)_35%,transparent)] transition-all duration-300 group"
-                    >
-                      <div className="relative w-28 sm:w-48 flex-shrink-0 self-stretch min-h-[96px]">
-                        <Image
-                          src={getImageUrl(episode.still_path)}
-                          alt={episode.name}
-                          fill
-                          className="object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/60 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </div>
-                      <div className="flex min-w-0 flex-1 flex-col p-3">
-                        <div className="flex items-center justify-between gap-2 mb-1">
-                          <h3 className="whitespace-nowrap text-sm font-semibold text-yellow-400">Episode {episode.episode_number}</h3>
-                          <span className="whitespace-nowrap text-xs text-gray-400">{episode.air_date}</span>
-                        </div>
-                        <h4 className="font-bold mb-1 truncate text-white group-hover:text-yellow-300 transition-colors">{episode.name}</h4>
-                        <p className="text-gray-300 text-xs mb-3 line-clamp-2">
-                          {episode.overview}
-                        </p>
-                        <Link
-                          href={`/watch/tv/${resolvedParams.id}?season=${selectedSeason}&episode=${episode.episode_number}`}
-                          className="mt-auto self-start whitespace-nowrap px-4 py-1 bg-gradient-orange-yellow bg-gradient-to-r from-yellow-400 to-yellow-600 text-black rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
-                        >
-                          Watch Episode
-                        </Link>
-                      </div>
-                    </div>
+                      tmdbId={Number(resolvedParams.id)}
+                      season={selectedSeason}
+                      episode={episode}
+                      href={`/watch/tv/${resolvedParams.id}?season=${selectedSeason}&episode=${episode.episode_number}`}
+                    />
                   ))}
                 </div>
               ) : (

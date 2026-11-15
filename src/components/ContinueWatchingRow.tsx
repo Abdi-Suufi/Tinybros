@@ -77,7 +77,7 @@ export default function ContinueWatchingRow() {
               className="group relative w-36 flex-none overflow-hidden rounded-xl bg-black border border-yellow-500/20 hover:border-yellow-400/70 hover:shadow-[0_0_16px_color-mix(in_oklab,var(--color-yellow-500)_35%,transparent)] transition-all sm:w-44"
             >
               <Link href={watchUrl(progress)} className="block">
-                <div className="relative aspect-[2/3] bg-gray-800">
+                <div className="keep-dark relative aspect-[2/3] bg-gray-800">
                   {item?.poster_path && (
                     <Image
                       src={getImageUrl(item.poster_path)}
@@ -110,7 +110,7 @@ export default function ContinueWatchingRow() {
                 type="button"
                 aria-label={`Remove ${item?.title || item?.name || 'title'} from Continue watching`}
                 onClick={() => removeProgress(progress)}
-                className="absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/75 text-lg text-white opacity-100 transition-opacity hover:bg-black sm:opacity-0 sm:group-hover:opacity-100"
+                className="keep-dark absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/75 text-lg text-white opacity-100 transition-opacity hover:bg-black sm:opacity-0 sm:group-hover:opacity-100"
               >
                 ×
               </button>

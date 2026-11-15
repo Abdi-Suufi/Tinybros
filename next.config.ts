@@ -1,3 +1,4 @@
+import path from "path";
 import type { NextConfig } from "next";
 
 // Check if we are building for the App (Capacitor)
@@ -33,9 +34,8 @@ const nextConfig: NextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  // Pin the project root: a stray lockfile in the home folder otherwise makes Next guess the wrong one
+  outputFileTracingRoot: path.join(__dirname),
 };
 
 export default nextConfig;

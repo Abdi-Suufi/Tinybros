@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { patchNotes } from '@/lib/patchNotes';
+import MarkPatchNotesSeen from './MarkPatchNotesSeen';
 
 export const metadata: Metadata = {
   title: 'Patch Notes | Tinywatch',
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
 export default function PatchNotesPage() {
   return (
     <main className="min-h-screen px-4 pb-16 pt-28 text-white sm:px-6 lg:px-8">
+      <MarkPatchNotesSeen />
       <div className="mx-auto max-w-4xl">
         <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-yellow-400">
           Tinywatch updates

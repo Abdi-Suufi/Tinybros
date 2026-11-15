@@ -466,7 +466,7 @@ export async function discoverTVShowsPage(
   };
 }
 
-export function getImageUrl(path: string, size: 'w500' | 'original' = 'w500'): string {
+export function getImageUrl(path: string | null | undefined, size: 'w500' | 'original' = 'w500'): string {
   if (!path) {
     // Return a transparent placeholder image data URI
     return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMWExYTFhIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM2NjY2NjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5ObyBJbWFnZTwvdGV4dD48L3N2Zz4=';

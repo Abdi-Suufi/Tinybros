@@ -128,7 +128,7 @@ export default function SeriesClient() {
             });
             setSeries((prev) => {
               const existing = new Set(prev.map((item) => item.id));
-              const incoming = data.results.filter((item) => !existing.has(item.id));
+              const incoming = data.results.filter((item: (typeof prev)[number]) => !existing.has(item.id));
               return [...prev, ...incoming];
             });
             setNextPage(data.page + 1);

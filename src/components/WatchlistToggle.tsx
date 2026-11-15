@@ -27,7 +27,7 @@ export default function WatchlistToggle({ item, size = 'md' }: WatchlistTogglePr
       type="button"
       onClick={handleClick}
       aria-label={saved ? 'Remove from watchlist' : 'Save to watchlist'}
-      className={`absolute top-3 right-3 z-20 flex items-center justify-center rounded-full border transition-all duration-200 ${
+      className={`keep-dark absolute top-3 right-3 z-20 flex items-center justify-center rounded-full border transition-all duration-200 ${
         baseSize
       } ${
         saved

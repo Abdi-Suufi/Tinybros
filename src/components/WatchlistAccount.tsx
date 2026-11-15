@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useWatchlist } from '@/components/WatchlistContext';
 import { useTheme } from '@/components/ThemeContext';
+import { usePatchNotesSeen } from '@/lib/usePatchNotesSeen';
 import {
   DEFAULT_CUSTOM_THEME,
   MODE_BACKGROUNDS,
@@ -31,6 +32,7 @@ export default function WatchlistAccount({ triggerClassName = '' }: WatchlistAcc
   } = useTheme();
   const isDarkMode = colorMode === 'dark';
   const [isOpen, setIsOpen] = useState(false);
+  const { hasUnseen: hasNewPatchNotes } = usePatchNotesSeen();
   const [mode, setMode] = useState<'signIn' | 'signUp' | 'resetRequest'>('signIn');
   const [view, setView] = useState<'menu' | 'auth'>('menu');
   const [email, setEmail] = useState('');
@@ -176,13 +178,19 @@ export default function WatchlistAccount({ triggerClassName = '' }: WatchlistAcc
         type="button"
         ref={triggerRef}
         onClick={() => (isOpen ? setIsOpen(false) : openMenu())}
-        aria-label={user ? 'Account' : 'Account and sign in'}
+        aria-label={`${user ? 'Account' : 'Account and sign in'}${hasNewPatchNotes ? ' (new patch notes)' : ''}`}
         aria-expanded={isOpen}
-        className={`${triggerClassName} ${isOpen ? 'bg-yellow-500/15 text-yellow-300 ring-1 ring-yellow-400/60' : ''}`}
+        className={`relative ${triggerClassName} ${isOpen ? 'bg-yellow-500/15 text-yellow-300 ring-1 ring-yellow-400/60' : ''}`}
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.25a7.5 7.5 0 0115 0" />
         </svg>
+        {hasNewPatchNotes && (
+          <span className="pointer-events-none absolute right-1 top-1 flex h-2.5 w-2.5" aria-hidden="true">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-yellow-400 opacity-60 motion-reduce:hidden" />
+            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-yellow-400 ring-2 ring-black" />
+          </span>
+        )}
       </button>
 
       {isOpen && dropdownPosition && typeof document !== 'undefined'
@@ -222,6 +230,11 @@ export default function WatchlistAccount({ triggerClassName = '' }: WatchlistAcc
                       <path strokeLinecap="round" d="M12 11v5m0-8h.01" />
                     </svg>
                     Patch Notes
+                    {hasNewPatchNotes && (
+                      <span className="ml-auto rounded-full bg-yellow-400 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-black">
+                        New
+                      </span>
+                    )}
                   </Link>
                 </nav>
                 <div className="my-2 border-t border-white/10" />

@@ -30,6 +30,9 @@ export default function Home() {
   const suppressClickUntilRef = useRef(0);
   const autoplayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const resetAutoplayRef = useRef<() => void>(() => {});
+  // Autoplay waits while a mouse is over the hero or keyboard focus is inside it
+  const heroHoveredRef = useRef(false);
+  const heroFocusedRef = useRef(false);
 
   type DragState = {
     active: boolean;
@@ -212,7 +215,7 @@ export default function Home() {
   }, [router]);
 
   // Create drag handlers for each section
-  const createDragHandlers = useCallback((sectionRef: React.RefObject<HTMLDivElement>, sectionId: string) => {
+  const createDragHandlers = useCallback((sectionRef: React.RefObject<HTMLDivElement | null>, sectionId: string) => {
     const onPointerDown = (e: React.PointerEvent) => {
       const el = sectionRef.current;
       if (!el) return;
@@ -442,9 +445,13 @@ export default function Home() {
   useEffect(() => {
     if (trending.length <= 1) return;
 
+    // Respect the system "reduce motion" setting: no auto-advancing at all
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
     const advance = () => {
       const el = carouselRef.current;
-      if (isInteractingRef.current || !el) {
+      if (reducedMotion.matches) return;
+      if (isInteractingRef.current || heroHoveredRef.current || heroFocusedRef.current || !el) {
         resetAutoplayRef.current();
         return;
       }
@@ -525,7 +532,6 @@ export default function Home() {
             <div 
               ref={trendingRef}
               className="flex overflow-x-auto gap-4 pb-6 category-scrollbar cursor-grab active:cursor-grabbing"
-              style={{ scrollBehavior: 'smooth' }}
               {...createDragHandlers(trendingRef, 'trending')}
             >
               {loading
@@ -625,7 +631,6 @@ export default function Home() {
             <div 
               ref={moviesSectionRef}
               className="flex overflow-x-auto gap-4 pb-6 category-scrollbar cursor-grab active:cursor-grabbing"
-              style={{ scrollBehavior: 'smooth' }}
               {...createDragHandlers(moviesSectionRef, 'movies')}
             >
               {loading
@@ -659,7 +664,6 @@ export default function Home() {
             <div 
               ref={seriesRef}
               className="flex overflow-x-auto gap-4 pb-6 category-scrollbar cursor-grab active:cursor-grabbing"
-              style={{ scrollBehavior: 'smooth' }}
               {...createDragHandlers(seriesRef, 'series')}
             >
               {loading
@@ -693,7 +697,6 @@ export default function Home() {
             <div 
               ref={animeRef}
               className="flex overflow-x-auto gap-4 pb-6 category-scrollbar cursor-grab active:cursor-grabbing"
-              style={{ scrollBehavior: 'smooth' }}
               {...createDragHandlers(animeRef, 'anime')}
             >
               {loading
@@ -777,7 +780,27 @@ export default function Home() {
       `}</style>
 
       {/* Trending Shows Hero Carousel */}
-      <section className="relative h-[max(calc(70vh+20px),calc((70vh+20px+56.25vw)/2))] bg-black overflow-hidden">
+      <section
+        className="relative h-[max(calc(70vh+20px),calc((70vh+20px+56.25vw)/2))] bg-black overflow-hidden"
+        onPointerEnter={(e) => {
+          // Touch taps fire pointerenter without a matching leave, so only mice pause the slider
+          if (e.pointerType === 'mouse') heroHoveredRef.current = true;
+        }}
+        onPointerLeave={(e) => {
+          if (e.pointerType !== 'mouse') return;
+          heroHoveredRef.current = false;
+          resetAutoplayRef.current();
+        }}
+        onFocus={(e) => {
+          // Only keyboard focus pauses; a mouse click shouldn't leave the slider stuck
+          if ((e.target as HTMLElement).matches(':focus-visible')) heroFocusedRef.current = true;
+        }}
+        onBlur={(e) => {
+          if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+          heroFocusedRef.current = false;
+          resetAutoplayRef.current();
+        }}
+      >
         {loading ? (
           <div className="w-full h-full relative">
             <div className="absolute inset-0 animate-pulse bg-gradient-to-b from-yellow-900/40 via-black to-yellow-900/40" />
