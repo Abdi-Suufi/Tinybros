@@ -22,6 +22,7 @@ export const patchNotes: PatchNote[] = [
       'Finished episodes get a Watched tick, synced to your account.',
       'Half-watched episodes show a progress bar and time left.',
       'Tap the tick to mark any episode watched or unwatched.',
+      'Actor pages now show age, birthday, birthplace, a short bio, and an IMDb link.',
       'The homepage slider pauses while you hover over it.',
       'A dot on your account menu shows when there are new patch notes.',
     ],

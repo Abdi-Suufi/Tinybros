@@ -66,7 +66,10 @@ export interface TMDBPerson {
   media_type: 'person';
   known_for_department?: string;
   birthday?: string | null;
+  deathday?: string | null;
   place_of_birth?: string | null;
+  biography?: string;
+  imdb_id?: string | null;
   known_for?: TMDBShow[];
 }
 
