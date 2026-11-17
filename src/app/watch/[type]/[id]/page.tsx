@@ -74,7 +74,14 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
   const [playerReload, setPlayerReload] = useState(0);
   // When the player advances to the next episode on its own, the URL is updated to match but the
   // iframe must keep its current src (reloading it would restart the episode it is already playing)
-  const [pinnedPlayer, setPinnedPlayer] = useState<{ progressKey: string; src: string; iframeKey: string } | null>(null);
+  // previousKey also matches until the URL catches up, so the render between the state update and
+  // the route change can't unmount or rebuild the iframe (which would reload its original episode)
+  const [pinnedPlayer, setPinnedPlayer] = useState<{
+    progressKey: string;
+    previousKey: string | null;
+    src: string;
+    iframeKey: string;
+  } | null>(null);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const currentIframeRef = useRef<{ src: string; iframeKey: string } | null>(null);
   const episodeListRef = useRef<HTMLDivElement | null>(null);
@@ -211,6 +218,14 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
     finishedProgressKeyRef.current = null;
   }, [progressKey]);
 
+  // Once the URL has reached the episode the player moved to, stop matching the old one so going
+  // Back to it rebuilds the player on that episode
+  useEffect(() => {
+    setPinnedPlayer((pin) =>
+      pin?.previousKey && pin.progressKey === progressKey ? { ...pin, previousKey: null } : pin
+    );
+  }, [progressKey]);
+
   useEffect(() => {
     if (!progressReady || startSeconds === null) return;
     const onMessage = (event: MessageEvent) => {
@@ -292,7 +307,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
         // The player is already playing the new episode from the start
         setResumeStart({ key: nextKey, seconds: 0 });
         if (message.internalNavigation === true && currentIframeRef.current) {
-          setPinnedPlayer({ progressKey: nextKey, ...currentIframeRef.current });
+          setPinnedPlayer({ progressKey: nextKey, previousKey: progressKey, ...currentIframeRef.current });
         } else {
           setPinnedPlayer(null);
         }
@@ -559,7 +574,11 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
   };
   // The pin only applies while the page is still on the episode the player advanced to;
   // any other navigation, source change or reload falls back to the normal src
-  const activePin = pinnedPlayer?.progressKey === progressKey && selectedSource === 'cinesrc' ? pinnedPlayer : null;
+  const activePin = pinnedPlayer &&
+    (pinnedPlayer.progressKey === progressKey || pinnedPlayer.previousKey === progressKey) &&
+    selectedSource === 'cinesrc'
+    ? pinnedPlayer
+    : null;
   const finalIframeSrc = activePin ? activePin.src : getCurrentSourceUrl();
   const iframeKey = activePin ? activePin.iframeKey : `${selectedSource}-${finalIframeSrc}-${playerReload}`;
   currentIframeRef.current = { src: finalIframeSrc, iframeKey };
@@ -680,7 +699,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
         {showPlayer ? (
           <>
             <div className="relative w-full aspect-video bg-black rounded-lg shadow-2xl">
-              {progressReady && startSeconds !== null ? (
+              {progressReady && (startSeconds !== null || activePin) ? (
                 <iframe
                   key={iframeKey}
                   ref={iframeRef}
