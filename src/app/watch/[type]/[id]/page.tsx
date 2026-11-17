@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, use, type IframeHTMLAttributes } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { getImageUrl, TMDBCast } from '@/lib/tmdb';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -60,6 +60,7 @@ function logWatchPlayer(event: string, details: Record<string, unknown>) {
 export default function WatchPage({ params }: { params: Promise<{ type: string; id: string }> }) {
   const resolvedParams = use(params);
   const pathname = usePathname();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [show, setShow] = useState<ShowDetails | null>(null);
   const [episodes, setEpisodes] = useState<Episode[]>([]);
@@ -71,7 +72,11 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
   const [showPlayer, setShowPlayer] = useState(true);
   const [resumeStart, setResumeStart] = useState<{ key: string; seconds: number } | null>(null);
   const [playerReload, setPlayerReload] = useState(0);
+  // When the player advances to the next episode on its own, the URL is updated to match but the
+  // iframe must keep its current src (reloading it would restart the episode it is already playing)
+  const [pinnedPlayer, setPinnedPlayer] = useState<{ progressKey: string; src: string; iframeKey: string } | null>(null);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const currentIframeRef = useRef<{ src: string; iframeKey: string } | null>(null);
   const episodeListRef = useRef<HTMLDivElement | null>(null);
   const latestPlaybackRef = useRef<{
     currentTime: number;
@@ -268,6 +273,33 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
         return;
       }
 
+      if (normalizedType?.includes('nextepisode')) {
+        const nextSeason = Number(message.season);
+        const nextEpisode = Number(message.episode);
+        if (mediaType !== 'tv' || !Number.isInteger(nextSeason) || !Number.isInteger(nextEpisode) || nextSeason < 1 || nextEpisode < 1) {
+          reject('nextepisode requires a positive integer season and episode');
+          return;
+        }
+        if (nextSeason === progressSeason && nextEpisode === progressEpisode) return;
+        logWatchPlayer('message accepted', {
+          origin: event.origin,
+          type,
+          sourceMatches,
+          shape,
+          reason: `player moved to S${nextSeason}E${nextEpisode} (${String(message.source)}, internal: ${String(message.internalNavigation)})`,
+        });
+        const nextKey = `tv:${resolvedParams.id}:${nextSeason}:${nextEpisode}`;
+        // The player is already playing the new episode from the start
+        setResumeStart({ key: nextKey, seconds: 0 });
+        if (message.internalNavigation === true && currentIframeRef.current) {
+          setPinnedPlayer({ progressKey: nextKey, ...currentIframeRef.current });
+        } else {
+          setPinnedPlayer(null);
+        }
+        router.push(`${pathname}?season=${nextSeason}&episode=${nextEpisode}`, { scroll: false });
+        return;
+      }
+
       const isTimeUpdate = normalizedType?.includes('timeupdate') ?? false;
       const isPause = normalizedType?.includes('pause') ?? false;
       const isEnded = normalizedType?.includes('ended') ?? false;
@@ -395,7 +427,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
       window.removeEventListener('pagehide', onPageHide);
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
-  }, [progressReady, startSeconds, progressKey, selectedSource, playerReload, resolvedParams.id, mediaType, progressSeason, progressEpisode, removeProgress, flushPlaybackProgress, setWatched]);
+  }, [progressReady, startSeconds, progressKey, selectedSource, playerReload, resolvedParams.id, mediaType, progressSeason, progressEpisode, removeProgress, flushPlaybackProgress, setWatched, router, pathname]);
 
   const routeIdentity = `${pathname}?${searchParams.toString()}`;
   useEffect(() => () => flushPlaybackProgress('client-side route change or unmount'), [routeIdentity, flushPlaybackProgress]);
@@ -509,6 +541,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
     latestPlaybackRef.current = null;
     lastProgressSaveAtRef.current = 0;
     finishedProgressKeyRef.current = null;
+    setPinnedPlayer(null);
     setResumeStart({ key: progressKey, seconds: 0 });
     setPlayerReload((current) => current + 1);
   };
@@ -524,7 +557,12 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
     const separator = source.url.includes('?') ? '&' : '?';
     return `${source.url}${separator}time=${Math.round(startSeconds)}`;
   };
-  const finalIframeSrc = getCurrentSourceUrl();
+  // The pin only applies while the page is still on the episode the player advanced to;
+  // any other navigation, source change or reload falls back to the normal src
+  const activePin = pinnedPlayer?.progressKey === progressKey && selectedSource === 'cinesrc' ? pinnedPlayer : null;
+  const finalIframeSrc = activePin ? activePin.src : getCurrentSourceUrl();
+  const iframeKey = activePin ? activePin.iframeKey : `${selectedSource}-${finalIframeSrc}-${playerReload}`;
+  currentIframeRef.current = { src: finalIframeSrc, iframeKey };
 
   useEffect(() => {
     if (!showPlayer || !progressReady || startSeconds === null) return;
@@ -644,9 +682,9 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
             <div className="relative w-full aspect-video bg-black rounded-lg shadow-2xl">
               {progressReady && startSeconds !== null ? (
                 <iframe
-                  key={`${selectedSource}-${getCurrentSourceUrl()}-${playerReload}`}
+                  key={iframeKey}
                   ref={iframeRef}
-                  src={getCurrentSourceUrl()}
+                  src={finalIframeSrc}
                   title={`${show.title || show.name || 'Video'} player`}
                   className="w-full h-full rounded-lg"
                   allow="accelerometer *; autoplay *; clipboard-write *; encrypted-media *; fullscreen *; gyroscope *; picture-in-picture *; web-share *"
