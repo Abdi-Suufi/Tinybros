@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { useWatchProgress, type WatchProgress } from '@/components/WatchProgressContext';
+import { isUpNext, useWatchProgress, type WatchProgress } from '@/components/WatchProgressContext';
 import { getImageUrl, type TMDBShow } from '@/lib/tmdb';
 
 function watchUrl(progress: WatchProgress) {
@@ -67,8 +67,9 @@ export default function ContinueWatchingRow() {
           const key = `${progress.media_type}:${progress.tmdb_id}`;
           const item = details[key];
           const percent = Math.min(100, (progress.position_seconds / progress.duration_seconds) * 100);
+          const upNext = isUpNext(progress);
           const label = progress.media_type === 'tv'
-            ? `Season ${progress.season} • Episode ${progress.episode}`
+            ? `${upNext ? 'Up next: ' : ''}S${progress.season} • E${progress.episode}`
             : 'Movie';
 
           return (

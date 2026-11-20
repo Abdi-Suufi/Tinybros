@@ -9,7 +9,7 @@ import { DiscussionEmbed } from 'disqus-react';
 import WatchlistToggle from '@/components/WatchlistToggle';
 import CastView from '@/components/CastView';
 import { AdsterraSidebar } from '@/components/AdsterraAds';
-import { useWatchProgress, type WatchProgress } from '@/components/WatchProgressContext';
+import { UP_NEXT_POSITION, useWatchProgress, type WatchProgress } from '@/components/WatchProgressContext';
 import { useWatchedEpisodes } from '@/components/WatchedEpisodesContext';
 import EpisodeCard from '@/components/EpisodeCard';
 
@@ -57,6 +57,47 @@ function logWatchPlayer(event: string, details: Record<string, unknown>) {
   }
 }
 
+const UP_NEXT_COUNTDOWN_SECONDS = 10;
+
+/** Shown once an episode has really ended: counts down, then plays the next one unless dismissed. */
+function UpNextCard({ onPlay, onDismiss }: { onPlay: () => void; onDismiss: () => void }) {
+  const [secondsLeft, setSecondsLeft] = useState(UP_NEXT_COUNTDOWN_SECONDS);
+  const onPlayRef = useRef(onPlay);
+  onPlayRef.current = onPlay;
+
+  useEffect(() => {
+    if (secondsLeft <= 0) {
+      onPlayRef.current();
+      return;
+    }
+    const timer = window.setTimeout(() => setSecondsLeft((s) => s - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [secondsLeft]);
+
+  return (
+    <div className="keep-dark absolute bottom-16 right-4 z-10 w-60 rounded-xl border border-yellow-500/40 bg-black/85 p-4 shadow-2xl backdrop-blur">
+      <p className="text-xs uppercase tracking-wide text-gray-400">Up next</p>
+      <p className="mt-1 text-sm font-semibold text-white">Next episode in {Math.max(0, secondsLeft)}s</p>
+      <div className="mt-3 flex gap-2">
+        <button
+          type="button"
+          onClick={onPlay}
+          className="flex-1 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 px-3 py-1.5 text-sm font-semibold text-black hover:opacity-90"
+        >
+          Play now
+        </button>
+        <button
+          type="button"
+          onClick={onDismiss}
+          className="rounded-full border border-gray-600 px-3 py-1.5 text-sm text-gray-200 hover:border-gray-400"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function WatchPage({ params }: { params: Promise<{ type: string; id: string }> }) {
   const resolvedParams = use(params);
   const pathname = usePathname();
@@ -93,6 +134,11 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
   const lastProgressSaveAtRef = useRef(0);
   const finishedProgressKeyRef = useRef<string | null>(null);
   const stoppedUpdateTimerRef = useRef<number | null>(null);
+  // The episode after the one playing, tagged with the episode it follows so a late flush for an
+  // earlier episode can't queue the wrong one
+  const nextEpisodeRef = useRef<{ afterKey: string; season: number; episode: number } | null>(null);
+  // Set when the player reports the episode really ended, to offer the next one
+  const [endedKey, setEndedKey] = useState<string | null>(null);
   const { records: watchProgress, ready: progressReady, saveProgress, removeProgress } = useWatchProgress();
   const { setWatched } = useWatchedEpisodes();
   const mediaType = resolvedParams.type === 'movie' ? 'movie' : 'tv';
@@ -125,7 +171,9 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
       id: 'cinesrc',
       name: 'Main player',
       url: resolvedParams.type === 'tv'
-        ? `https://cinesrc.st/embed/tv/${resolvedParams.id}?s=${searchParams.get('season') || '1'}&e=${searchParams.get('episode') || '1'}`
+        // autonext=false: the player otherwise jumps to the next episode as soon as it detects the
+        // outro, cutting off the end; the page offers the next episode once playback really ends
+        ? `https://cinesrc.st/embed/tv/${resolvedParams.id}?s=${searchParams.get('season') || '1'}&e=${searchParams.get('episode') || '1'}&autonext=false`
         : `https://cinesrc.st/embed/movie/${resolvedParams.id}`
     },
     {
@@ -177,6 +225,26 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
     });
   }, [progressReady, progressKey, resumeStart?.key, watchProgress, resolvedParams.id, mediaType, progressSeason, progressEpisode, removeProgress]);
 
+  // A finished episode hands its Continue watching spot to the next one, so the series stays one
+  // tap away. Returns false when there is no next episode (e.g. the series finale)
+  const queueNextEpisode = useCallback((finished: WatchProgress) => {
+    if (finished.media_type !== 'tv') return false;
+    const next = nextEpisodeRef.current;
+    const finishedKey = `tv:${finished.tmdb_id}:${finished.season ?? 0}:${finished.episode ?? 0}`;
+    if (!next || next.afterKey !== finishedKey) return false;
+    saveProgress({
+      tmdb_id: finished.tmdb_id,
+      media_type: 'tv',
+      season: next.season,
+      episode: next.episode,
+      position_seconds: UP_NEXT_POSITION,
+      // The next episode's length isn't known yet; the finished one's is a close stand-in
+      duration_seconds: Math.max(UP_NEXT_POSITION + 1, finished.duration_seconds),
+      updated_at: new Date().toISOString(),
+    });
+    return true;
+  }, [saveProgress]);
+
   const flushPlaybackProgress = useCallback((reason: string, ended = false) => {
     const latest = latestPlaybackRef.current;
     if (!latest) {
@@ -192,7 +260,8 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
         reason,
         result: 'finished',
       });
-      removeProgress(latest.progress);
+      // Saving the next episode also clears this one (a series keeps a single resume point)
+      if (!queueNextEpisode(latest.progress)) removeProgress(latest.progress);
       latestPlaybackRef.current = null;
       return;
     }
@@ -210,7 +279,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
     });
     saveProgress(latest.progress);
     lastProgressSaveAtRef.current = Date.now();
-  }, [removeProgress, saveProgress]);
+  }, [removeProgress, saveProgress, queueNextEpisode]);
 
   useEffect(() => {
     latestPlaybackRef.current = null;
@@ -322,6 +391,8 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
         reject('unknown message type');
         return;
       }
+      // Checked before the finished guard: the episode usually passes 90% well before it ends
+      if (isEnded) setEndedKey(progressKey);
       if (finishedProgressKeyRef.current === progressKey) {
         reject('this item is already marked finished');
         return;
@@ -410,7 +481,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
             reason: 'ended message without time fields',
             result: 'finished',
           });
-          removeProgress(savedProgressRef.current);
+          if (!queueNextEpisode(savedProgressRef.current)) removeProgress(savedProgressRef.current);
           return;
         }
         flushPlaybackProgress(isEnded ? 'ended message' : 'past 90% duration', isEnded);
@@ -442,7 +513,7 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
       window.removeEventListener('pagehide', onPageHide);
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
-  }, [progressReady, startSeconds, progressKey, selectedSource, playerReload, resolvedParams.id, mediaType, progressSeason, progressEpisode, removeProgress, flushPlaybackProgress, setWatched, router, pathname]);
+  }, [progressReady, startSeconds, progressKey, selectedSource, playerReload, resolvedParams.id, mediaType, progressSeason, progressEpisode, removeProgress, flushPlaybackProgress, queueNextEpisode, setWatched, router, pathname]);
 
   const routeIdentity = `${pathname}?${searchParams.toString()}`;
   useEffect(() => () => flushPlaybackProgress('client-side route change or unmount'), [routeIdentity, flushPlaybackProgress]);
@@ -619,10 +690,15 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
 
     if (hasNextInSeason) {
       nextEpisodeUrl = `/watch/${resolvedParams.type}/${resolvedParams.id}?season=${currentSeason}&episode=${currentEpisode + 1}`;
+      nextEpisodeRef.current = { afterKey: progressKey, season: currentSeason, episode: currentEpisode + 1 };
     } else if (hasNextSeason) {
       nextEpisodeUrl = `/watch/${resolvedParams.type}/${resolvedParams.id}?season=${currentSeason + 1}&episode=1`;
+      nextEpisodeRef.current = { afterKey: progressKey, season: currentSeason + 1, episode: 1 };
+    } else {
+      nextEpisodeRef.current = null;
     }
   }
+  const showUpNext = endedKey === progressKey && !!nextEpisodeUrl && selectedSource === 'cinesrc';
 
   // Previous Episode Logic
   let prevEpisodeUrl = '';
@@ -716,6 +792,13 @@ export default function WatchPage({ params }: { params: Promise<{ type: string; 
                 <div className="flex h-full items-center justify-center text-sm text-gray-400">
                   Preparing your player…
                 </div>
+              )}
+              {showUpNext && (
+                <UpNextCard
+                  key={progressKey}
+                  onPlay={() => router.push(nextEpisodeUrl, { scroll: false })}
+                  onDismiss={() => setEndedKey(null)}
+                />
               )}
             </div>
             {selectedSource === 'cinesrc' && savedProgress && startSeconds !== null && startSeconds > 0 && (

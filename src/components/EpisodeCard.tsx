@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useWatchProgress } from '@/components/WatchProgressContext';
+import { isUpNext, useWatchProgress } from '@/components/WatchProgressContext';
 import { useWatchedEpisodes } from '@/components/WatchedEpisodesContext';
 import { getImageUrl } from '@/lib/tmdb';
 
@@ -30,7 +30,8 @@ export default function EpisodeCard({ tmdbId, season, episode, href, isCurrent =
 
   const progress = getProgress(tmdbId, 'tv', season, episode.episode_number);
   const ratio = progress ? progress.position_seconds / progress.duration_seconds : 0;
-  const inProgress = ratio > 0 && ratio <= FINISHED_RATIO;
+  // An "up next" marker isn't real progress, so the card reads as a fresh episode
+  const inProgress = ratio > 0 && ratio <= FINISHED_RATIO && !(progress && isUpNext(progress));
   const watched = isWatched(tmdbId, season, episode.episode_number) || ratio > FINISHED_RATIO;
   const minutesLeft = progress ? Math.max(1, Math.round((progress.duration_seconds - progress.position_seconds) / 60)) : 0;
   const actionLabel = inProgress ? 'Resume' : watched ? 'Watch Again' : 'Watch Episode';

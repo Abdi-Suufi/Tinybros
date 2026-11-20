@@ -47,6 +47,16 @@ const WatchProgressContext = createContext<WatchProgressContextValue | undefined
 const STORAGE_KEY = 'tinywatch_watch_progress_v1';
 const MAX_SECONDS = 86_400;
 
+/**
+ * When a series episode is finished, the next episode is saved at this position as an "up next"
+ * marker, so Continue watching keeps the series and opens it at the right episode.
+ */
+export const UP_NEXT_POSITION = 1;
+
+export function isUpNext(progress: Pick<WatchProgress, 'media_type' | 'position_seconds'>) {
+  return progress.media_type === 'tv' && progress.position_seconds <= UP_NEXT_POSITION;
+}
+
 function logProgress(event: string, details: Record<string, unknown>) {
   if (process.env.NODE_ENV === 'development') {
     console.debug(`[watch-progress] ${event}`, details);
